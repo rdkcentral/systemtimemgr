@@ -36,9 +36,6 @@
 using namespace std::chrono;
 
 
-
-
-
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
 mutex SysTimeMgr::g_instance_mutex;
