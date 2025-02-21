@@ -431,6 +431,7 @@ void SysTimeMgr::publishStatus(publishEvent event,string message)
 	msg.event = event;
 	msg.quality = m_timequality;
         memset(msg.message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
+//        memset(msg.message,'\0',10*cTIMER_STATUS_MESSAGE_LENGTH);
 	snprintf(msg.message, cTIMER_STATUS_MESSAGE_LENGTH, "%s", message.c_str());        //CID:277715  Buffer not null terminated                  
 	snprintf(msg.timerSrc, cTIMER_STATUS_MESSAGE_LENGTH, "%s", m_timersrc.c_str());    //CID:277715  Buffer not null terminated
 	using namespace std::chrono;
@@ -470,6 +471,7 @@ void SysTimeMgr::getTimeStatus(TimerMsg* pMsg)
 	std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 	pMsg->quality = m_timequality;
 	memset(pMsg->message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
+//	memset(pMsg->message,'\0',10*cTIMER_STATUS_MESSAGE_LENGTH);
 	string populatedString;
 
 	switch (m_timequality)
