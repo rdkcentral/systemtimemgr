@@ -19,11 +19,11 @@
 
 WORKDIR=`pwd`
 
+cd $WORKDIR
 #Build libsyswrapper
-cd ${RDKLOGGER_ROOT}
 git clone https://github.com/rdkcentral/libSyscallWrapper.git
 
-cd ${RDKLOGGER_ROOT}/libSyscallWrapper
+cd libSyscallWrapper
 autoupdate
 autoreconf -i
 ./configure --prefix=${RDKLOGGER_INSTALL_DIR}
