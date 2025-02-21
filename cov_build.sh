@@ -19,17 +19,6 @@
 
 WORKDIR=`pwd`
 
-cd $WORKDIR
-#Build libsyswrapper
-git clone https://github.com/rdkcentral/libSyscallWrapper.git
-
-cd libSyscallWrapper
-autoupdate
-autoreconf -i
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make
-make install
-
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 
