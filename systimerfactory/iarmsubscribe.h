@@ -61,6 +61,7 @@ class IarmSubscriber:public ISubscribe
 	public:
 		IarmSubscriber(string sub);
 		bool subscribe(string eventname,funcPtr fptr);
+            bool deInit(string eventname);
 		static IarmSubscriber* getInstance() { return pInstance;}
 		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
             static void sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,

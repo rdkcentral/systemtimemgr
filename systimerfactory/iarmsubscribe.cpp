@@ -101,6 +101,22 @@ bool IarmSubscriber::subscribe(string eventname,funcPtr fptr)
 	return retCode;
 }
 
+bool IarmSubscriber::deInit(string eventname)
+{
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:deInit function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+
+	if (eventname == POWER_CHANGE_MSG)
+	{
+		/* This is for the systemtime manager deInit */
+		IarmSubscriber::sysTimeMgrDeinitPwrEvt();
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:DeInit Success \n",__FUNCTION__,__LINE__);
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Deinit not present for Event =[%s]\n", __FUNCTION__, __LINE__,eventname.c_str());
+	}
+}
+
 void IarmSubscriber::sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
 										   const PowerController_PowerState_t newState,
 										   void *userdata)
