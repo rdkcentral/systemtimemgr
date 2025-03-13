@@ -173,7 +173,8 @@ void SysTimeMgr::run(bool forever)
        pathMonitorThrd.join();
 
 	/* This is for the systemtime manager event handler thread and mutex variable Deinitalization */
-	m_subscriber->SysTimeMgrDeinitPwrEvt();
+        //Temp ?: To fix
+	//m_subscriber->SysTimeMgrDeinitPwrEvt();
 
     	/* This is for the Termination of systemtime manager's power controller client handler */
 	PowerController_Term();
