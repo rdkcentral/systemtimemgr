@@ -48,12 +48,16 @@ bool IarmSubscriber::subscribe(string eventname,funcPtr fptr)
 	uint32_t retValPwrCtrl=0;
 	if (eventname == POWER_CHANGE_MSG)
 	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+
 		/* This is for the initalization of refactored power controller client for IARM communication used in systemtime manager 
 		    All the Power Controller functions are handled here */
 		PowerController_Init();
 
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:PowerController_Init Completed \n",__FUNCTION__,__LINE__);
 		/* This is for the systemtime manager event handler thread and mutex variable initalization */
 		IarmSubscriber::sysTimeMgrInitPwrEvt();
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initializing sysTimeMgrInitPwrEvt Completed \n",__FUNCTION__,__LINE__);
 		m_powerHandler = fptr;
 
 		/* Check for Power Controller Connection and if failure, start a new thread and wait until connection established */
@@ -91,6 +95,7 @@ bool IarmSubscriber::subscribe(string eventname,funcPtr fptr)
 	}
 	else
 	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 		retCode = IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr);
 	}
 	return retCode;
@@ -217,9 +222,6 @@ void IarmSubscriber::sysTimeMgrInitPwrEvt(void)
 {
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering \n",__FUNCTION__,__LINE__);
 
-	/* Initialize the Mutex and waitsignal variable, Create the thread used to separate the context of power event Callback function */
-	std::lock_guard<std::mutex> lock(m_pwrEvtMutexLock);
-
 	m_sysTimeMgrPwrStopThread = false;
 
 	m_sysTimeMgrPwrEvtHandlerThread = std::thread(&IarmSubscriber::sysTimeMgrPwrEventHandlingThreadFunc, nullptr);
@@ -258,7 +260,11 @@ void IarmSubscriber::sysTimeMgrDeinitPwrEvt(void)
 		m_sysTimeMgrPwrEvtHandlerThread.join();
 		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Completed Deinit and Joined thread\n", __FUNCTION__, __LINE__);
 	}
-	
-	/* The clean up of mutex automatically happen after it is out of scope */
+
+	if(POWER_CONTROLLER_ERROR_NONE != 
+		PowerController_UnRegisterPowerModeChangedCallback(IarmSubscriber::sysTimeMgrPwrEventHandler))
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:UnRegisterPowerModeChangedCallback Failed \n", __FUNCTION__, __LINE__);
+	}
 }
 
