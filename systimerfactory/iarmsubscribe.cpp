@@ -42,7 +42,7 @@ IarmSubscriber::IarmSubscriber(string sub):ISubscribe(sub),m_powerHandler(NULL)
 
 bool IarmSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
    bool retCode = false;
 	uint32_t retValPwrCtrl=0;
