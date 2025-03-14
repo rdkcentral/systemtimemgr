@@ -200,7 +200,7 @@ void IarmSubscriber::sysTimeMgrHandlePwrEventData(const PowerController_PowerSta
     const PowerController_PowerState_t newState)
 {
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:SysTimeMgrHandlePwrEventData currentState[%d] newState[%d]\n",__FUNCTION__,__LINE__,currentState,newState);
-	string powerstatus("UNKNOWN");
+	string powerstatus = "UNKNOWN";
 
 	if(IarmSubscriber::getInstance())
 	{
@@ -209,7 +209,7 @@ void IarmSubscriber::sysTimeMgrHandlePwrEventData(const PowerController_PowerSta
 			case POWER_STATE_OFF:
 			case POWER_STATE_STANDBY_DEEP_SLEEP:
 				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep ON Invoked\n",__FUNCTION__,__LINE__);
-				powerstatus("DEEP_SLEEP_ON");
+				powerstatus = "DEEP_SLEEP_ON";
 				IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
 				break;
 
@@ -219,7 +219,7 @@ void IarmSubscriber::sysTimeMgrHandlePwrEventData(const PowerController_PowerSta
 				if(POWER_STATE_STANDBY_DEEP_SLEEP == currentState)
 				{
 					RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep OFF Invoked\n",__FUNCTION__,__LINE__);
-					powerstatus("DEEP_SLEEP_OFF");
+					powerstatus = "DEEP_SLEEP_OFF";
 					IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
 				}
 				break;
