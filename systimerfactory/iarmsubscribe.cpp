@@ -115,6 +115,7 @@ bool IarmSubscriber::deInit(string eventname)
 	{
 		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Deinit not present for Event =[%s]\n", __FUNCTION__, __LINE__,eventname.c_str());
 	}
+	return true;
 }
 
 void IarmSubscriber::sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
