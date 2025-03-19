@@ -35,7 +35,7 @@
 #include "isubscribe.h"
 #include "itimermsg.h"
 #include <memory>
-
+#include "power_controller.h"
 
 
 using namespace std;

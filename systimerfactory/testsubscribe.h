@@ -36,6 +36,12 @@ class TestSubscriber:public ISubscribe
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Subscribed for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 			return true;
 		}
+
+		bool deInit(string eventname)
+		{
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:deInit for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+			return true;
+		}
 };
 
 

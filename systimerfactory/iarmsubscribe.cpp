@@ -19,10 +19,17 @@
 #include "libIARM.h"
 #include "libIBus.h"
 #include "libIARMCore.h"
-#include "pwrMgr.h"
 #include "irdklog.h"
 
 IarmSubscriber* IarmSubscriber::pInstance = NULL;
+
+std::mutex IarmSubscriber::m_pwrEvtQueueLock;
+std::mutex IarmSubscriber::m_pwrEvtMutexLock;
+std::condition_variable IarmSubscriber::m_pwrEvtCondVar;
+std::thread IarmSubscriber::m_sysTimeMgrPwrEvtHandlerThread;
+std::atomic<bool> IarmSubscriber::m_sysTimeMgrPwrStopThread{false};
+std::queue<SysTimeMgr_Power_Event_State_t> IarmSubscriber::m_pwrEvtQueue;
+
 IarmSubscriber::IarmSubscriber(string sub):ISubscribe(sub),m_powerHandler(NULL)
 {
    int registered;
@@ -35,46 +42,247 @@ IarmSubscriber::IarmSubscriber(string sub):ISubscribe(sub),m_powerHandler(NULL)
 
 bool IarmSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
    bool retCode = false;
-   if (eventname == POWER_CHANGE_MSG) {
-      m_powerHandler = fptr;
-      retCode = IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmSubscriber::powereventHandler);
-   }
-   else {
-      retCode = IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr);
-   }
+	uint32_t retValPwrCtrl=0;
+	if (eventname == POWER_CHANGE_MSG)
+	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
-   return retCode;
+		/* This is for the initalization of refactored power controller client for IARM communication used in systemtime manager 
+		    All the Power Controller functions are handled here */
+		PowerController_Init();
+
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:PowerController_Init Completed \n",__FUNCTION__,__LINE__);
+		/* This is for the systemtime manager event handler thread and mutex variable initalization */
+		IarmSubscriber::sysTimeMgrInitPwrEvt();
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initializing sysTimeMgrInitPwrEvt Completed \n",__FUNCTION__,__LINE__);
+		m_powerHandler = fptr;
+
+		/* Check for Power Controller Connection and if failure, start a new thread and wait until connection established */
+		if(POWER_CONTROLLER_ERROR_NONE == PowerController_Connect())
+		{
+			/* The registration function returns different values for different errors and err none value is 0 */
+			retValPwrCtrl = PowerController_RegisterPowerModeChangedCallback(IarmSubscriber::sysTimeMgrPwrEventHandler, nullptr);
+			if(POWER_CONTROLLER_ERROR_NONE != retValPwrCtrl)
+			{
+				/* The caller of the subscribe function does not check retCode, Only Error is Logged here for Failure */
+				RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Power Controller RegisterPowerModeChangedCallback Failed retValPwrCtrl=[%d]\n", __FUNCTION__, __LINE__,retValPwrCtrl);
+			}
+			else
+			{
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Controller Registration Success \n",__FUNCTION__,__LINE__);
+				retCode = true;
+			}
+		}
+		else
+		{
+			std::thread pwrConnectHandlerThread;
+			pwrConnectHandlerThread = std::thread(&IarmSubscriber::sysTimeMgrPwrConnectHandlingThreadFunc, nullptr);
+			if (!pwrConnectHandlerThread.joinable())
+			{
+				/* The caller of the subscribe function does not check retCode, Only Error is Logged here for Failure */
+				RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Thread Creation Power Controller Connect HandlerThread Failed\n", __FUNCTION__, __LINE__);
+			}
+			else
+			{
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Controller Thread Creation Success \n",__FUNCTION__,__LINE__);
+				retCode = true;
+				pwrConnectHandlerThread.detach();
+			}
+		}
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+		retCode = IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr);
+	}
+	return retCode;
 }
 
-void IarmSubscriber::powereventHandler(const char *owner, int eventId, void *data, size_t len)
+bool IarmSubscriber::deInit(string eventname)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received\n",__FUNCTION__,__LINE__);
-   if (eventId != IARM_BUS_PWRMGR_EVENT_MODECHANGED) {
-      return;
-   }
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:deInit function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
-   IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received. New State = %d\n",__FUNCTION__,__LINE__,param->data.state.newState);
-
-   if ((param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) || 
-       (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)) {
-
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep Event Received\n",__FUNCTION__,__LINE__);
-      if (IarmSubscriber::getInstance()) {
-
-	 string powerstatus("DEEP_SLEEP_ON");
-         IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
-      }
-   }
-   else if ((param->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) && 
-            ((param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) || 
-	     (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) ||
-	     (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY))) {
-	 string powerstatus("DEEP_SLEEP_OFF");
-         IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
-   }
-
+	if (eventname == POWER_CHANGE_MSG)
+	{
+		/* This is for the systemtime manager deInit */
+		IarmSubscriber::sysTimeMgrDeinitPwrEvt();
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:DeInit Success \n",__FUNCTION__,__LINE__);
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Deinit not present for Event =[%s]\n", __FUNCTION__, __LINE__,eventname.c_str());
+	}
+	return true;
 }
+
+void IarmSubscriber::sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
+										   const PowerController_PowerState_t newState,
+										   void *userdata)
+{    	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
+	{
+		std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
+		m_pwrEvtQueue.emplace(currentState, newState);
+	}
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Sending Signal to Thread for Processing Callback Event\n", __FUNCTION__, __LINE__);
+	m_pwrEvtCondVar.notify_one();
+}
+
+void IarmSubscriber::sysTimeMgrPwrConnectHandlingThreadFunc(void *arg)
+{
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
+	uint32_t retValPwrCtrl=0;
+
+	/* Loop and check for Power controller connection and if fails sleep and retry */
+	while(true)
+	{
+		if(POWER_CONTROLLER_ERROR_NONE == PowerController_Connect())
+		{
+			RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: PowerController_Connect is Success\n", __FUNCTION__, __LINE__);
+			break;
+		}
+		else
+		{
+			RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:PowerController_Connect Failed\n", __FUNCTION__, __LINE__);
+			/* Sleep for 300 msec */
+			usleep(PWR_CNTRL_CONNECT_WAIT_TIME_MS);
+		}
+	}
+	retValPwrCtrl = PowerController_RegisterPowerModeChangedCallback(IarmSubscriber::sysTimeMgrPwrEventHandler, nullptr);
+	if(POWER_CONTROLLER_ERROR_NONE != retValPwrCtrl)
+	{
+		/* Ideally Call back should not fail and failure can happen only if reregister same function is done.
+		   Only Error is Logged here for Failure as this is a separate thread*/
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Power Controller RegisterPowerModeChangedCallback Failed retValPwrCtrl=[%d]\n", __FUNCTION__, __LINE__,retValPwrCtrl);
+	}
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Controller Registration Thread Exits Gracefully retValPwrCtrl = %d\n",__FUNCTION__,__LINE__,retValPwrCtrl);
+}
+
+void IarmSubscriber::sysTimeMgrPwrEventHandlingThreadFunc(void *arg)
+{
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
+
+	while (true)
+	{
+		std::unique_lock<std::mutex> lkVar(m_pwrEvtMutexLock);
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Waiting for Events from Power Manager\n", __FUNCTION__, __LINE__); 
+		/* Wait until the queue is not empty or stop thread is signaled       */
+		m_pwrEvtCondVar.wait(lkVar, []
+		{
+			return !m_pwrEvtQueue.empty() || m_sysTimeMgrPwrStopThread;
+		});
+		if (m_sysTimeMgrPwrStopThread)
+		{
+			RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exiting thread - stop flag set\n", __FUNCTION__, __LINE__);
+			lkVar.unlock();
+			break;
+		}
+		/* Unlock before processing event from the Queue */
+		lkVar.unlock();
+		SysTimeMgr_Power_Event_State_t sysTimeMgrPwrEvent(POWER_STATE_UNKNOWN,POWER_STATE_UNKNOWN);
+		{
+			std::lock_guard<std::mutex> queueLock(m_pwrEvtQueueLock);
+			if (!m_pwrEvtQueue.empty())
+			{
+				sysTimeMgrPwrEvent = std::move(m_pwrEvtQueue.front());
+				m_pwrEvtQueue.pop();
+			}
+		}
+		IarmSubscriber::sysTimeMgrHandlePwrEventData(sysTimeMgrPwrEvent.currentState, sysTimeMgrPwrEvent.newState);
+	}
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exited thread\n", __FUNCTION__, __LINE__);
+}
+
+
+void IarmSubscriber::sysTimeMgrHandlePwrEventData(const PowerController_PowerState_t currentState,
+    const PowerController_PowerState_t newState)
+{
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:SysTimeMgrHandlePwrEventData currentState[%d] newState[%d]\n",__FUNCTION__,__LINE__,currentState,newState);
+	string powerstatus = "UNKNOWN";
+
+	if(IarmSubscriber::getInstance())
+	{
+		switch(newState)
+		{
+			case POWER_STATE_OFF:
+			case POWER_STATE_STANDBY_DEEP_SLEEP:
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep ON Invoked\n",__FUNCTION__,__LINE__);
+				powerstatus = "DEEP_SLEEP_ON";
+				IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
+				break;
+
+			case POWER_STATE_ON:
+			case POWER_STATE_STANDBY_LIGHT_SLEEP:
+			case POWER_STATE_STANDBY:
+				if(POWER_STATE_STANDBY_DEEP_SLEEP == currentState)
+				{
+					RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep OFF Invoked\n",__FUNCTION__,__LINE__);
+					powerstatus = "DEEP_SLEEP_OFF";
+					IarmSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
+				}
+				break;
+
+			default:
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: default case Unable to getInstance\n",__FUNCTION__,__LINE__);
+				break;
+		}	
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: Unable to getInstance\n",__FUNCTION__,__LINE__);	
+	}
+}
+
+
+void IarmSubscriber::sysTimeMgrInitPwrEvt(void)
+{
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering \n",__FUNCTION__,__LINE__);
+
+	m_sysTimeMgrPwrStopThread = false;
+
+	m_sysTimeMgrPwrEvtHandlerThread = std::thread(&IarmSubscriber::sysTimeMgrPwrEventHandlingThreadFunc, nullptr);
+	if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
+	{
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Thread Creation is Success\n", __FUNCTION__, __LINE__);
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Thread Creation Failed\n", __FUNCTION__, __LINE__);
+	}
+}
+
+void IarmSubscriber::sysTimeMgrDeinitPwrEvt(void)
+{
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entered \n",__FUNCTION__,__LINE__);
+
+	{
+		/* Notify the Event thread function to Exit, send signal with stop thread true so that the new CB thread exits,
+		    lock Guard is unlocked after out of scope  after this block  */
+		std::lock_guard<std::mutex> lock(m_pwrEvtMutexLock);
+		m_sysTimeMgrPwrStopThread=true;
+		m_pwrEvtCondVar.notify_one();
+	}
+	
+	/* Clear the elements of the Queue  */
+	{
+		std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
+		m_pwrEvtQueue = std::queue<SysTimeMgr_Power_Event_State_t>();
+	}
+
+	/* Wait until the CB thread finishes and exits*/
+	if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
+	{
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Deinit Joining the thread\n", __FUNCTION__, __LINE__);
+		m_sysTimeMgrPwrEvtHandlerThread.join();
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Completed Deinit and Joined thread\n", __FUNCTION__, __LINE__);
+	}
+
+	if(POWER_CONTROLLER_ERROR_NONE != 
+		PowerController_UnRegisterPowerModeChangedCallback(IarmSubscriber::sysTimeMgrPwrEventHandler))
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:UnRegisterPowerModeChangedCallback Failed \n", __FUNCTION__, __LINE__);
+	}
+}
+
