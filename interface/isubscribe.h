@@ -39,6 +39,7 @@ class ISubscribe
 	public:
 		ISubscribe(string sub):m_subscriber(sub){}
 		virtual bool subscribe(string eventname,funcPtr fptr) = 0;
+		virtual bool deInit(string eventname) = 0;
 };
 
 
