@@ -19,7 +19,7 @@
 Description= System Time Mgr dameon provides quality of time.
 #DefaultDependencies=no
 #Before = systemd-timesyncd.service
-After = mfrmgr.service
+After = mfrmgr.service wpeframework-powermanager.service
 
 [Service]
 EnvironmentFile=/etc/device.properties
