@@ -102,9 +102,9 @@ void SysTimeMgr::initialize()
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
 
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
-    m_subscriber = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME);
-
-    m_subscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    m_subscriber      = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,POWER_CHANGE_MSG);
+    m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
 
     //Initialize Path Event Map

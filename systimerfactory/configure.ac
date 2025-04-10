@@ -73,6 +73,8 @@ AC_ARG_ENABLE([unittest],
 IARM_LIBS=" "
 IARM_CFLAGS=" "
 IARM_ENABLED=""
+PWRMGR_CFLAGS=" "
+PWRMGRPLUGIN_ENABLED=""
 TEE_CXXFLAGS=" "
 WPEVGDRM_CXXFLAGS=" "
 DTT_ENABLED=""
@@ -89,6 +91,20 @@ AC_ARG_ENABLE([iarm],
            esac
            ],
          [echo "iarm build is enable"])
+
+AC_ARG_ENABLE([pwrmgrplugin],
+        AS_HELP_STRING([--enable-pwrmgrplugin],[enable pwrmgrplugin ]),
+        [
+          case "${enableval}" in
+           yes) IARM_LIBS=" -ldbus-1  -lIARMBus"
+                PWRMGR_CFLAGS="-DENABLE_PWRMGRPLUGIN"
+                PWRMGRPLUGIN_ENABLED=true;;
+           no) PWRMGRPLUGIN_ENABLED=false;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-pwrmgrplugin ]) ;;
+           esac
+           ],
+         [echo "pwrmgrplugin build is enable"])
+
 
 AC_ARG_ENABLE([dtt],
         AS_HELP_STRING([--enable-dtt],[enable dtt ]),
@@ -129,6 +145,7 @@ AC_ARG_ENABLE([wpevgdrm],
          [echo "wpevgdrm build is enable"])
 
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
+AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])

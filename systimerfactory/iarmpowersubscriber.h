@@ -15,8 +15,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef _IARMSUBSCRIBER_H_
-#define _IARMSUBSCRIBER_H_
+#ifndef _IARMPOWERSUBSCRIBER_H_
+#define _IARMPOWERSUBSCRIBER_H_
 
 #include <string>
 #include "isubscribe.h"
@@ -26,12 +26,18 @@
 //Perhaps this can be cosidered at a later point of time.
 
 using namespace std;
-class IarmSubscriber:public ISubscribe
+class IarmPowerSubscriber:public IarmSubscriber
 {
+	private:
+		static IarmPowerSubscriber* pInstance;
+		funcPtr m_powerHandler;
 	public:
-		IarmSubscriber(string sub);
-		virtual bool subscribe(string eventname,funcPtr fptr)=0;
+		IarmPowerSubscriber(string sub);
+		bool subscribe(string eventname,funcPtr fptr);
+		static IarmPowerSubscriber* getInstance() { return pInstance;}
+		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
+		static void powereventHandler(const char *owner, int eventId, void *data, size_t len);
 };
 
 
-#endif// _IARMSUBSCRIBER_H_
+#endif// _IARMPOWERSUBSCRIBER_H_
