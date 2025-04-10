@@ -42,7 +42,7 @@ IPublish* createPublish(string type, string args)
 
 	return ret;
 }
-ISubscribe* createSubscriber(string type, string args)
+ISubscribe* createSubscriber(string type, string args, string subtype)
 {
 	ISubscribe* ret = NULL;
 	if (type == "test")
@@ -52,10 +52,19 @@ ISubscribe* createSubscriber(string type, string args)
 #ifdef ENABLE_IARM
 	else if (type == "iarm") // CID 277707 : Resource leak (RESOURCE_LEAK)
 	{
-		ret = new IarmSubscriber(args);
+		if(subtype == TIMER_STATUS_MSG)
+		{
+			ret = new IarmTimerStatusSubscriber(args);
+		}
+		else if(subtype == POWER_CHANGE_MSG) 
+		{
+#ifdef PWRMGRPLUGIN_ENABLED
+			ret = new IpowerControllerSubscriber(args);
+#else
+			ret = new IarmPowerSubscriber(args);
+#endif
+		}	
 	}
 #endif//ENABLE_IARM
-
-
 	return ret;
 }
