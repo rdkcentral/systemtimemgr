@@ -18,7 +18,7 @@
 #include "iarmsubscribe.h"
 #include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
-
+#include "irdklog.h"
 
 IpowerControllerSubscriber* IpowerControllerSubscriber::pInstance = NULL;
 IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscriber(sub)

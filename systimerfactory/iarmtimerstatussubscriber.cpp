@@ -21,7 +21,6 @@
 #include "libIARM.h"
 #include "libIBus.h"
 #include "libIARMCore.h"
-#include "pwrMgr.h"
 #include "irdklog.h"
 
 IarmTimerStatusSubscriber* IarmTimerStatusSubscriber::pInstance = NULL;
