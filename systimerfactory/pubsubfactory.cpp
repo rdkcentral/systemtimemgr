@@ -23,11 +23,11 @@
 #include "iarmpublish.h"
 #include "iarmsubscribe.h"
 #include "iarmtimerstatussubscriber.h"
-#ifdef PWRMGRPLUGIN_ENABLED
+#ifdef ENABLE_PWRMGRPLUGIN
 #include "ipowercontrollersubscriber.h"
 #else
 #include "iarmpowersubscriber.h"
-#endif
+#endif //ENABLE_PWRMGRPLUGIN
 #endif//ENABLE_IARM
 
 #
@@ -64,11 +64,11 @@ ISubscribe* createSubscriber(string type, string args, string subtype)
 		}
 		else if(POWER_CHANGE_MSG == subtype) 
 		{
-#ifdef PWRMGRPLUGIN_ENABLED
+#ifdef ENABLE_PWRMGRPLUGIN
 			ret = new IpowerControllerSubscriber(args);
 #else
 			ret = new IarmPowerSubscriber(args);
-#endif
+#endif//ENABLE_PWRMGRPLUGIN
 		}	
 	}
 #endif//ENABLE_IARM
