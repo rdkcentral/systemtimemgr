@@ -27,7 +27,7 @@ IarmPowerSubscriber* IarmPowerSubscriber::pInstance = NULL;
 IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_powerHandler(NULL)
 {
    int registered;
-   if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) {
+   if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered)) {
       IARM_Bus_Init(m_subscriber.c_str());
       IARM_Bus_Connect();
    }
