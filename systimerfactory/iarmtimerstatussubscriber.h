@@ -15,23 +15,28 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef _IARMSUBSCRIBER_H_
-#define _IARMSUBSCRIBER_H_
+#ifndef _IARMTIMERSTATUSSUBSCRIBER_H_
+#define _IARMTIMERSTATUSSUBSCRIBER_H_
 
 #include <string>
 #include "isubscribe.h"
+#include "iarmsubscribe.h"
 
 //Although we could use  Lambda functions and higher order functions(which are available from c++11 onwards.)
 //Since the registration functions typically c functions. 
 //Perhaps this can be cosidered at a later point of time.
 
 using namespace std;
-class IarmSubscriber:public ISubscribe
+class IarmTimerStatusSubscriber:public IarmSubscriber
 {
+	private:
+		static IarmTimerStatusSubscriber* pInstance;
+
 	public:
-		IarmSubscriber(string sub);
-		virtual bool subscribe(string eventname,funcPtr fptr)=0;
+		IarmTimerStatusSubscriber(string sub);
+		bool subscribe(string eventname,funcPtr fptr);
+		static IarmTimerStatusSubscriber* getInstance() { return pInstance;}
 };
 
 
-#endif// _IARMSUBSCRIBER_H_
+#endif// _IARMTIMERSTATUSSUBSCRIBER_H_

@@ -98,6 +98,7 @@ private:
 
 	IPublish* m_publish;
         ISubscribe* m_subscriber;
+        ISubscribe* m_tmrsubscriber;
 
 	//Config file to load plugins.
 	string m_cfgfile;

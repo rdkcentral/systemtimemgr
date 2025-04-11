@@ -16,7 +16,7 @@
 #
 
 
-AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc $(IARM_CFLAGS) $(CURL_CFLAGS) $(UNITTEST_CXXFLAGS) $(TEE_CXXFLAGS) $(JSONRPC_CFLAGS)  $(WPEFRAMEWORKCORE_CFLAGS) $(WPEFRAMEWORKWEBSOCKET_CFLAGS) $(WPEVGDRM_CXXFLAGS) $(DTT_CXXFLAGS)
+AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc $(IARM_CFLAGS) $(PWRMGR_CFLAGS)  $(CURL_CFLAGS) $(UNITTEST_CXXFLAGS) $(TEE_CXXFLAGS) $(JSONRPC_CFLAGS)  $(WPEFRAMEWORKCORE_CFLAGS) $(WPEFRAMEWORKWEBSOCKET_CFLAGS) $(WPEVGDRM_CXXFLAGS) $(DTT_CXXFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 
 
@@ -25,8 +25,14 @@ lib_LTLIBRARIES = libsystimerfactory.la
 libsystimerfactory_la_SOURCES = timerfactory.cpp pubsubfactory.cpp rdkdefaulttimesync.cpp drmtimersrc.cpp
 
 if IARM_ENABLED
-libsystimerfactory_la_SOURCES += iarmpublish.cpp  iarmsubscribe.cpp
+libsystimerfactory_la_SOURCES += iarmpublish.cpp  iarmsubscribe.cpp iarmtimerstatussubscriber.cpp
+if PWRMGRPLUGIN_ENABLED
+libsystimerfactory_la_SOURCES += ipowercontrollersubscriber.cpp
+else
+libsystimerfactory_la_SOURCES += iarmpowersubscriber.cpp
 endif
+endif
+
 
 if DTT_ENABLED
 libsystimerfactory_la_SOURCES += dtttimersrc.cpp

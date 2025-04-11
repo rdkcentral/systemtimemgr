@@ -22,6 +22,12 @@
 #ifdef ENABLE_IARM
 #include "iarmpublish.h"
 #include "iarmsubscribe.h"
+#include "iarmtimerstatussubscriber.h"
+#ifdef ENABLE_PWRMGRPLUGIN
+#include "ipowercontrollersubscriber.h"
+#else
+#include "iarmpowersubscriber.h"
+#endif //ENABLE_PWRMGRPLUGIN
 #endif//ENABLE_IARM
 
 #
@@ -42,7 +48,7 @@ IPublish* createPublish(string type, string args)
 
 	return ret;
 }
-ISubscribe* createSubscriber(string type, string args)
+ISubscribe* createSubscriber(string type, string args, string subtype)
 {
 	ISubscribe* ret = NULL;
 	if (type == "test")
@@ -52,10 +58,19 @@ ISubscribe* createSubscriber(string type, string args)
 #ifdef ENABLE_IARM
 	else if (type == "iarm") // CID 277707 : Resource leak (RESOURCE_LEAK)
 	{
-		ret = new IarmSubscriber(args);
+		if(TIMER_STATUS_MSG == subtype)
+		{
+			ret = new IarmTimerStatusSubscriber(args);
+		}
+		else if(POWER_CHANGE_MSG == subtype) 
+		{
+#ifdef ENABLE_PWRMGRPLUGIN
+			ret = new IpowerControllerSubscriber(args);
+#else
+			ret = new IarmPowerSubscriber(args);
+#endif//ENABLE_PWRMGRPLUGIN
+		}	
 	}
 #endif//ENABLE_IARM
-
-
 	return ret;
 }
