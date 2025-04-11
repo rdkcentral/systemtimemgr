@@ -21,9 +21,6 @@
 #include <string>
 #include "isubscribe.h"
 
-//Although we could use  Lambda functions and higher order functions(which are available from c++11 onwards.)
-//Since the registration functions typically c functions. 
-//Perhaps this can be cosidered at a later point of time.
 
 using namespace std;
 class IarmPowerSubscriber:public IarmSubscriber

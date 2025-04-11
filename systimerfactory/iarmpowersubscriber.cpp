@@ -27,7 +27,7 @@ IarmPowerSubscriber* IarmPowerSubscriber::pInstance = NULL;
 IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_powerHandler(NULL)
 {
    int registered;
-   if (IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) != IARM_RESULT_SUCCESS) {
+   if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) {
       IARM_Bus_Init(m_subscriber.c_str());
       IARM_Bus_Connect();
    }
@@ -39,7 +39,7 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
    bool retCode = false;
-   if (eventname == POWER_CHANGE_MSG) {
+   if (POWER_CHANGE_MSG == eventname) {
       m_powerHandler = fptr;
       retCode = IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler);
    }
@@ -49,15 +49,15 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
 void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void *data, size_t len)
 {
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received\n",__FUNCTION__,__LINE__);
-   if (eventId != IARM_BUS_PWRMGR_EVENT_MODECHANGED) {
+   if ( IARM_BUS_PWRMGR_EVENT_MODECHANGED != eventId ) {
       return;
    }
 
    IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received. New State = %d\n",__FUNCTION__,__LINE__,param->data.state.newState);
 
-   if ((param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) || 
-       (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)) {
+   if ((IARM_BUS_PWRMGR_POWERSTATE_OFF == param->data.state.newState) || 
+       (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == param->data.state.newState)) {
 
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep Event Received\n",__FUNCTION__,__LINE__);
       if (IarmPowerSubscriber::getInstance()) {
@@ -66,12 +66,11 @@ void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void
          IarmPowerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
       }
    }
-   else if ((param->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) && 
-            ((param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) || 
-	     (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) ||
-	     (param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY))) {
+   else if ((IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == param->data.state.curState ) && 
+            ((IARM_BUS_PWRMGR_POWERSTATE_ON == param->data.state.newState) || 
+	     (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == param->data.state.newState ) ||
+	     (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == param->data.state.newState ))) {
 	 string powerstatus("DEEP_SLEEP_OFF");
          IarmPowerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
    }
-
 }

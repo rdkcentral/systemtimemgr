@@ -91,7 +91,8 @@ AC_ARG_ENABLE([iarm],
            esac
            ],
          [echo "iarm build is enable"])
-
+#The pwrmgrplugin is used for either iarmpowersubscriber or powercontroller
+#The timerstatussubscriber uses the IARMBus and dbus libaries.
 AC_ARG_ENABLE([pwrmgrplugin],
         AS_HELP_STRING([--enable-pwrmgrplugin],[enable pwrmgrplugin ]),
         [

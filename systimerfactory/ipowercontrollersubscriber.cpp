@@ -26,13 +26,12 @@ IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscribe
    IpowerControllerSubscriber::pInstance = this;
 }
 
-
 bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-   	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 	bool retCode = false;
 	uint32_t retValPwrCtrl=0;
-	if (eventname == POWER_CHANGE_MSG)
+	if (POWER_CHANGE_MSG == eventname)
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
@@ -98,7 +97,8 @@ IpowerControllerSubscriber::~IpowerControllerSubscriber()
 void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
 										   const PowerController_PowerState_t newState,
 										   void *userdata)
-{    	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
+{
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
 	IpowerControllerSubscriber* instance = IpowerControllerSubscriber::getInstance();
 
     	if (instance)
@@ -165,6 +165,8 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 		lkVar.unlock();		
 		SysTimeMgr_Power_Event_State_t sysTimeMgrPwrEvent(POWER_STATE_UNKNOWN,POWER_STATE_UNKNOWN);
 		{
+			/* Lock, extract element, unlock, process element, lock and check for element availability in queue.
+			After all the elements are processed unlock the queue */
 			std::unique_lock<std::mutex> queueLock(m_pwrEvtQueueLock);
 			while(!m_pwrEvtQueue.empty())
 			{
