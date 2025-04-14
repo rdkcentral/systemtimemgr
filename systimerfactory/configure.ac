@@ -93,6 +93,8 @@ AC_ARG_ENABLE([iarm],
          [echo "iarm build is enable"])
 #The pwrmgrplugin is used for either iarmpowersubscriber or powercontroller
 #The timerstatussubscriber uses the IARMBus and dbus libaries.
+#set defualt value of PWRMGRPLUGIN_ENABLED to false if not passed 
+PWRMGRPLUGIN_ENABLED=false
 AC_ARG_ENABLE([pwrmgrplugin],
         AS_HELP_STRING([--enable-pwrmgrplugin],[enable pwrmgrplugin ]),
         [
@@ -156,6 +158,7 @@ AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(UNITTEST_CXXFLAGS)
 AC_SUBST(IARM_LIBS)
 AC_SUBST(IARM_CFLAGS)
+AC_SUBST(PWRMGR_CFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(WPEVGDRM_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
