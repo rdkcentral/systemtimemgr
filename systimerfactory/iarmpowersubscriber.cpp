@@ -30,6 +30,11 @@ IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_power
    if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered)) {
       IARM_Bus_Init(m_subscriber.c_str());
       IARM_Bus_Connect();
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_Init and IARM_Bus_Connect Invoked \n",__FUNCTION__,__LINE__);
+   }
+   else
+   {
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
    }
    IarmPowerSubscriber::pInstance = this;
 }
@@ -43,6 +48,11 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
       m_powerHandler = fptr;
       retCode = IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler);
    }
+   else
+   {
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_RegisterEventHandler Failed retCode = %d \n",__FUNCTION__,__LINE__,retCode);
+   }
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber subscribe retCode = %d \n",__FUNCTION__,__LINE__,retCode);   
    return retCode;
 }
 

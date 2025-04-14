@@ -98,7 +98,7 @@ AC_ARG_ENABLE([pwrmgrplugin],
         [
           case "${enableval}" in
            yes) IARM_LIBS=" -ldbus-1  -lIARMBus"
-                PWRMGR_CFLAGS="-DENABLE_PWRMGRPLUGIN"
+                PWRMGR_CFLAGS="-DPWRMGRPLUGIN_ENABLED"
                 PWRMGRPLUGIN_ENABLED=true;;
            no) PWRMGRPLUGIN_ENABLED=false;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-pwrmgrplugin ]) ;;
@@ -146,7 +146,7 @@ AC_ARG_ENABLE([wpevgdrm],
          [echo "wpevgdrm build is enable"])
 
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
-AM_CONDITIONAL([ENABLE_PWRMGRPLUGIN], [test x$ENABLE_PWRMGRPLUGIN = xtrue])
+AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])

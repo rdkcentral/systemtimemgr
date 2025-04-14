@@ -102,9 +102,13 @@ void SysTimeMgr::initialize()
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
 
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
     m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME POWER_CHANGE_MSG Invoke\n",__FUNCTION__,__LINE__);
     m_subscriber      = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,POWER_CHANGE_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
 
     //Initialize Path Event Map

@@ -26,7 +26,7 @@ libsystimerfactory_la_SOURCES = timerfactory.cpp pubsubfactory.cpp rdkdefaulttim
 
 if IARM_ENABLED
 libsystimerfactory_la_SOURCES += iarmpublish.cpp  iarmsubscribe.cpp iarmtimerstatussubscriber.cpp
-if ENABLE_PWRMGRPLUGIN
+if PWRMGRPLUGIN_ENABLED
 libsystimerfactory_la_SOURCES += ipowercontrollersubscriber.cpp
 else
 libsystimerfactory_la_SOURCES += iarmpowersubscriber.cpp

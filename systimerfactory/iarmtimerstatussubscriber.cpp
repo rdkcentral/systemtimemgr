@@ -30,6 +30,11 @@ IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(
    if (IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) != IARM_RESULT_SUCCESS) {
       IARM_Bus_Init(m_subscriber.c_str());
       IARM_Bus_Connect();
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_Init IARM_Bus_Connect Invoked \n",__FUNCTION__,__LINE__);
+   }
+   else
+   {
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
    }
    IarmTimerStatusSubscriber::pInstance = this;
 }

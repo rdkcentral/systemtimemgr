@@ -29,6 +29,7 @@
 #include "iarmpowersubscriber.h"
 #endif //ENABLE_PWRMGRPLUGIN
 #endif//ENABLE_IARM
+#include "irdklog.h"
 
 #
 IPublish* createPublish(string type, string args)
@@ -60,15 +61,18 @@ ISubscribe* createSubscriber(string type, string args, string subtype)
 	{
 		if(TIMER_STATUS_MSG == subtype)
 		{
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IarmTimerStatusSubscriber\n",__FUNCTION__,__LINE__);
 			ret = new IarmTimerStatusSubscriber(args);
 		}
 		else if(POWER_CHANGE_MSG == subtype) 
 		{
-#ifdef ENABLE_PWRMGRPLUGIN
+#ifdef PWRMGRPLUGIN_ENABLED
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IPowerControllerSubscriber\n",__FUNCTION__,__LINE__);
 			ret = new IpowerControllerSubscriber(args);
 #else
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IarmPowerSubscriber\n",__FUNCTION__,__LINE__);
 			ret = new IarmPowerSubscriber(args);
-#endif//ENABLE_PWRMGRPLUGIN
+#endif//PWRMGRPLUGIN_ENABLED
 		}	
 	}
 #endif//ENABLE_IARM
