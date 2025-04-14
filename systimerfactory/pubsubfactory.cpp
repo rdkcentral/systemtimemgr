@@ -23,11 +23,11 @@
 #include "iarmpublish.h"
 #include "iarmsubscribe.h"
 #include "iarmtimerstatussubscriber.h"
-#ifdef ENABLE_PWRMGRPLUGIN
+#ifdef PWRMGRPLUGIN_ENABLED
 #include "ipowercontrollersubscriber.h"
 #else
 #include "iarmpowersubscriber.h"
-#endif //ENABLE_PWRMGRPLUGIN
+#endif //PWRMGRPLUGIN_ENABLED
 #endif//ENABLE_IARM
 #include "irdklog.h"
 
