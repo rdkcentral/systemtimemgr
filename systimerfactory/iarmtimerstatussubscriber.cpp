@@ -26,6 +26,7 @@
 IarmTimerStatusSubscriber* IarmTimerStatusSubscriber::pInstance = NULL;
 IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(sub)
 {
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
    int registered=0;
    if (IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) != IARM_RESULT_SUCCESS) {
       IARM_Bus_Init(m_subscriber.c_str());
@@ -37,11 +38,12 @@ IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
    }
    IarmTimerStatusSubscriber::pInstance = this;
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit\n",__FUNCTION__,__LINE__);
 }
 
 bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
    bool retCode = false;
 
@@ -53,7 +55,7 @@ bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
    {
    	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Event name Matching Failed for TIMER STATUS\n",__FUNCTION__,__LINE__);
    }
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber subscribe retCode = %d \n",__FUNCTION__,__LINE__,retCode);
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber subscribe retCode = %d \n",__FUNCTION__,__LINE__,retCode);
    return retCode;
 }
 

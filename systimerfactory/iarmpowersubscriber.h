@@ -1,5 +1,8 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,15 +15,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
  */
 #ifndef _IARMPOWERSUBSCRIBER_H_
 #define _IARMPOWERSUBSCRIBER_H_
 
 #include <string>
 #include "isubscribe.h"
-
 
 using namespace std;
 class IarmPowerSubscriber:public IarmSubscriber
@@ -35,6 +35,5 @@ class IarmPowerSubscriber:public IarmSubscriber
 		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
 		static void powereventHandler(const char *owner, int eventId, void *data, size_t len);
 };
-
 
 #endif// _IARMPOWERSUBSCRIBER_H_

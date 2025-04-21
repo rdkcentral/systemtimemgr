@@ -1,5 +1,8 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +15,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
  */
 #include "iarmsubscribe.h"
 #include "power_controller.h"
@@ -28,7 +29,7 @@ IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscribe
 
 bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entering Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 	bool retCode = false;
 	uint32_t retValPwrCtrl=0;
 	if (POWER_CHANGE_MSG == eventname)
@@ -78,12 +79,13 @@ bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 			}
 		}
 	}
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit retCode = %s \n",__FUNCTION__,__LINE__,retCode);
 	return retCode;
 }
 
 IpowerControllerSubscriber::~IpowerControllerSubscriber()
 {
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:~IpowerControllerSubscriber function\n",__FUNCTION__,__LINE__);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:~IpowerControllerSubscriber function\n",__FUNCTION__,__LINE__);
 
 	/* This is for the systemtime manager deInit */
 	IpowerControllerSubscriber::sysTimeMgrDeinitPwrEvt();
@@ -91,6 +93,7 @@ IpowerControllerSubscriber::~IpowerControllerSubscriber()
 	
 	/* This is for the Termination of systemtime manager's power controller client handler */
 	PowerController_Term();
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 
@@ -98,7 +101,7 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController
 										   const PowerController_PowerState_t newState,
 										   void *userdata)
 {
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
+	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
 	IpowerControllerSubscriber* instance = IpowerControllerSubscriber::getInstance();
 
     	if (instance)
@@ -108,12 +111,13 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController
 	}
 	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:Sending Signal to Thread for Processing Callback Event\n", __FUNCTION__, __LINE__);
 	instance->m_pwrEvtCondVar.notify_one();
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 
 void IpowerControllerSubscriber::sysTimeMgrPwrConnectHandlingThreadFunc()
 {
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
+	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
 	uint32_t retValPwrCtrl=0;
 
 	/* Loop and check for Power controller connection and if fails sleep and retry */
@@ -138,14 +142,15 @@ void IpowerControllerSubscriber::sysTimeMgrPwrConnectHandlingThreadFunc()
 		   Only Error is Logged here for Failure as this is a separate thread*/
 		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Power Controller RegisterPowerModeChangedCallback Failed retValPwrCtrl=[%d]\n", __FUNCTION__, __LINE__,retValPwrCtrl);
 	}
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Controller Registration Thread Exits Gracefully retValPwrCtrl = %d\n",__FUNCTION__,__LINE__,retValPwrCtrl);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit retValPwrCtrl = %d\n",__FUNCTION__,__LINE__,retValPwrCtrl);
 }
 
 
 void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 {
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
+	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
 
+	SysTimeMgr_Power_Event_State_t sysTimeMgrPwrEvent(POWER_STATE_UNKNOWN,POWER_STATE_UNKNOWN);
 	while (true)
 	{
 		std::unique_lock<std::mutex> lkVar(m_pwrEvtMutexLock);
@@ -153,17 +158,10 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 		/* Wait until the queue is not empty or stop thread is signaled       */
 		m_pwrEvtCondVar.wait(lkVar, [this]
 		{
-			return !m_pwrEvtQueue.empty() || m_sysTimeMgrPwrStopThread;
+			return !m_pwrEvtQueue.empty();
 		});
-		if (m_sysTimeMgrPwrStopThread)
-		{
-			RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exiting thread - stop flag set\n", __FUNCTION__, __LINE__);
-			lkVar.unlock();
-			break;
-		}
 		/* Unlock before processing event from the Queue */
 		lkVar.unlock();		
-		SysTimeMgr_Power_Event_State_t sysTimeMgrPwrEvent(POWER_STATE_UNKNOWN,POWER_STATE_UNKNOWN);
 		{
 			/* Lock, extract element, unlock, process element, lock and check for element availability in queue.
 			After all the elements are processed unlock the queue */
@@ -180,7 +178,7 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 			queueLock.unlock();
 		}
 	}
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exited thread\n", __FUNCTION__, __LINE__);
+	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]: Exit \n", __FUNCTION__, __LINE__);
 }
 
 
@@ -188,7 +186,7 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerController_PowerState_t currentState,
     const PowerController_PowerState_t newState)
 {
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:SysTimeMgrHandlePwrEventData currentState[%d] newState[%d]\n",__FUNCTION__,__LINE__,currentState,newState);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:SysTimeMgrHandlePwrEventData currentState[%d] newState[%d]\n",__FUNCTION__,__LINE__,currentState,newState);
 	string powerstatus = "UNKNOWN";
 
 	if(IpowerControllerSubscriber::getInstance())
@@ -220,16 +218,15 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 	}
 	else
 	{
-		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: Unable to getInstance\n",__FUNCTION__,__LINE__);	
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: Unable to getInstance\n",__FUNCTION__,__LINE__);
 	}
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 
 void IpowerControllerSubscriber::sysTimeMgrInitPwrEvt(void)
 {
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entering \n",__FUNCTION__,__LINE__);
-
-	m_sysTimeMgrPwrStopThread = false;
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entering \n",__FUNCTION__,__LINE__);
 
 	m_sysTimeMgrPwrEvtHandlerThread = std::thread(&IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc, this);
 	if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
@@ -240,18 +237,18 @@ void IpowerControllerSubscriber::sysTimeMgrInitPwrEvt(void)
 	{
 		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:Thread Creation Failed\n", __FUNCTION__, __LINE__);
 	}
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 
 void IpowerControllerSubscriber::sysTimeMgrDeinitPwrEvt(void)
 {
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Entered \n",__FUNCTION__,__LINE__);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entered \n",__FUNCTION__,__LINE__);
 
 	{
 		/* Notify the Event thread function to Exit, send signal with stop thread true so that the new CB thread exits,
 		    lock Guard is unlocked after out of scope  after this block  */
 		std::lock_guard<std::mutex> lock(m_pwrEvtMutexLock);
-		m_sysTimeMgrPwrStopThread=true;
 		m_pwrEvtCondVar.notify_one();
 	}
 	
@@ -274,4 +271,5 @@ void IpowerControllerSubscriber::sysTimeMgrDeinitPwrEvt(void)
 	{
 		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]:UnRegisterPowerModeChangedCallback Failed \n", __FUNCTION__, __LINE__);
 	}
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }

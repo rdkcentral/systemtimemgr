@@ -24,6 +24,5 @@
 
 IarmSubscriber::IarmSubscriber(string sub):ISubscribe(sub)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmSubscriber\n",__FUNCTION__,__LINE__);
-
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:IarmSubscriber\n",__FUNCTION__,__LINE__);
 }

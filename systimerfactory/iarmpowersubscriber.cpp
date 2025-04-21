@@ -1,5 +1,8 @@
 /*
- * Copyright 2023 Comcast Cable Communications Management, LLC
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +15,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * SPDX-License-Identifier: Apache-2.0
  */
 #include "iarmsubscribe.h"
 #include "iarmpowersubscriber.h"
@@ -26,22 +27,25 @@
 IarmPowerSubscriber* IarmPowerSubscriber::pInstance = NULL;
 IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_powerHandler(NULL)
 {
-   int registered;
-   if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered)) {
-      IARM_Bus_Init(m_subscriber.c_str());
-      IARM_Bus_Connect();
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_Init and IARM_Bus_Connect Invoked \n",__FUNCTION__,__LINE__);
-   }
-   else
-   {
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
-   }
-   IarmPowerSubscriber::pInstance = this;
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
+	int registered=0;
+	if (IARM_RESULT_SUCCESS != IARM_Bus_IsConnected(m_subscriber.c_str(),&registered))
+	{
+		IARM_Bus_Init(m_subscriber.c_str());
+		IARM_Bus_Connect();
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_Init and IARM_Bus_Connect Invoked \n",__FUNCTION__,__LINE__);
+	}
+	else
+	{
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
+	}
+	IarmPowerSubscriber::pInstance = this;
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:IARMBUS Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
    bool retCode = false;
    if (POWER_CHANGE_MSG == eventname) {
@@ -52,13 +56,13 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
    {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_RegisterEventHandler Failed retCode = %d \n",__FUNCTION__,__LINE__,retCode);
    }
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber subscribe retCode = %d \n",__FUNCTION__,__LINE__,retCode);   
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit retCode=%d\n",__FUNCTION__,__LINE__,retCode);
    return retCode;
 }
 
 void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void *data, size_t len)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received\n",__FUNCTION__,__LINE__);
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Power Change Entry Event Received\n",__FUNCTION__,__LINE__);
    if ( IARM_BUS_PWRMGR_EVENT_MODECHANGED != eventId ) {
       return;
    }
@@ -83,4 +87,5 @@ void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void
 	 string powerstatus("DEEP_SLEEP_OFF");
          IarmPowerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
    }
+   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
