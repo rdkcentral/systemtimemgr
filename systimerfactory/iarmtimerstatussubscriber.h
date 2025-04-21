@@ -30,13 +30,9 @@
 using namespace std;
 class IarmTimerStatusSubscriber:public IarmSubscriber
 {
-	private:
-		static IarmTimerStatusSubscriber* pInstance;
-
 	public:
 		IarmTimerStatusSubscriber(string sub);
 		bool subscribe(string eventname,funcPtr fptr);
-		static IarmTimerStatusSubscriber* getInstance() { return pInstance;}
 };
 
 #endif// _IARMTIMERSTATUSSUBSCRIBER_H_

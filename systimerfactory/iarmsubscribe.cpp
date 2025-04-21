@@ -22,7 +22,10 @@
 #include "pwrMgr.h"
 #include "irdklog.h"
 
+IarmSubscriber* IarmSubscriber::pInstance = NULL;
 IarmSubscriber::IarmSubscriber(string sub):ISubscribe(sub)
 {
-   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:IarmSubscriber\n",__FUNCTION__,__LINE__);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
+	IarmSubscriber::pInstance = this;
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit\n",__FUNCTION__,__LINE__);	
 }

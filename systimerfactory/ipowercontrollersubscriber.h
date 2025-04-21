@@ -47,7 +47,6 @@ typedef struct SysTimeMgr_Power_Event_State{
 class IpowerControllerSubscriber:public IarmSubscriber
 {
 	private:
-		static IpowerControllerSubscriber* pInstance;
 		funcPtr m_powerHandler;
 		std::queue<SysTimeMgr_Power_Event_State_t> m_pwrEvtQueue;
 		std::mutex m_pwrEvtQueueLock;
@@ -58,9 +57,8 @@ class IpowerControllerSubscriber:public IarmSubscriber
 	public:
 		IpowerControllerSubscriber(string sub);
 		bool subscribe(string eventname,funcPtr fptr) override;
-		static IpowerControllerSubscriber* getInstance() { return pInstance;}
 		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
-        static void sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
+		static void sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
                                                                          const PowerController_PowerState_t newState,
                                                                          void* userdata);
 		void sysTimeMgrHandlePwrEventData(const PowerController_PowerState_t currentState,
@@ -68,8 +66,8 @@ class IpowerControllerSubscriber:public IarmSubscriber
 		void sysTimeMgrPwrEventHandlingThreadFunc();
 		void sysTimeMgrPwrConnectHandlingThreadFunc();
 		void sysTimeMgrInitPwrEvt(void);
-        void sysTimeMgrDeinitPwrEvt(void);
-        ~IpowerControllerSubscriber();
+		void sysTimeMgrDeinitPwrEvt(void);
+		~IpowerControllerSubscriber();
 };
 
 

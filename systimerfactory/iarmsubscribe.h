@@ -28,8 +28,12 @@
 using namespace std;
 class IarmSubscriber:public ISubscribe
 {
+	private:
+		static IarmSubscriber* pInstance;
+
 	public:
 		IarmSubscriber(string sub);
+		static IarmSubscriber* getInstance() { return pInstance;}
 		virtual bool subscribe(string eventname,funcPtr fptr)=0;
 };
 

@@ -23,7 +23,6 @@
 #include "libIARMCore.h"
 #include "irdklog.h"
 
-IarmTimerStatusSubscriber* IarmTimerStatusSubscriber::pInstance = NULL;
 IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(sub)
 {
    RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
@@ -37,7 +36,6 @@ IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(
    {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
    }
-   IarmTimerStatusSubscriber::pInstance = this;
    RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit\n",__FUNCTION__,__LINE__);
 }
 

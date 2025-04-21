@@ -24,7 +24,6 @@
 #include "pwrMgr.h"
 #include "irdklog.h"
 
-IarmPowerSubscriber* IarmPowerSubscriber::pInstance = NULL;
 IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_powerHandler(NULL)
 {
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
@@ -39,7 +38,6 @@ IarmPowerSubscriber::IarmPowerSubscriber(string sub):IarmSubscriber(sub),m_power
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmPowerSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
 	}
-	IarmPowerSubscriber::pInstance = this;
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
@@ -70,22 +68,25 @@ void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void
    IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received. New State = %d\n",__FUNCTION__,__LINE__,param->data.state.newState);
 
+   IarmPowerSubscriber* instance = dynamic_cast<IarmPowerSubscriber*>(IarmSubscriber::getInstance());
+   if (!instance) {
+        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[%s:%d]: Error: IarmPowerSubscriber Get Instance Failed\n", __FUNCTION__, __LINE__);
+        return;
+    }
+
    if ((IARM_BUS_PWRMGR_POWERSTATE_OFF == param->data.state.newState) || 
        (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == param->data.state.newState)) {
 
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep Event Received\n",__FUNCTION__,__LINE__);
-      if (IarmPowerSubscriber::getInstance()) {
-
-	 string powerstatus("DEEP_SLEEP_ON");
-         IarmPowerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
-      }
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep Event Received\n",__FUNCTION__,__LINE__);	
+	  string powerstatus("DEEP_SLEEP_ON");
+         instance->invokepowerhandler((void*)&powerstatus);
    }
    else if ((IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP == param->data.state.curState ) && 
             ((IARM_BUS_PWRMGR_POWERSTATE_ON == param->data.state.newState) || 
 	     (IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP == param->data.state.newState ) ||
 	     (IARM_BUS_PWRMGR_POWERSTATE_STANDBY == param->data.state.newState ))) {
 	 string powerstatus("DEEP_SLEEP_OFF");
-         IarmPowerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
+         instance->invokepowerhandler((void*)&powerstatus);
    }
    RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }

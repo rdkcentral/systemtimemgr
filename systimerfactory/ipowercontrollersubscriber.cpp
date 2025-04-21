@@ -21,10 +21,11 @@
 #include "ipowercontrollersubscriber.h"
 #include "irdklog.h"
 
-IpowerControllerSubscriber* IpowerControllerSubscriber::pInstance = NULL;
+
 IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscriber(sub)
 {
-   IpowerControllerSubscriber::pInstance = this;
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry \n",__FUNCTION__,__LINE__);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
 
 bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
@@ -102,9 +103,9 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController
 										   void *userdata)
 {
 	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
-	IpowerControllerSubscriber* instance = IpowerControllerSubscriber::getInstance();
+	IpowerControllerSubscriber* instance = dynamic_cast<IpowerControllerSubscriber*>(IarmSubscriber::getInstance());
 
-    	if (instance)
+	if (instance)
 	{
 		std::lock_guard<std::mutex> lock(instance->m_pwrEvtQueueLock);
 		instance->m_pwrEvtQueue.emplace(currentState, newState);
@@ -188,8 +189,9 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 {
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:SysTimeMgrHandlePwrEventData currentState[%d] newState[%d]\n",__FUNCTION__,__LINE__,currentState,newState);
 	string powerstatus = "UNKNOWN";
-
-	if(IpowerControllerSubscriber::getInstance())
+	IpowerControllerSubscriber* instance = dynamic_cast<IpowerControllerSubscriber*>(IarmSubscriber::getInstance());
+	
+	if(instance)
 	{
 		switch(newState)
 		{
@@ -197,7 +199,7 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 			case POWER_STATE_STANDBY_DEEP_SLEEP:
 				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep ON Invoked\n",__FUNCTION__,__LINE__);
 				powerstatus = "DEEP_SLEEP_ON";
-				IpowerControllerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
+				instance->invokepowerhandler((void*)&powerstatus);
 				break;
 
 			case POWER_STATE_ON:
@@ -207,12 +209,12 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 			{
 					RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep OFF Invoked\n",__FUNCTION__,__LINE__);
 					powerstatus = "DEEP_SLEEP_OFF";
-					IpowerControllerSubscriber::getInstance()->invokepowerhandler((void*)&powerstatus);
+					instance->invokepowerhandler((void*)&powerstatus);
 			}
 			break;
 
 			default:
-				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: default case Unable to getInstance\n",__FUNCTION__,__LINE__);
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Err: default case Invalid State Value\n",__FUNCTION__,__LINE__);
 				break;
 		}	
 	}
