@@ -79,7 +79,7 @@ bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 			}
 		}
 	}
-	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit retCode = %s \n",__FUNCTION__,__LINE__,retCode);
+	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit retCode = %d\n",__FUNCTION__,__LINE__,retCode);
 	return retCode;
 }
 
