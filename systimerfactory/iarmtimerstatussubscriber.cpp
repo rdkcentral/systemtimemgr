@@ -1,8 +1,5 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
- * following copyright and licenses apply:
- *
- * Copyright 2024 RDK Management
+ * Copyright 2023 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #include "iarmsubscribe.h"
 #include "iarmtimerstatussubscriber.h"
@@ -30,7 +29,7 @@ IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(
    if (IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) != IARM_RESULT_SUCCESS) {
       IARM_Bus_Init(m_subscriber.c_str());
       IARM_Bus_Connect();
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_Init IARM_Bus_Connect Invoked \n",__FUNCTION__,__LINE__);
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_Init IARM_Bus_Connect is Invoked \n",__FUNCTION__,__LINE__);
    }
    else
    {

@@ -1,8 +1,5 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
- * following copyright and licenses apply:
- *
- * Copyright 2024 RDK Management
+ * Copyright 2023 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 #include "iarmsubscribe.h"
 #include "power_controller.h"
@@ -35,7 +34,7 @@ bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 	uint32_t retValPwrCtrl=0;
 	if (POWER_CHANGE_MSG == eventname)
 	{
-		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Registering function for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Registering function for the Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());
 
 		/* This is for the initalization of refactored power controller client for IARM communication used in systemtime manager 
 		    All the Power Controller functions are handled here */
@@ -197,7 +196,7 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 		{
 			case POWER_STATE_OFF:
 			case POWER_STATE_STANDBY_DEEP_SLEEP:
-				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep ON Invoked\n",__FUNCTION__,__LINE__);
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep ON is Invoked\n",__FUNCTION__,__LINE__);
 				powerstatus = "DEEP_SLEEP_ON";
 				instance->invokepowerhandler((void*)&powerstatus);
 				break;
@@ -207,7 +206,7 @@ void IpowerControllerSubscriber::sysTimeMgrHandlePwrEventData(const PowerControl
 			case POWER_STATE_STANDBY:
 			if(POWER_STATE_STANDBY_DEEP_SLEEP == currentState)
 			{
-					RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep OFF Invoked\n",__FUNCTION__,__LINE__);
+					RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep OFF is Invoked\n",__FUNCTION__,__LINE__);
 					powerstatus = "DEEP_SLEEP_OFF";
 					instance->invokepowerhandler((void*)&powerstatus);
 			}
