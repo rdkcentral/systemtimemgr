@@ -62,8 +62,10 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 			  m_timersrc("Last Known"),
                           m_publish(NULL),
 			  m_subscriber(NULL),
+<<<<<<< HEAD
 			  m_tmrsubscriber(NULL),
-			  m_cfgfile(cfgfile)
+			  m_cfgfile(std::move(cfgfile))
+
 {
 }
 
