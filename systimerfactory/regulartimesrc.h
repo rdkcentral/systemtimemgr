@@ -33,7 +33,7 @@ class RegularTimeSrc : public ITimeSrc
 	private:
 		string m_path;
 	public:
-		RegularTimeSrc(string path):ITimeSrc(),m_path(path){}
+		RegularTimeSrc(string path):ITimeSrc(),m_path(std::move(path)){}
 		bool isreference() { return false;}
 		long long getTimeSec(){
 			long long ret = 0;
