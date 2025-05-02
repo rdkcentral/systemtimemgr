@@ -577,7 +577,7 @@ void SysTimeMgr::deepsleepoff()
 		}
 	}
 
-	publishStatus(ePUBLISH_DEEP_SLEEP_ON,message);
+	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
 	//Turn on the NTP time sync.
         v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
