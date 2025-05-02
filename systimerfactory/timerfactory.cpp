@@ -62,7 +62,7 @@ ITimeSync* createTimeSync(string type, string args)
 	ITimeSync* ret = NULL;
 	if (type == "test")
 	{
-		ret = new TestTimeSync(args);
+		ret = new TestTimeSync(std::move(args));
 	}
 	else if(type == "rdkdefault")
 	{
