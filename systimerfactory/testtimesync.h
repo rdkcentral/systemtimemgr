@@ -46,7 +46,7 @@ class TestTimeSync: public ITimeSync
 			long long ret = 0;
 			fstream myfile(m_path.c_str(), std::ios_base::in);
 			myfile>>ret;
-			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Time Returning = %d \n",__FUNCTION__,__LINE__,ret);
+			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Time Returning = %lld \n",__FUNCTION__,__LINE__,ret);
 			return ret;
 		}
 };
