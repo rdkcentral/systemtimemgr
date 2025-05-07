@@ -30,7 +30,7 @@ class TestTimeSync: public ITimeSync
 	private:
 		string m_path;
 	public: 
-		TestTimeSync(string path):ITimeSync(),m_path(path) {}
+		TestTimeSync(string path):ITimeSync(),m_path(std::move(path)) {}
 		~TestTimeSync(){}
 		void  updateTime(long long locTime) {
 			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Updating time \n",__FUNCTION__,__LINE__);
