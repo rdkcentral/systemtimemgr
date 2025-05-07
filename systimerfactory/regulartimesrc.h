@@ -37,17 +37,19 @@ class RegularTimeSrc : public ITimeSrc
 		bool isreference() { return false;}
 		long long getTimeSec(){
 			long long ret = 0;
-			int fd = open(m_path.c_str(),O_RDWR|O_CLOEXEC, 0644);
-			if (fd > 0)
-			{
-				struct stat st;
-				if (fstat(fd, &st) >=0)
-				{
-					ret = st.st_mtim.tv_sec;
-				}
-			}
-			close(fd); // CID 277704 (#2-3 of 3): Resource leak (RESOURCE_LEAK)
-			return ret;
-		}
+			int fd = open(m_path.c_str(), O_RDWR | O_CLOEXEC, 0644);
+                        if (fd < 0) {
+                            // Handle error case (you may want to log this or throw an exception)
+                            return ret; // Return early with the default value of ret
+                        }
+
+                        struct stat st;
+                        if (fstat(fd, &st) >= 0) {
+                           ret = st.st_mtim.tv_sec;
+                        }
+
+                        close(fd);
+                        return ret;
+                }
 };
 #endif// __REGULARTIMESRC_h_
