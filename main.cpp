@@ -19,14 +19,31 @@
 #include "systimemgr.h"
 #include <fstream>
 #include <map>
+#include <cstdlib>
 #include "irdklog.h"
 
-int main ()
+int main()
 {
-    string debugcfg("/etc/debug.ini");
-    rdk_logger_init(debugcfg.c_str());
-    SysTimeMgr* sysTimeMgr = SysTimeMgr::get_instance();
+    try {
+        string debugcfg("/etc/debug.ini");
+        rdk_logger_init(debugcfg.c_str());
+        SysTimeMgr* sysTimeMgr = SysTimeMgr::get_instance();
 
-    sysTimeMgr->initialize();
-    sysTimeMgr->run();
+        sysTimeMgr->initialize();
+        sysTimeMgr->run();
+    }
+    catch (const std::bad_cast& e) {
+        std::cerr << "Caught std::bad_cast exception: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Caught std::exception: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch (...) {
+        std::cerr << "Caught unknown exception." << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
