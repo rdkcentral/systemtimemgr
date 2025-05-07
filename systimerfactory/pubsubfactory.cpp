@@ -18,11 +18,19 @@
 #include "timerfactory.h"
 #include "testpublish.h"
 #include "testsubscribe.h"
+#include <utility>
 
 #ifdef ENABLE_IARM
 #include "iarmpublish.h"
 #include "iarmsubscribe.h"
+#include "iarmtimerstatussubscriber.h"
+#ifdef PWRMGRPLUGIN_ENABLED
+#include "ipowercontrollersubscriber.h"
+#else
+#include "iarmpowersubscriber.h"
+#endif //PWRMGRPLUGIN_ENABLED
 #endif//ENABLE_IARM
+#include "irdklog.h"
 
 #
 IPublish* createPublish(string type, string args)
@@ -42,20 +50,32 @@ IPublish* createPublish(string type, string args)
 
 	return ret;
 }
-ISubscribe* createSubscriber(string type, string args)
+ISubscribe* createSubscriber(string type, string args, string subtype)
 {
 	ISubscribe* ret = NULL;
 	if (type == "test")
 	{
-		ret = new TestSubscriber(args);
+		ret = new TestSubscriber(std::move(args));
 	}
 #ifdef ENABLE_IARM
 	else if (type == "iarm") // CID 277707 : Resource leak (RESOURCE_LEAK)
 	{
-		ret = new IarmSubscriber(args);
+		if(TIMER_STATUS_MSG == subtype)
+		{
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IarmTimerStatusSubscriber\n",__FUNCTION__,__LINE__);
+			ret = new IarmTimerStatusSubscriber(std::move(args));
+		}
+		else if(POWER_CHANGE_MSG == subtype) 
+		{
+#ifdef PWRMGRPLUGIN_ENABLED
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IPowerControllerSubscriber\n",__FUNCTION__,__LINE__);
+			ret = new IpowerControllerSubscriber(std::move(args));
+#else
+                        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IarmPowerSubscriber\n",__FUNCTION__,__LINE__);
+			ret = new IarmPowerSubscriber(std::move(args));
+#endif//PWRMGRPLUGIN_ENABLED
+		}	
 	}
 #endif//ENABLE_IARM
-
-
 	return ret;
 }
