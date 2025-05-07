@@ -37,7 +37,7 @@ class ISubscribe
         protected:
 		string m_subscriber;
 	public:
-		ISubscribe(string sub):m_subscriber(sub){}
+		ISubscribe(string sub):m_subscriber(std::move(sub)){}
 		virtual bool subscribe(string eventname,funcPtr fptr) = 0;
 };
 
