@@ -21,6 +21,7 @@
 #include <map>
 #include <cstdlib>
 #include "irdklog.h"
+#include <iostream>
 
 int main()
 {
