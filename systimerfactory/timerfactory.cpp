@@ -42,16 +42,16 @@ ITimeSrc* createTimeSrc(string type, string args)
 	}
 	else if (type == "regular")
 	{
-		ret = new RegularTimeSrc(args);
+		ret = new RegularTimeSrc(std::move(args));
 	}
         else if (type == "drm")
         {
-		ret = new DrmTimeSrc(args);
+		ret = new DrmTimeSrc(std::move(args));
         }
 #ifdef DTT_ENABLED
         else if (type == "dtt")
         {
-		ret = new DttTimeSrc(args);
+		ret = new DttTimeSrc(std::move(args));
         }
 #endif// DTT_ENABLED
 
