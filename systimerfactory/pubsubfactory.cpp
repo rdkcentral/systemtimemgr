@@ -60,7 +60,6 @@ ISubscribe* createSubscriber(string type, string args, string subtype)
 #ifdef ENABLE_IARM
 	else if (type == "iarm") // CID 277707 : Resource leak (RESOURCE_LEAK)
 	{
-<<<<<<< HEAD
 		if(TIMER_STATUS_MSG == subtype)
 		{
                         RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber for IarmTimerStatusSubscriber\n",__FUNCTION__,__LINE__);
