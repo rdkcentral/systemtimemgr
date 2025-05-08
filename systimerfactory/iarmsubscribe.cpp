@@ -23,7 +23,6 @@
 #include "irdklog.h"
 
 IarmSubscriber* IarmSubscriber::pInstance = NULL;
-<<<<<<< HEAD
 IarmSubscriber::IarmSubscriber(string sub):ISubscribe(std::move(sub))
 {
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
