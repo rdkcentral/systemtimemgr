@@ -30,7 +30,7 @@ class DrmTimeSrc : public ITimeSrc
                string m_path;
 
 	public:
-		DrmTimeSrc(string path):ITimeSrc(),m_path(path){}
+		DrmTimeSrc(string path):ITimeSrc(),m_path(std::move(path)){}
 
 		bool isreference() { return false;}
 
