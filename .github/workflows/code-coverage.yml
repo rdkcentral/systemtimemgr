@@ -20,7 +20,7 @@ jobs:
           sh test/run_ut.sh --enable-cov
       - name: Caculate the code coverage summary
         run: |
-          cd ./test
+          cd ./systimerfactory/unittest/
           lcov --list coverage.info | grep "Lines\|Total" > /tmp/coverage_summary.txt
           cd -
         
