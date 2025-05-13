@@ -32,7 +32,7 @@ class DttTimeSrc : public ITimeSrc
 	       bool m_dtteventsubscribed;
 
 	public:
-		DttTimeSrc(string path):ITimeSrc(),m_path(path),m_pluginactivated(false),m_dtteventsubscribed(false){}
+		DttTimeSrc(string path):ITimeSrc(),m_path(std::move(path)),m_pluginactivated(false),m_dtteventsubscribed(false){}
 
 		bool isreference() { return false;}
 

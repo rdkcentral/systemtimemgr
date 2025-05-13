@@ -63,7 +63,8 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
                           m_publish(NULL),
 			  m_subscriber(NULL),
 			  m_tmrsubscriber(NULL),
-			  m_cfgfile(cfgfile)
+			  m_cfgfile(std::move(cfgfile))
+
 {
 }
 
@@ -575,7 +576,7 @@ void SysTimeMgr::deepsleepoff()
 		}
 	}
 
-	publishStatus(ePUBLISH_DEEP_SLEEP_ON,message);
+	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
 	//Turn on the NTP time sync.
         v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");

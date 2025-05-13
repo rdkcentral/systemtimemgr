@@ -30,7 +30,7 @@ using namespace std;
 class TestSubscriber:public ISubscribe
 {
 	public:
-		TestSubscriber(string sub):ISubscribe(sub){}
+		TestSubscriber(string sub):ISubscribe(std::move(sub)){}
 		bool subscribe(string eventname,funcPtr fptr)
 		{
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Subscribed for Event = %s \n",__FUNCTION__,__LINE__,eventname.c_str());

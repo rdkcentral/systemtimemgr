@@ -38,12 +38,12 @@ IPublish* createPublish(string type, string args)
 	IPublish* ret = NULL;
 	if (type == "test")
 	{
-		ret = new TestPublish(args);
+		ret = new TestPublish(std::move(args));
 	}
 #ifdef ENABLE_IARM
 	else if (type == "iarm") // CID 277711 : Resource leak (RESOURCE_LEAK)
 	{
-		ret = new IarmPublish(args);
+		ret = new IarmPublish(std::move(args));
 	}
 #endif//ENABLE_IARM
 
