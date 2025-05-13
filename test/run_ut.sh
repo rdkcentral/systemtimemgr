@@ -27,6 +27,10 @@ export top_srcdir=`pwd`
 
 cd ./systimerfactory/unittest/
 
+export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+export LDFLAGS="-lgcov --coverage"
+
 automake --add-missing
 autoreconf --install
 
@@ -40,3 +44,9 @@ mkdir -p /opt/secure/
 ./drmtest_gtest
 ./dtttest_gtest
 ./rdkDefaulttest_gtest
+
+    lcov --capture --directory . --output-file coverage.info
+
+    lcov --remove coverage.info '/usr/*' --output-file coverage.filtered.info
+
+    genhtml coverage.filtered.info --output-directory out
