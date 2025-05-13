@@ -19,6 +19,17 @@
 # limitations under the License.
 ####################################################################################
 
+ENABLE_COV=false
+
+if [ "x$1" = "x--enable-cov" ]; then
+      echo "Enabling coverage options"
+      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+      export LDFLAGS="-lgcov --coverage"
+      ENABLE_COV=true
+fi
+export TOP_DIR=`pwd`
+
 apt-get update
 apt-get -y install libjsoncpp-dev
 apt-get install -y libjsonrpccpp-dev
@@ -40,3 +51,15 @@ mkdir -p /opt/secure/
 ./drmtest_gtest
 ./dtttest_gtest
 ./rdkDefaulttest_gtest
+
+echo "********************"
+echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
+echo "********************"
+if [ "$ENABLE_COV" = true ]; then
+    echo "Generating coverage report"
+    lcov --capture --directory . --output-file coverage.info
+    lcov --remove coverage.info '/usr/*' --output-file coverage.info
+    lcov --list coverage.info
+fi
+
+cd $TOP_DIR
