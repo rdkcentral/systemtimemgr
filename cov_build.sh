@@ -19,39 +19,6 @@
 
 WORKDIR=`pwd`
 
-export RDKLOGGER_ROOT=/usr
-export RDKLOGGER_INSTALL_DIR=${RDKLOGGER_ROOT}/local
-mkdir -p $RDKLOGGER_INSTALL_DIR
-cd $RDKLOGGER_ROOT
-#Build rdk-logger
-git clone https://github.com/rdkcentral/rdk_logger.git
-
-cd rdk_logger
-
-#build log4c
-wget --no-check-certificate https://sourceforge.net/projects/log4c/files/log4c/1.2.4/log4c-1.2.4.tar.gz/download -O log4c-1.2.4.tar.gz
-tar -xvf log4c-1.2.4.tar.gz
-cd log4c-1.2.4
-./configure
-make clean && make && make install
-
-cd ${RDKLOGGER_ROOT}/rdk_logger
-export PKG_CONFIG_PATH=${RDKLOGGER_INSTALL_DIR}/rdk_logger/log4c-1.2.4:$PKG_CONFIG_PATH
-autoreconf -i
-./configure
-make clean && make && make install
-
-#Build libsyswrapper
-cd ${RDKLOGGER_ROOT}
-git clone https://github.com/rdkcentral/libSyscallWrapper.git
-
-cd ${RDKLOGGER_ROOT}/libSyscallWrapper
-autoupdate
-autoreconf -i
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make
-make install
-
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 

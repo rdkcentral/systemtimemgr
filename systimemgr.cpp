@@ -36,9 +36,6 @@
 using namespace std::chrono;
 
 
-
-
-
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
 mutex SysTimeMgr::g_instance_mutex;
@@ -65,7 +62,9 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 			  m_timersrc("Last Known"),
                           m_publish(NULL),
 			  m_subscriber(NULL),
-			  m_cfgfile(cfgfile)
+			  m_tmrsubscriber(NULL),
+			  m_cfgfile(std::move(cfgfile))
+
 {
 }
 
@@ -105,9 +104,13 @@ void SysTimeMgr::initialize()
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
 
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
-    m_subscriber = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME);
-
-    m_subscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME POWER_CHANGE_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_subscriber      = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,POWER_CHANGE_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
 
     //Initialize Path Event Map
@@ -573,7 +576,7 @@ void SysTimeMgr::deepsleepoff()
 		}
 	}
 
-	publishStatus(ePUBLISH_DEEP_SLEEP_ON,message);
+	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
 	//Turn on the NTP time sync.
         v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
