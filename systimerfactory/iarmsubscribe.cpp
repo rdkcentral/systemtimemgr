@@ -16,10 +16,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include "iarmsubscribe.h"
-#include "libIARM.h"
-#include "libIBus.h"
-#include "libIARMCore.h"
-#include "pwrMgr.h"
 #include "irdklog.h"
 
 IarmSubscriber* IarmSubscriber::pInstance = NULL;
