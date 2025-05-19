@@ -37,6 +37,7 @@ class ITimeSync
 		virtual ~ITimeSync(){}
 		virtual void  updateTime(long long locTime) = 0;
 		virtual long long getTime() = 0;
+                virtual RdkDefaultTimeSync::TimeSource getTimeSource() const = 0;
 };
 
 #endif //_ITIMESYNC_H_
