@@ -32,7 +32,7 @@ COMMON_CXXFLAGS = -frtti
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
 dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
 rdkDefaulttest_gtest_SOURCES = rdkDefaulttimesyncUnitTest.cpp
-timerfactory_gtest_SOURCES = timerfactory.cpp
+timerfactory_gtest_SOURCES = timerfactory_gtest.cpp
 
 # Apply common properties to each program
 drmtest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
