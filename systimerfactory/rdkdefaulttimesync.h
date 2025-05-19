@@ -39,6 +39,7 @@ class RdkDefaultTimeSync: public ITimeSync
 		~RdkDefaultTimeSync(){}
 		virtual void  updateTime(long long locTime); 
 		virtual long long getTime(); 
+                TimeSource getTimeSource() const;
         enum TimeSource {
         TIME_SOURCE_NONE,
         TIME_SOURCE_NVRAM,
