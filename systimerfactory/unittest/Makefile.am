@@ -17,7 +17,7 @@
 #
 
 # Define the program name and the source files
-bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest
+bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest
 
 # Define the include directories
 COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include
@@ -32,6 +32,7 @@ COMMON_CXXFLAGS = -frtti
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
 dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
 rdkDefaulttest_gtest_SOURCES = rdkDefaulttimesyncUnitTest.cpp
+timerfactory_gtest_SOURCES = timerfactory.cpp
 
 # Apply common properties to each program
 drmtest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
@@ -45,3 +46,8 @@ dtttest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 rdkDefaulttest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 rdkDefaulttest_gtest_LDADD = $(COMMON_LDADD)
 rdkDefaulttest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+
+timerfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+timerfactory_gtest_LDADD = $(COMMON_LDADD)
+timerfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
