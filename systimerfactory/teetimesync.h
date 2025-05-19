@@ -97,6 +97,11 @@ class TeeTimeSync: public ITimeSync
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:TIME Returning = %lld, Converted Current Time in TEE: %s \n",__FUNCTION__,__LINE__,ret,timeStr);
 			return ret;
 		}
+
+        TimeSource getTimeSource() const override {
+        return TIME_SOURCE_NONE; 
+       }
+
 };
 
 #endif// _TEETIMESYNC_H_
