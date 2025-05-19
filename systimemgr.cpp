@@ -428,12 +428,12 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
-		RdkDefaultTimeSync::TimeSource src;
+		RdkDefaultTimeSync::TimeSource time_source = RdkDefaultTimeSync::TIME_SOURCE_NONE;
 		for (auto const& i : m_timerSync)
 		{
-		 src = i->getTimeSource(); 
+		 time_source = i->getTimeSource(); 
 		}
-		if (src == RdkDefaultTimeSync::TIME_SOURCE_BUILD || src == RdkDefaultTimeSync::TIME_SOURCE_NVRAM)
+		if (time_source == RdkDefaultTimeSync::TIME_SOURCE_BUILD || time_source == RdkDefaultTimeSync::TIME_SOURCE_NVRAM)
                 {
                    std::ofstream fallbackFile("/tmp/fall_back_time");
                    if (fallbackFile.is_open())
@@ -442,7 +442,7 @@ void SysTimeMgr::setInitialTime()
                         char buf[100];
                         strftime(buf, sizeof(buf), "%F %T", localtime(&set_time));
 
-                        if (src == RdkDefaultTimeSync::TIME_SOURCE_BUILD)
+                        if (time_source == RdkDefaultTimeSync::TIME_SOURCE_BUILD)
                          fallbackFile << "SOURCE=BUILD_TIME\n";
                         else
                         fallbackFile << "SOURCE=NVRAM_TIME\n";
