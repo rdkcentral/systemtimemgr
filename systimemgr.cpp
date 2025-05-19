@@ -33,7 +33,7 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
-#include "rdkdefaulttimesync.h"
+#include "../systimemgrfactory/rdkdefaulttimesync.h"
 using namespace std::chrono;
 
 
