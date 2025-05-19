@@ -42,4 +42,4 @@ libsystimerfactory_la_LIBADD = $(IARM_LIBS) $(JSONRPC_LIBS) -lrdkloggers $(WPEFR
 
 
 libsystimerfactory_la_includedir = ${includedir}
-libsystimerfactory_la_include_HEADERS = timerfactory.h
+libsystimerfactory_la_include_HEADERS = timerfactory.h rdkdefaulttimesync.h
