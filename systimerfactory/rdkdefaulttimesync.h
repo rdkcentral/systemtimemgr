@@ -28,14 +28,7 @@
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
 {
-       public:
-        enum TimeSource {
-        TIME_SOURCE_NONE,
-        TIME_SOURCE_NVRAM,
-        TIME_SOURCE_BUILD
-       };
-
-	private:
+       private:
 		string m_path;
                 long long m_currentTime;
                 map<string, string> tokenize(string const& s,string token);
@@ -46,6 +39,7 @@ class RdkDefaultTimeSync: public ITimeSync
 		~RdkDefaultTimeSync(){}
 		virtual void  updateTime(long long locTime); 
 		virtual long long getTime(); 
+                using TimeSource = ITimeSync::TimeSource;
                 TimeSource getTimeSource() const;
       
 };
