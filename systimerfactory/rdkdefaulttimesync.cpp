@@ -70,7 +70,7 @@ long long RdkDefaultTimeSync::buildtime()
 	return ver_time;
 }
 
-TimeSource RdkDefaultTimeSync::getTimeSource() const {
+RdkDefaultTimeSync::TimeSource  RdkDefaultTimeSync::getTimeSource() const {
     return m_timeSource;
 }
 
