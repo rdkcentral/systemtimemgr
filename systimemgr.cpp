@@ -442,7 +442,7 @@ void SysTimeMgr::setInitialTime()
                         char buf[100];
                         strftime(buf, sizeof(buf), "%F %T", localtime(&set_time));
 
-                        if (src == TIME_SOURCE_BUILD)
+                        if (src == RdkDefaultTimeSync::TIME_SOURCE_BUILD)
                          fallbackFile << "SOURCE=BUILD_TIME\n";
                         else
                         fallbackFile << "SOURCE=NVRAM_TIME\n";
