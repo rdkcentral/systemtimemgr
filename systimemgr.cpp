@@ -427,7 +427,7 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
-		TimeSource src = i->getTimeSource(); 
+		RdkDefaultTimeSync::TimeSource src = i->getTimeSource(); 
 		if (src == TIME_SOURCE_BUILD || src == TIME_SOURCE_NVRAM)
                 {
                    std::ofstream fallbackFile("/tmp/fall_back_time");
