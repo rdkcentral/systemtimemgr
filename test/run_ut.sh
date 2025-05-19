@@ -51,6 +51,7 @@ mkdir -p /opt/secure/
 ./drmtest_gtest
 ./dtttest_gtest
 ./rdkDefaulttest_gtest
+./timerfactory_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
