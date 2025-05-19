@@ -428,9 +428,10 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+		RdkDefaultTimeSync::TimeSource src;
 		for (auto const& i : m_timerSync)
 		{
-		RdkDefaultTimeSync::TimeSource src = i->getTimeSource(); 
+		 src = i->getTimeSource(); 
 		}
 		if (src == RdkDefaultTimeSync::TIME_SOURCE_BUILD || src == RdkDefaultTimeSync::TIME_SOURCE_NVRAM)
                 {
