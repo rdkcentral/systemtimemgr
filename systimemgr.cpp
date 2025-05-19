@@ -428,13 +428,16 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+		for (auto const& i : m_timerSync)
+		{
 		RdkDefaultTimeSync::TimeSource src = i->getTimeSource(); 
+		}
 		if (src == RdkDefaultTimeSync::TIME_SOURCE_BUILD || src == RdkDefaultTimeSync::TIME_SOURCE_NVRAM)
                 {
                    std::ofstream fallbackFile("/tmp/fall_back_time");
                    if (fallbackFile.is_open())
                    {
-                        time_t set_time = static_cast<time_t>(locTime);
+                        time_t set_time = static_cast<time_t>(currenttime);
                         char buf[100];
                         strftime(buf, sizeof(buf), "%F %T", localtime(&set_time));
 
