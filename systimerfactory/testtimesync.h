@@ -49,6 +49,9 @@ class TestTimeSync: public ITimeSync
 			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Time Returning = %lld \n",__FUNCTION__,__LINE__,ret);
 			return ret;
 		}
+                TimeSource getTimeSource() const override {
+                return TIME_SOURCE_NONE; 
+                 }
 };
 
 #endif// _TESTTIMESYNC_H_
