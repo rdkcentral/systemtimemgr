@@ -34,7 +34,7 @@ class RdkDefaultTimeSync: public ITimeSync
                 map<string, string> tokenize(string const& s,string token);
                 long long buildtime();
 	public: 
-		RdkDefaultTimeSync(string path = "/opt/secure/clock.txt"):ITimeSync(),m_path(path),m_currentTime(0) {}
+		RdkDefaultTimeSync(string path = "/opt/secure/clock.txt"):ITimeSync(),m_path(std::move(path)),m_currentTime(0) {}
 		~RdkDefaultTimeSync(){}
 		virtual void  updateTime(long long locTime); 
 		virtual long long getTime(); 

@@ -25,7 +25,7 @@ using namespace std;
 class TestPublish: public IPublish
 {
 	public:
-		TestPublish(string pub):IPublish(pub) {}
+		TestPublish(string pub):IPublish(std::move(pub)) {}
 		virtual void publish(int event, void* args)
 		{
 			TimerMsg* pMsg = reinterpret_cast<TimerMsg*>(args);
