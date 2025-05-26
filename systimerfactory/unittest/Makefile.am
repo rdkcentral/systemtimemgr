@@ -23,7 +23,7 @@ bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gte
 COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include
 
 # Define the libraries to link against
-COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock -lrdkloggers -lsecure_wrapper
+COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock 
 
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti
