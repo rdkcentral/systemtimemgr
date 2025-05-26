@@ -18,11 +18,9 @@
 
 #include "Client_Mock.h"
 //print the Debug Lines on the console remove rdklogger dependency
-#ifdef GTEST_ENABLE
+
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
-#endif
-
 #include "drmtimersrc.h"
 #include "drmtimersrc.cpp"
 
