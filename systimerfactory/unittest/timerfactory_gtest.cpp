@@ -4,8 +4,10 @@
 
 #include "Client_Mock.h"
 
+#ifdef GTEST_ENABLE
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
+#endif
 
 #include "timerfactory.h"
 #include "timerfactory.cpp"
