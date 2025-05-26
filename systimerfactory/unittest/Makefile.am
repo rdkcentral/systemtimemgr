@@ -20,7 +20,7 @@
 bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include
+COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGTEST_ENABLE
 
 # Define the libraries to link against
 COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock 
