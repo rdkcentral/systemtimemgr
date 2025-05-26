@@ -18,7 +18,9 @@
 
 #ifndef _IRDKLOG_H_
 #define _IRDKLOG_H_
+#ifndef GTEST_ENABLE
 #include "rdk_debug.h"
+#endif
 #define LOG_SYSTIME "LOG.RDK.SYSTIMEMGR"
 
 #endif //_IRDKLOG_H_
