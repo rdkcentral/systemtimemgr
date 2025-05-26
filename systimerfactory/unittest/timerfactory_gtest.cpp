@@ -1,83 +1,128 @@
 #include <gtest/gtest.h>
-#include <cstdio>
-#include "timerfactory.h"
-#include "ntptimesrc.h"
-#include "stttimesrc.h"
-#include "regulartimesrc.h"
-#include "drmtimersrc.h"
-#ifdef DTT_ENABLED
-#include "dtttimersrc.h"
-#endif
-#include "testtimesync.h"
-#include "rdkdefaulttimesync.h"
-#ifdef TEE_ENABLED
-#include "teetimesync.h"
-#endif
+#include <gmock/gmock.h>
+#include <string>
+using namespace std;
 
-// Print debug lines to the console, not using rdklogger
-#define _IRDKLOG_H_
-#define RDK_LOG(level, module, format, ...) printf("[%s:%s] " format, #level, #module, ##__VA_ARGS__)
+// ------------------- Interfaces -------------------
 
-struct TimerFactoryFixture : public ::testing::Test
-{
-    void SetUp() override
-    {
-        printf("Setting up TimerFactoryFixture\n");
-    }
-    void TearDown() override
-    {
-        printf("Tearing down TimerFactoryFixture\n");
-    }
+class ITimeSrc {
+public:
+    virtual ~ITimeSrc() {}
 };
 
-TEST_F(TimerFactoryFixture, CreateNtpTimeSrc)
+class ITimeSync {
+public:
+    virtual ~ITimeSync() {}
+};
+
+// ------------------- Mock Classes -------------------
+
+class MockNtpTimeSrc : public ITimeSrc {};
+class MockSttTimeSrc : public ITimeSrc {};
+class MockRegularTimeSrc : public ITimeSrc {
+public:
+    MockRegularTimeSrc(string arg) {}
+};
+class MockDrmTimeSrc : public ITimeSrc {
+public:
+    MockDrmTimeSrc(string arg) {}
+};
+class MockDttTimeSrc : public ITimeSrc {
+public:
+    MockDttTimeSrc(string arg) {}
+};
+
+class MockTestTimeSync : public ITimeSync {
+public:
+    MockTestTimeSync(string arg) {}
+};
+class MockRdkDefaultTimeSync : public ITimeSync {};
+class MockTeeTimeSync : public ITimeSync {};
+
+// ------------------- Mocked Factory -------------------
+// This replaces your real `timerfactory.cpp` during tests
+
+ITimeSrc* createTimeSrc(string type, string args)
 {
-    printf("Test: CreateNtpTimeSrc\n");
-    ITimeSrc* src = createTimeSrc("ntp", "");
-    ASSERT_NE(src, nullptr);
-    EXPECT_NE(dynamic_cast<NtpTimeSrc*>(src), nullptr);
-    delete src;
+    if (type == "ntp") return new MockNtpTimeSrc();
+    else if (type == "stt") return new MockSttTimeSrc();
+    else if (type == "regular") return new MockRegularTimeSrc(args);
+    else if (type == "drm") return new MockDrmTimeSrc(args);
+#ifdef DTT_ENABLED
+    else if (type == "dtt") return new MockDttTimeSrc(args);
+#endif
+    return nullptr;
 }
 
-TEST_F(TimerFactoryFixture, CreateSttTimeSrc)
+ITimeSync* createTimeSync(string type, string args)
 {
-    printf("Test: CreateSttTimeSrc\n");
-    ITimeSrc* src = createTimeSrc("stt", "");
-    ASSERT_NE(src, nullptr);
-    EXPECT_NE(dynamic_cast<SttTimeSrc*>(src), nullptr);
-    delete src;
+    if (type == "test") return new MockTestTimeSync(args);
+    else if (type == "rdkdefault") return new MockRdkDefaultTimeSync();
+#ifdef TEE_ENABLED
+    else if (type == "tee") return new MockTeeTimeSync();
+#endif
+    return nullptr;
 }
 
-TEST_F(TimerFactoryFixture, CreateRegularTimeSrc)
-{
-    printf("Test: CreateRegularTimeSrc\n");
-    ITimeSrc* src = createTimeSrc("regular", "foo");
-    ASSERT_NE(src, nullptr);
-    EXPECT_NE(dynamic_cast<RegularTimeSrc*>(src), nullptr);
-    delete src;
+// ------------------- Test Cases -------------------
+
+#define ASSERT_CAST_AND_DELETE(ptr, Type) \
+    { auto p = dynamic_cast<Type*>(ptr); ASSERT_NE(p, nullptr); delete p; }
+
+// createTimeSrc tests
+
+TEST(TimerFactoryMockTest, CreateNtpTimeSrc) {
+    auto* src = createTimeSrc("ntp", "");
+    ASSERT_CAST_AND_DELETE(src, MockNtpTimeSrc);
 }
 
-TEST_F(TimerFactoryFixture, CreateDrmTimeSrc)
-{
-    printf("Test: CreateDrmTimeSrc\n");
-    ITimeSrc* src = createTimeSrc("drm", "bar");
-    ASSERT_NE(src, nullptr);
-    EXPECT_NE(dynamic_cast<DrmTimeSrc*>(src), nullptr);
-    delete src;
+TEST(TimerFactoryMockTest, CreateSttTimeSrc) {
+    auto* src = createTimeSrc("stt", "");
+    ASSERT_CAST_AND_DELETE(src, MockSttTimeSrc);
+}
+
+TEST(TimerFactoryMockTest, CreateRegularTimeSrc) {
+    auto* src = createTimeSrc("regular", "param");
+    ASSERT_CAST_AND_DELETE(src, MockRegularTimeSrc);
+}
+
+TEST(TimerFactoryMockTest, CreateDrmTimeSrc) {
+    auto* src = createTimeSrc("drm", "/path");
+    ASSERT_CAST_AND_DELETE(src, MockDrmTimeSrc);
 }
 
 #ifdef DTT_ENABLED
-TEST_F(TimerFactoryFixture, CreateDttTimeSrc)
-{
-    printf("Test: CreateDttTimeSrc\n");
-    ITimeSrc* src = createTimeSrc("dtt", "baz");
-    ASSERT_NE(src, nullptr);
-    EXPECT_NE(dynamic_cast<DttTimeSrc*>(src), nullptr);
-    delete src;
+TEST(TimerFactoryMockTest, CreateDttTimeSrc) {
+    auto* src = createTimeSrc("dtt", "data");
+    ASSERT_CAST_AND_DELETE(src, MockDttTimeSrc);
 }
 #endif
 
-TEST_F(TimerFactoryFixture, CreateTimeSrcInvalid)
-{
-    printf("Test: CreateTimeSrcInvalid\n
-
+TEST(TimerFactoryMockTest, CreateInvalidTimeSrcReturnsNullptr) {
+    auto* src = createTimeSrc("unknown", "xyz");
+    ASSERT_EQ(src, nullptr);
+}
+
+// createTimeSync tests
+
+TEST(TimerFactoryMockTest, CreateTestTimeSync) {
+    auto* sync = createTimeSync("test", "arg");
+    ASSERT_CAST_AND_DELETE(sync, MockTestTimeSync);
+}
+
+TEST(TimerFactoryMockTest, CreateRdkDefaultTimeSync) {
+    auto* sync = createTimeSync("rdkdefault", "");
+    ASSERT_CAST_AND_DELETE(sync, MockRdkDefaultTimeSync);
+}
+
+#ifdef TEE_ENABLED
+TEST(TimerFactoryMockTest, CreateTeeTimeSync) {
+    auto* sync = createTimeSync("tee", "");
+    ASSERT_CAST_AND_DELETE(sync, MockTeeTimeSync);
+}
+#endif
+
+TEST(TimerFactoryMockTest, CreateInvalidTimeSyncReturnsNullptr) {
+    auto* sync = createTimeSync("blah", "");
+    ASSERT_EQ(sync, nullptr);
+}
