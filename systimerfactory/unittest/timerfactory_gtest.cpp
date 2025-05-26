@@ -4,10 +4,11 @@
 
 #include "Client_Mock.h"
 
-#ifdef GTEST_ENABLE
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
-#endif
+// Only for unit test
+#define NTP_TIME_LOG_FMT "[%s:%d]:NTP Time Values, MaxValue = %d, Time in Sec = %ld, Time in Microsec = %ld, Estimated Error = %d, TAI = %ld \n"
+
 
 #include "timerfactory.h"
 #include "timerfactory.cpp"
