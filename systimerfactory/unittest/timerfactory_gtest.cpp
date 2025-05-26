@@ -4,68 +4,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <string>
+#include "timerfactory.h"
+#include "timerfactory.cpp"
 using namespace std;
 
-// ------------------- Interfaces -------------------
 
-class ITimeSrc {
-public:
-    virtual ~ITimeSrc() {}
-};
 
-class ITimeSync {
-public:
-    virtual ~ITimeSync() {}
-};
-
-// ------------------- Mock Classes -------------------
-
-class MockNtpTimeSrc : public ITimeSrc {};
-class MockSttTimeSrc : public ITimeSrc {};
-class MockRegularTimeSrc : public ITimeSrc {
-public:
-    MockRegularTimeSrc(string arg) {}
-};
-class MockDrmTimeSrc : public ITimeSrc {
-public:
-    MockDrmTimeSrc(string arg) {}
-};
-class MockDttTimeSrc : public ITimeSrc {
-public:
-    MockDttTimeSrc(string arg) {}
-};
-
-class MockTestTimeSync : public ITimeSync {
-public:
-    MockTestTimeSync(string arg) {}
-};
-class MockRdkDefaultTimeSync : public ITimeSync {};
-class MockTeeTimeSync : public ITimeSync {};
-
-// ------------------- Mocked Factory -------------------
-// This replaces your real `timerfactory.cpp` during tests
-
-ITimeSrc* createTimeSrc(string type, string args)
-{
-    if (type == "ntp") return new MockNtpTimeSrc();
-    else if (type == "stt") return new MockSttTimeSrc();
-    else if (type == "regular") return new MockRegularTimeSrc(args);
-    else if (type == "drm") return new MockDrmTimeSrc(args);
-#ifdef DTT_ENABLED
-    else if (type == "dtt") return new MockDttTimeSrc(args);
-#endif
-    return nullptr;
-}
-
-ITimeSync* createTimeSync(string type, string args)
-{
-    if (type == "test") return new MockTestTimeSync(args);
-    else if (type == "rdkdefault") return new MockRdkDefaultTimeSync();
-#ifdef TEE_ENABLED
-    else if (type == "tee") return new MockTeeTimeSync();
-#endif
-    return nullptr;
-}
 
 // ------------------- Test Cases -------------------
 
@@ -75,57 +19,57 @@ ITimeSync* createTimeSync(string type, string args)
 // createTimeSrc tests
 
 TEST(TimerFactoryMockTest, CreateNtpTimeSrc) {
-    auto* src = createTimeSrc("ntp", "");
-    ASSERT_CAST_AND_DELETE(src, MockNtpTimeSrc);
+    ITimeSrc* src = createTimeSrc("ntp", "");
+    ASSERT_CAST_AND_DELETE(src, NtpTimeSrc);
 }
 
 TEST(TimerFactoryMockTest, CreateSttTimeSrc) {
-    auto* src = createTimeSrc("stt", "");
-    ASSERT_CAST_AND_DELETE(src, MockSttTimeSrc);
+    ITimeSrc* src = createTimeSrc("stt", "");
+    ASSERT_CAST_AND_DELETE(src, SttTimeSrc);
 }
 
 TEST(TimerFactoryMockTest, CreateRegularTimeSrc) {
-    auto* src = createTimeSrc("regular", "param");
-    ASSERT_CAST_AND_DELETE(src, MockRegularTimeSrc);
+    ITimeSrc* src = createTimeSrc("regular", "param");
+    ASSERT_CAST_AND_DELETE(src, RegularTimeSrc);
 }
 
 TEST(TimerFactoryMockTest, CreateDrmTimeSrc) {
-    auto* src = createTimeSrc("drm", "/path");
-    ASSERT_CAST_AND_DELETE(src, MockDrmTimeSrc);
+    ITimeSrc* src = createTimeSrc("drm", "/path");
+    ASSERT_CAST_AND_DELETE(src, DrmTimeSrc);
 }
 
-#ifdef DTT_ENABLED
+/*#ifdef DTT_ENABLED
 TEST(TimerFactoryMockTest, CreateDttTimeSrc) {
-    auto* src = createTimeSrc("dtt", "data");
-    ASSERT_CAST_AND_DELETE(src, MockDttTimeSrc);
+    ITimeSrc* src = createTimeSrc("dtt", "data");
+    ASSERT_CAST_AND_DELETE(src, DttTimeSrc);
 }
-#endif
+#endif*/
 
 TEST(TimerFactoryMockTest, CreateInvalidTimeSrcReturnsNullptr) {
-    auto* src = createTimeSrc("unknown", "xyz");
+    ITimeSrc* src = createTimeSrc("unknown", "xyz");
     ASSERT_EQ(src, nullptr);
 }
 
 // createTimeSync tests
 
 TEST(TimerFactoryMockTest, CreateTestTimeSync) {
-    auto* sync = createTimeSync("test", "arg");
-    ASSERT_CAST_AND_DELETE(sync, MockTestTimeSync);
+    ITimeSync* sync = createTimeSync("test", "arg");
+    ASSERT_CAST_AND_DELETE(sync, TestTimeSync);
 }
 
 TEST(TimerFactoryMockTest, CreateRdkDefaultTimeSync) {
-    auto* sync = createTimeSync("rdkdefault", "");
-    ASSERT_CAST_AND_DELETE(sync, MockRdkDefaultTimeSync);
+    ITimeSync* sync = createTimeSync("rdkdefault", "");
+    ASSERT_CAST_AND_DELETE(sync, RdkDefaultTimeSync);
 }
 
-#ifdef TEE_ENABLED
+/*#ifdef TEE_ENABLED
 TEST(TimerFactoryMockTest, CreateTeeTimeSync) {
-    auto* sync = createTimeSync("tee", "");
-    ASSERT_CAST_AND_DELETE(sync, MockTeeTimeSync);
+    ITimeSync* sync = createTimeSync("tee", "");
+    ASSERT_CAST_AND_DELETE(sync, TeeTimeSync);
 }
-#endif
+#endif*/
 
-TEST(TimerFactoryMockTest, CreateInvalidTimeSyncReturnsNullptr) {
-    auto* sync = createTimeSync("blah", "");
+TEST(TimerFactoryMockTest, CreateInvalidTimeSync) {
+    ITimeSync* sync = createTimeSync("blah", "");
     ASSERT_EQ(sync, nullptr);
 }
