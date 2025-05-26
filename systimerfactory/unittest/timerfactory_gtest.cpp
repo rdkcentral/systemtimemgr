@@ -3,7 +3,7 @@
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 
-#include "timerfactory.h"
+
 #include "timerfactory.cpp"
 
 
