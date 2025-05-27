@@ -104,16 +104,18 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_T
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
 
-    EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .WillRepeatedly(Invoke([]() {
-            if (++connectCallCount == 1) {
-                std::cout << "Mock Connect: FAIL\n";
-                return static_cast<uint32_t>(-1);
-            } else {
-                std::cout << "Mock Connect: SUCCESS\n";
-                return POWER_CONTROLLER_ERROR_NONE;
-            }
-        }));
+   EXPECT_CALL(mockPowerController, PowerController_Connect())
+    .WillRepeatedly(Invoke([]() -> uint32_t {
+        static int callCount = 0;
+        if (++callCount == 1) {
+            std::cout << "Mock Connect: FAIL\n";
+            return static_cast<uint32_t>(-1);  // Cast to match return type
+        } else {
+            std::cout << "Mock Connect: SUCCESS\n";
+            return POWER_CONTROLLER_ERROR_NONE;
+        }
+    }));
+
 
     EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(_, _))
         .WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
