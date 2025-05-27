@@ -17,7 +17,7 @@
 #
 
 # Define the program name and the source files
-bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest iarmtimerstatus_gtest iarmsubscribe_gtest iarmpublish_gtest iarmpowersubscribe_gtest
+bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest iarmtimerstatus_gtest iarmsubscribe_gtest iarmpublish_gtest iarmpowersubscribe_gtest systimemgr_gtest
 
 # Define the include directories
 COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGTEST_ENABLE
