@@ -18,7 +18,7 @@ public:
 };
 
 // Global mock pointer
-MockIARM_Bus* g_mockIARM = nullptr;
+MockIarmBus* g_mock = nullptr;
 
 // Wrappers that redirect to the mock
 extern "C" {
