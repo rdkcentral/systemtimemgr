@@ -5,41 +5,50 @@
 #include "iarmpublish.h"
 #include "iarmpublish.cpp"
 
-using namespace testing;
-using testing::DoAll;
+using ::testing::_;
+using ::testing::Return;
+using ::testing::SetArgPointee;
+using ::testing::StrEq;
+using ::testing::DoAll;
 
-// Mocking IARM Bus functions
-class MockIARM_Bus {
+extern "C" {
+    IARM_Result_t IARM_Bus_Init(const char*);
+    IARM_Result_t IARM_Bus_Connect();
+    IARM_Result_t IARM_Bus_IsConnected(const char*, int*);
+    IARM_Result_t IARM_Bus_BroadcastEvent(const char*, int, void*, int);
+}
+
+// Mock class
+class MockIarmBus {
 public:
-    MOCK_METHOD(IARM_Result_t, IARM_Bus_Init, (const char*), ());
-    MOCK_METHOD(IARM_Result_t, IARM_Bus_Connect, (), ());
-    MOCK_METHOD(IARM_Result_t, IARM_Bus_IsConnected, (const char*, int*), ());
-    MOCK_METHOD(IARM_Result_t, IARM_Bus_BroadcastEvent, (const char*, IARM_EventId_t, void*, size_t), ());
+    MOCK_METHOD(IARM_Result_t, IARM_Bus_Init, (const char*));
+    MOCK_METHOD(IARM_Result_t, IARM_Bus_Connect, ());
+    MOCK_METHOD(IARM_Result_t, IARM_Bus_IsConnected, (const char*, int*));
+    MOCK_METHOD(IARM_Result_t, IARM_Bus_BroadcastEvent, (const char*, int, void*, int));
 };
 
-// Global mock pointer
 MockIarmBus* g_mock = nullptr;
 
-// Wrappers that redirect to the mock
+// C-style function hooks
 extern "C" {
     IARM_Result_t IARM_Bus_Init(const char* name) {
-        return g_mockIARM->IARM_Bus_Init(name);
+        return g_mock->IARM_Bus_Init(name);
     }
 
-    IARM_Result_t IARM_Bus_Connect(void) {
-        return g_mockIARM->IARM_Bus_Connect();
+    IARM_Result_t IARM_Bus_Connect() {
+        return g_mock->IARM_Bus_Connect();
     }
 
     IARM_Result_t IARM_Bus_IsConnected(const char* name, int* isRegistered) {
-        return g_mockIARM->IARM_Bus_IsConnected(name, isRegistered);
+        return g_mock->IARM_Bus_IsConnected(name, isRegistered);
     }
 
-    IARM_Result_t IARM_Bus_BroadcastEvent(const char* ownerName, IARM_EventId_t eventId, void* data, size_t len) {
-        return g_mockIARM->IARM_Bus_BroadcastEvent(ownerName, eventId, data, len);
+    IARM_Result_t IARM_Bus_BroadcastEvent(const char* owner, int event, void* data, int len) {
+        return g_mock->IARM_Bus_BroadcastEvent(owner, event, data, len);
     }
 }
 
-// Fixture
+// Test fixture
 class IarmPublishTest : public ::testing::Test {
 protected:
     MockIarmBus mock;
