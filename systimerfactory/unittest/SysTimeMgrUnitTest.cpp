@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "systimemgr.h"
-#include "itimesrc.h"
+
 
 // Example mock for a timer source
 class MockTimerSrc : public ITimeSrc {
@@ -24,13 +24,14 @@ public:
 // Example mock for publisher
 class MockPublisher : public IPublish {
 public:
-    MOCK_METHOD(void, publish, (const std::string&, void*), (override));
+    MockPublisher() : IPublish("mock") {}
+    MOCK_METHOD(void, publish, (int, void*), (override));
 };
 
 // Example mock for subscriber
 class MockSubscriber : public ISubscribe {
 public:
-    MOCK_METHOD(void, subscribe, (const std::string&, void*), (override));
+    MOCK_METHOD(void, subscribe, (string, functPtr), (override));
 };
 
 class SysTimeMgrTest : public ::testing::Test {
