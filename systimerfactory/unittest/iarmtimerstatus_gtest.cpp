@@ -5,6 +5,7 @@
 #include "iarmtimerstatussubscriber.h"
 #include "iarmtimerstatussubscriber.cpp"  // Only include the cpp file if necessary (no .h available)
 #include "iarmsubscribe.cpp"              // Ensure this is safe to include for base class logic
+#include "pwrMgr.h."
 
 using ::testing::_;
 using ::testing::Return;
@@ -15,6 +16,10 @@ public:
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
     MOCK_METHOD(IARM_Result_t, RegisterCall, (const char*, IARM_BusCall_t), ());
+    MOCK_METHOD(IARM_Result_t, RegisterEventHandler,
+            (const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler), ());
+
+
 };
 
 static MockIARM* gMockIARM = nullptr;
@@ -35,6 +40,10 @@ extern "C" {
 
     IARM_Result_t IARM_Bus_RegisterCall(const char* name, IARM_BusCall_t handler) {
         return gMockIARM->RegisterCall(name, handler);
+    }
+
+    IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+        return gMockIARM->RegisterEventHandler(ownerName, eventId, handler);
     }
 }
 
