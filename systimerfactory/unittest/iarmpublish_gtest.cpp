@@ -5,6 +5,9 @@
 #include "iarmpublish.h"
 #include "iarmpublish.cpp"
 
+using namespace testing;
+using testing::DoAll;
+
 // Mocking IARM Bus functions
 class MockIARM_Bus {
 public:
