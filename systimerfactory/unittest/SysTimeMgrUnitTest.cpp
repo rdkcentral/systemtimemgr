@@ -4,7 +4,8 @@
 #include <gmock/gmock.h>
 #include "systimemgr.h"
 #include "systimemgr.cpp"
-#include "timerfactory.h"
+#include "timerfactory.cpp"
+#include "pubsubfactory.cpp"
 
 
 
