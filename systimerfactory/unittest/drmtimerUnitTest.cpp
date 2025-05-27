@@ -25,7 +25,6 @@
 #include "drmtimersrc.cpp"
 
 using namespace testing;
-using testing::DoAll;
 
 
 #define DRM_TEST_FILE "/opt/DRMTEST.txt"
