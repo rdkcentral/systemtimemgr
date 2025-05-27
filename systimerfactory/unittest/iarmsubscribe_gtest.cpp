@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#define _IRDKLOG_H_
+#define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include "iarmsubscribe.h"
 #include "iarmsubscribe.cpp"  // Assumes no header is available, otherwise include .h
 
