@@ -89,8 +89,12 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback
         .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
     
 
-    bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
+    EXPECT_CALL(*gMockIARM, RegisterCall(StrEq("TIMER_STATUS"), testing::_))
+        .WillOnce(Return(IARM_RESULT_SUCCESS));
+
+    bool result = subscriber.subscribe("TIMER_STATUS", reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
+    
 }
 
 
