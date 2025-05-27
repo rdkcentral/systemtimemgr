@@ -17,7 +17,7 @@
 #
 
 # Define the program name and the source files
-bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest
+bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest
 
 # Define the include directories
 COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGTEST_ENABLE
@@ -51,3 +51,7 @@ rdkDefaulttest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 timerfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 timerfactory_gtest_LDADD = $(COMMON_LDADD)
 timerfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+pubsubfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+pubsubfactory_gtest_LDADD = $(COMMON_LDADD)
+pubsubfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
