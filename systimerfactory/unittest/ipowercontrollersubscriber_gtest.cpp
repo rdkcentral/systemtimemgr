@@ -6,6 +6,10 @@
 #include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
+#include "iarmsubscribe.h"
+
+//IarmSubscriber* IarmSubscriber::pInstance = nullptr;
+
 
 // Fake PowerController state
 static PowerController_PowerModeChangedCb g_callback = nullptr;
