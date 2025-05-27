@@ -1,102 +1,108 @@
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 
-#include <gtest/gtest.h>
+
 #include <iostream>
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <thread>
 #include "power_controller.h"
-#include "iarmpowersubscriber.h"
-#include "iarmpowersubscriber.cpp"
+#include "ipowercontrollersubscriber.h"
+#include "ipowercontrollersubscriber.cpp"
 
+// Mocking the external PowerController API functions
+class MockPowerController {
+public:
+    MOCK_METHOD(void, PowerController_Init, (), ());
+    MOCK_METHOD(int, PowerController_Connect, (), ());
+    MOCK_METHOD(int, PowerController_RegisterPowerModeChangedCallback, (PowerController_PowerModeChangedCallback, void*), ());
+    MOCK_METHOD(int, PowerController_UnRegisterPowerModeChangedCallback, (PowerController_PowerModeChangedCallback), ());
+    MOCK_METHOD(void, PowerController_Term, (), ());
+};
 
-using ::testing::_;
-using ::testing::Return;
-using ::testing::StrEq;
+static MockPowerController* gMockPowerController = nullptr;
 
+// Wrapper functions to redirect calls to mocks
 extern "C" {
-    // Mockable declarations for linking
-    IARM_Result_t IARM_Bus_IsConnected(const char* name, int* isRegistered);
-    IARM_Result_t IARM_Bus_Init(const char* name);
-    IARM_Result_t IARM_Bus_Connect();
-    bool IARM_Bus_RegisterEventHandler(const char* ownerName, int eventId, void (*handler)(const char*, int, void*, size_t));
+    void PowerController_Init() {
+        gMockPowerController->PowerController_Init();
+    }
+
+    int PowerController_Connect() {
+        return gMockPowerController->PowerController_Connect();
+    }
+
+    int PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCallback cb, void* userData) {
+        return gMockPowerController->PowerController_RegisterPowerModeChangedCallback(cb, userData);
+    }
+
+    int PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCallback cb) {
+        return gMockPowerController->PowerController_UnRegisterPowerModeChangedCallback(cb);
+    }
+
+    void PowerController_Term() {
+        gMockPowerController->PowerController_Term();
+    }
 }
 
-// === Mock Implementations ===
-IARM_Result_t IARM_Bus_IsConnected(const char* name, int* isRegistered) {
-    *isRegistered = 0; // Simulate not connected
-    return IARM_RESULT_SUCCESS;
-}
-
-IARM_Result_t IARM_Bus_Init(const char* name) {
-    return IARM_RESULT_SUCCESS;
-}
-
-IARM_Result_t IARM_Bus_Connect() {
-    return IARM_RESULT_SUCCESS;
-}
-
-bool IARM_Bus_RegisterEventHandler(const char* ownerName, int eventId, void (*handler)(const char*, int, void*, size_t)) {
-    return true;
-}
-
-// === Global test state ===
-std::string g_lastPowerStatus;
-void MockPowerHandler(void* status) {
-    g_lastPowerStatus = *(static_cast<std::string*>(status));
-}
-
-// === Google Test Fixture ===
-class IarmPowerSubscriberTest : public ::testing::Test {
+class IpowerControllerSubscriberTest : public ::testing::Test {
 protected:
-    IarmPowerSubscriber* subscriber;
-
     void SetUp() override {
-        g_lastPowerStatus.clear();
-        subscriber = new IarmPowerSubscriber("TestModule");
-        IarmSubscriber::pInstance = subscriber;  // Singleton instance for dynamic_cast
+        gMockPowerController = &mockPowerController;
     }
 
     void TearDown() override {
-        delete subscriber;
-        IarmSubscriber::pInstance = nullptr;
+        gMockPowerController = nullptr;
     }
+
+    MockPowerController mockPowerController;
 };
 
-// === Test Cases ===
+TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectSuccess_RegistersCallback) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
 
-TEST_F(IarmPowerSubscriberTest, SubscribeRegistersEventHandler) {
-    EXPECT_TRUE(subscriber->subscribe(POWER_CHANGE_MSG, MockPowerHandler));
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+
+    EXPECT_TRUE(ret);
 }
 
-TEST_F(IarmPowerSubscriberTest, PowerEventTriggersHandlerForDeepSleep) {
-    subscriber->subscribe(POWER_CHANGE_MSG, MockPowerHandler);
+TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_StartsThread) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    memset(&eventData, 0, sizeof(eventData));
-    eventData.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_OFF;
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .WillOnce(::testing::Return(-1))  // Fail first connect
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE)); // Succeed next time
 
-    IarmPowerSubscriber::powereventHandler("Test", IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData, sizeof(eventData));
+    // RegisterPowerModeChangedCallback should be called eventually in thread, allow call once
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
-    EXPECT_EQ(g_lastPowerStatus, "DEEP_SLEEP_ON");
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+
+    EXPECT_TRUE(ret);
+
+    // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
 }
 
-TEST_F(IarmPowerSubscriberTest, PowerEventTriggersHandlerForWakeUp) {
-    subscriber->subscribe(POWER_CHANGE_MSG, MockPowerHandler);
-
-    IARM_Bus_PWRMgr_EventData_t eventData;
-    memset(&eventData, 0, sizeof(eventData));
-    eventData.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
-    eventData.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_ON;
-
-    IarmPowerSubscriber::powereventHandler("Test", IARM_BUS_PWRMGR_EVENT_MODECHANGED, &eventData, sizeof(eventData));
-
-    EXPECT_EQ(g_lastPowerStatus, "DEEP_SLEEP_OFF");
+TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
+    {
+        EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+        IpowerControllerSubscriber subscriber("test_subscriber");
+    }
+    // Destructor called at block exit, PowerController_Term should be invoked
 }
 
-TEST_F(IarmPowerSubscriberTest, NonMatchingEventDoesNotTriggerHandler) {
-    subscriber->subscribe(POWER_CHANGE_MSG, MockPowerHandler);
+TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    g_lastPowerStatus = "SHOULD_NOT_CHANGE";
-    IarmPowerSubscriber::powereventHandler("Test", 9999, nullptr, 0);
+    bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
 
-    EXPECT_EQ(g_lastPowerStatus, "SHOULD_NOT_CHANGE");
+    EXPECT_FALSE(ret);
 }
+
