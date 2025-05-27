@@ -51,12 +51,11 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 }
 
 } // extern "C"
-int TestPowerHandler(void* data) {
-    g_callback_data = data;
+void TestPowerHandler(PowerController_PowerState newState,
+                      PowerController_PowerState oldState,
+                      void* data) {
     callback_invoked = true;
-
-    // Optionally cast the data to expected type (e.g., PowerController_PowerState_t*)
-    return 0;  // Return success
+    g_callback_data = data;
 }
 
 // Handler to test callback propagation
@@ -88,17 +87,19 @@ protected:
 TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
     bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
     EXPECT_TRUE(subscribed);
-    PowerController_PowerState_t dummyState = POWER_ON;
+
+    PowerController_PowerState newState = POWER_ON;
+    PowerController_PowerState oldState = POWER_OFF;
+    void* user_data = reinterpret_cast<void*>(0x1234);
+
     g_callback = TestPowerHandler;  // Simulate internal assignment
     ASSERT_NE(g_callback, nullptr);
 
-    int result = g_callback(reinterpret_cast<void*>(&dummyState));
-    EXPECT_EQ(result, 0);
+    g_callback(newState, oldState, user_data);
     EXPECT_TRUE(callback_invoked);
-    EXPECT_EQ(g_callback_data, static_cast<void*>(&dummyState));
-    // Simulate PowerController invoking callback
-   
+    EXPECT_EQ(g_callback_data, user_data);
 }
+
 
 TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectStartsThread) {
     // Set condition where connect always fails
