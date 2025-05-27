@@ -53,6 +53,7 @@ mkdir -p /opt/secure/
 ./rdkDefaulttest_gtest
 ./timerfactory_gtest
 ./pubsubfactory_gtest
+./ipowercontrollersubscriber_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
