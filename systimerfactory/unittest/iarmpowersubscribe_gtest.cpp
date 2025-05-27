@@ -8,6 +8,7 @@
 #include <cstring>
 #include "iarmpowersubscriber.h"
 #include "iarmpowersubscriber.cpp"  // Use only if no header is available
+#include "Iarmsubscribe.h"
 #include "iarmsubscribe.cpp"
 
 using ::testing::_;
