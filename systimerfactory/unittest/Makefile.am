@@ -17,7 +17,7 @@
 #
 
 # Define the program name and the source files
-bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest
+bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest
 
 # Define the include directories
 COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGTEST_ENABLE
@@ -34,6 +34,7 @@ dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
 rdkDefaulttest_gtest_SOURCES = rdkDefaulttimesyncUnitTest.cpp
 timerfactory_gtest_SOURCES = timerfactory_gtest.cpp
 pubsubfactory_gtest_SOURCES = pubsubfactory_gtest.cpp
+ipowercontrollersubscriber_gtest_SOURCES = ipowercontrollersubscriber_gtest.cpp
 
 
 # Apply common properties to each program
@@ -57,3 +58,7 @@ timerfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 pubsubfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 pubsubfactory_gtest_LDADD = $(COMMON_LDADD)
 pubsubfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+ipowercontrollersubscriber_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+ipowercontrollersubscriber_gtest_LDADD = $(COMMON_LDADD)
+ipowercontrollersubscriber_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
