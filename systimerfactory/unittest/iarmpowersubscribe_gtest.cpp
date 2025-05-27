@@ -1,7 +1,9 @@
+#define _IRDKLOG_H_
+#define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "iarmpowersubscriber.h"
-#include "iarmpowersubsriber.cpp"
+#include "iarmpowersubscriber.cpp"
 
 using ::testing::_;
 using ::testing::Return;
