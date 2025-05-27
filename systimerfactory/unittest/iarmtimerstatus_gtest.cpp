@@ -14,7 +14,7 @@ public:
     MOCK_METHOD(IARM_Result_t, IsConnected, (const char*, int*), ());
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
-    MOCK_METHOD(bool, RegisterCall, (const char*, IARM_BusCall_t), ());
+    MOCK_METHOD(IARM_Result_t, RegisterCall, (const char*, IARM_BusCall_t), ());
 };
 
 static MockIARM* gMockIARM = nullptr;
@@ -79,8 +79,9 @@ TEST_F(IarmTimerStatusSubscriberTest, Constructor_IarmAlreadyConnected_DoesNotRe
 TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback) {
     IarmTimerStatusSubscriber subscriber("test_subscriber");
 
-    EXPECT_CALL(*gMockIARM, RegisterCall(TIMER_STATUS_MSG, _))
-        .WillOnce(Return(true));
+    EXPECT_CALL(*gMockIARM, RegisterCall(testing::_, testing::_))
+    .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
+
 
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
