@@ -51,11 +51,20 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 }
 
 } // extern "C"
-int TestPowerHandler(void* data) {
-    // Cast data to a struct that contains the info you need
-    // Or just test that this was called
+void TestPowerHandler(PowerController_PowerState newState, PowerController_PowerState oldState, void* userData) {
+    // Store values or assert for test
+    g_powerStateNew = newState;
+    g_powerStateOld = oldState;
+    g_userData = userData;
+}
+int PowerModeAdapterCallback(void* data) {
+    if (g_callback) {
+        // Optionally fill mock data here
+        g_callback(PowerController_PowerState::POWER_ON, PowerController_PowerState::POWER_OFF, data);
+    }
     return 0;
 }
+
 
 // Handler to test callback propagation
 /*void TestPowerHandler(void* status) {
@@ -84,7 +93,7 @@ protected:
 // === Tests ===
 
 TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
-    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
     EXPECT_TRUE(subscribed);
 
     PowerController_PowerState newState = POWER_STATE_ON;
@@ -104,12 +113,12 @@ TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectStartsThread) {
     // Set condition where connect always fails
     g_callback_registered = false;
 
-    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
     EXPECT_TRUE(subscribed);  // Thread still starts
 }
 
 TEST_F(IpowerControllerSubscriberTest, DestructorUnregistersCallback) {
-    subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+    subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
     delete subscriber;
     subscriber = nullptr;
 
