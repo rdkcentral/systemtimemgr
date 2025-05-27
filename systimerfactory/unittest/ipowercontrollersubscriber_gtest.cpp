@@ -51,11 +51,10 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 }
 
 } // extern "C"
-void TestPowerHandler(PowerController_PowerState newState,
-                      PowerController_PowerState oldState,
-                      void* data) {
-    callback_invoked = true;
-    g_callback_data = data;
+int TestPowerHandler(void* data) {
+    // Cast data to a struct that contains the info you need
+    // Or just test that this was called
+    return 0;
 }
 
 // Handler to test callback propagation
