@@ -14,7 +14,7 @@ public:
     MOCK_METHOD(IARM_Result_t, IsConnected, (const char*, int*), ());
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
-    MOCK_METHOD(IARM_Result_t, RegisterCall, (const char*, IARM_BusCall_t), ());
+    MOCK_METHOD(bool, RegisterCall, (const char*, IARM_BusCall_t), ());
 };
 
 static MockIARM* gMockIARM = nullptr;
