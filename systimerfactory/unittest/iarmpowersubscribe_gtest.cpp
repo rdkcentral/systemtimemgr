@@ -9,7 +9,7 @@
 #include "iarmsubscribe.h"
 #include "iarmpowersubscriber.h"
 #include "iarmpowersubscriber.cpp"  // Use only if no header is available
-
+#include "iarmsubscribe.cpp" 
 using ::testing::_;
 using ::testing::Return;
 using std::string;
