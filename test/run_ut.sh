@@ -54,6 +54,10 @@ mkdir -p /opt/secure/
 ./timerfactory_gtest
 ./pubsubfactory_gtest
 ./ipowercontrollersubscriber_gtest
+./iarmtimerstatus_gtest 
+./iarmsubscribe_gtest 
+./iarmpublish_gtest 
+./iarmpowersubscribe_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
