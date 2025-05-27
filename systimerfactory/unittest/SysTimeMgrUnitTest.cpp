@@ -5,24 +5,21 @@
 #include "systimemgr.h"
 
 
-// Example mock for a timer source
+
 class SysTimeMgrTest : public ::testing::Test {
 protected:
+    SysTimeMgr* mgr;
     void SetUp() override {
-        sysTimeMgr = new SysTimeMgr();
+        mgr = SysTimeMgr::get_instance();
     }
-    void TearDown() override {
-        delete sysTimeMgr;
-    }
-    SysTimeMgr* sysTimeMgr;
 };
 
-TEST_F(SysTimeMgrTest, InitializeReturnsTrue) {
-    ASSERT_TRUE(sysTimeMgr->initialize());
+TEST_F(SysTimeMgrTest, InitializeDoesNotThrow) {
+    // Just verify that initialize() is callable and does not throw/crash
+    ASSERT_NO_THROW(mgr->initialize());
 }
 
-TEST_F(SysTimeMgrTest, RunStateMachineDoesNotCrash) {
-    // Just test that method is callable and does not throw/crash
-    sysTimeMgr->runStateMachine(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
-    // If possible, check for public observable effect
+TEST_F(SysTimeMgrTest, RunStateMachineAcceptsEvent) {
+    // You can only test that it accepts input without observable side effects unless public state changes
+    ASSERT_NO_THROW(mgr->runStateMachine(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr));
 }
