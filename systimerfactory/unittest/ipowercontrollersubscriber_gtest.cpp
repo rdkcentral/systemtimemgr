@@ -14,6 +14,9 @@ static bool g_callback_registered = false;
 static bool callback_invoked = false;
 static bool g_init_called = false;
 static bool g_term_called = false;
+PowerController_PowerState g_powerStateNew;
+PowerController_PowerState g_powerStateOld;
+void* g_userData = nullptr;
 
 // --- Mock Implementations of PowerController C API ---
 
@@ -60,7 +63,7 @@ void TestPowerHandler(PowerController_PowerState newState, PowerController_Power
 int PowerModeAdapterCallback(void* data) {
     if (g_callback) {
         // Optionally fill mock data here
-        g_callback(PowerController_PowerState::POWER_ON, PowerController_PowerState::POWER_OFF, data);
+        g_callback(PowerController_PowerState::POWER_STATE_ON, PowerController_PowerState::POWER_STATE_OFF, data);
     }
     return 0;
 }
