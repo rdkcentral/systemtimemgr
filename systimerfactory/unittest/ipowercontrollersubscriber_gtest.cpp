@@ -9,15 +9,15 @@
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
 #include "iarmsubscribe.cpp"
-#include "power_controller.cpp"
+
 
 // Mocking the external PowerController API functions
 class MockPowerController {
 public:
     MOCK_METHOD(void, PowerController_Init, (), ());
     MOCK_METHOD(uint32_t, PowerController_Connect, (), ());
-    MOCK_METHOD(uint32_t, PowerController_RegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb, void*), ());
-    MOCK_METHOD(uint32_t, PowerController_UnRegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb), ());
+    MOCK_METHOD(uint32_t, PowerController_RegisterPowerModeChangedCallback, (PowerController_PowerModeChangedCb, void*), ());
+    MOCK_METHOD(uint32_t, PowerController_UnRegisterPowerModeChangedCallback, (PowerController_PowerModeChangedCb), ());
     MOCK_METHOD(void, PowerController_Term, (), ());
 };
 
@@ -33,12 +33,12 @@ extern "C" {
         return gMockPowerController->PowerController_Connect();
     }
 
-    uint32_t  PowerController_RegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb, void* userData) {
-        return gMockPowerController->PowerController_RegisterPowerModeChangedCb(cb, userData);
+    uint32_t  PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb, void* userData) {
+        return gMockPowerController->PowerController_RegisterPowerModeChangedCallback(cb, userData);
     }
 
-    uint32_t  PowerController_UnRegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb) {
-        return gMockPowerController->PowerController_UnRegisterPowerModeChangedCb(cb);
+    uint32_t  PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb) {
+        return gMockPowerController->PowerController_UnRegisterPowerModeChangedCallback(cb);
     }
 
     void PowerController_Term() {
@@ -64,7 +64,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectSuccess_R
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
     EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCb(::testing::_, nullptr))
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
         .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
@@ -81,7 +81,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_S
         .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE)); // Succeed next time
 
     // RegisterPowerModeChangedCallback should be called eventually in thread, allow call once
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCb(::testing::_, nullptr))
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
         .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
