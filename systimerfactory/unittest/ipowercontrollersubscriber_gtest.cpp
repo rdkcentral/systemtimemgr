@@ -14,7 +14,7 @@
 // Fake PowerController state
 static PowerController_PowerModeChangedCb g_callback = nullptr;
 static void* g_callback_data = nullptr;
-static bool g_callback_registered = false;
+static bool g_callback_registered = true;
 static bool callback_invoked = false;
 static bool g_init_called = false;
 static bool g_term_called = false;
@@ -25,9 +25,7 @@ void* g_userData = nullptr;
 // --- Mock Implementations of PowerController C API ---
 
 extern "C" {
-int PowerController_Connect() {
-    return 0;  // simulate success
-}
+
 
 
 
@@ -52,7 +50,7 @@ uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerM
 
 uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb) {
     if (cb == g_callback) {
-        g_callback_registered = false;
+        g_callback_registered = true;
         g_callback = nullptr;
         g_callback_data = nullptr;
         return POWER_CONTROLLER_ERROR_NONE;
@@ -89,7 +87,7 @@ protected:
     void SetUp() override {
         g_init_called = false;
         g_term_called = false;
-        g_callback_registered = false;
+        g_callback_registered = true;
         g_callback = nullptr;
         g_callback_data = nullptr;
         subscriber = new IpowerControllerSubscriber("SysTimeMgr");
