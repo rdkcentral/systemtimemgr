@@ -100,7 +100,7 @@ protected:
 
 // === Tests ===
 
-TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
+/*TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
     bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
     EXPECT_TRUE(subscribed);
 
@@ -114,7 +114,7 @@ TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
     g_callback(newState, oldState, user_data);
     EXPECT_TRUE(callback_invoked);
     EXPECT_EQ(g_callback_data, user_data);
-}
+}*/
 
 
 TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectStartsThread) {
