@@ -71,9 +71,9 @@ iarmtimerstatus_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 iarmtimerstatus_gtest_LDADD = $(COMMON_LDADD)
 iarmtimerstatus_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 
-iarmsubscribe_gtest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
-iarmsubscribe_gtest_gtest_LDADD = $(COMMON_LDADD)
-iarmsubscribe_gtest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+iarmsubscribe_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+iarmsubscribe_gtest_LDADD = $(COMMON_LDADD)
+iarmsubscribe_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 
 iarmpublish_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 iarmpublish_gtest_LDADD = $(COMMON_LDADD)
