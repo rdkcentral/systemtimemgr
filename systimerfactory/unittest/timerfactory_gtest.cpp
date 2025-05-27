@@ -12,6 +12,8 @@
 
 #include "timerfactory.h"
 #include "timerfactory.cpp"
+#include "drmtimersrc.cpp"
+#include "rdkdefaulttimesync.cpp"
 using namespace std;
 using namespace testing;
 
