@@ -9,6 +9,8 @@
 
 using ::testing::_;
 using ::testing::Return;
+#define TIMER_STATUS_MSG "TIMER_STATUS"
+
 
 class MockIARM {
 public:
@@ -89,10 +91,10 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback
         .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
     
 
-    EXPECT_CALL(*gMockIARM, RegisterCall(testing::StrEq("TIMER_STATUS"), testing::_))
+    EXPECT_CALL(*gMockIARM, RegisterCall(testing::StrEq(TIMER_STATUS_MSG), testing::_))
         .WillOnce(Return(IARM_RESULT_SUCCESS));
 
-    bool result = subscriber.subscribe("TIMER_STATUS", reinterpret_cast<funcPtr>(0x1234));
+    bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
     
 }
