@@ -4,6 +4,8 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include "systimemgr.h"
+#include "systimemgr.cpp"
 
 // === Begin minimal mocks & class defs ===
 
