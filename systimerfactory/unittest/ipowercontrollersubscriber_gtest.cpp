@@ -5,7 +5,7 @@
 #include <iostream>
 #include "power_controller.h"
 #include "iarmpowersubscriber.h"
-#include "iarmrpowersubscriber.cpp"
+#include "iarmpowersubscriber.cpp"
 
 
 using ::testing::_;
