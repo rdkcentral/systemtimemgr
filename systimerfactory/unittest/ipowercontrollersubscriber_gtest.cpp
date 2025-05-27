@@ -8,7 +8,7 @@
 #include "ipowercontrollersubscriber.cpp"
 
 // Fake PowerController state
-static PowerController_PowerModeChangedCallback g_callback = nullptr;
+static PowerController_PowerModeChangedCb g_callback = nullptr;
 static void* g_callback_data = nullptr;
 static bool g_callback_registered = false;
 static bool g_init_called = false;
@@ -30,14 +30,14 @@ uint32_t PowerController_Connect() {
     return g_callback_registered ? POWER_CONTROLLER_ERROR_NONE : POWER_CONTROLLER_ERROR_GENERAL;
 }
 
-uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCallback cb, void* data) {
+uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb, void* data) {
     g_callback = cb;
     g_callback_data = data;
     g_callback_registered = true;
     return POWER_CONTROLLER_ERROR_NONE;
 }
 
-uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCallback cb) {
+uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb) {
     if (cb == g_callback) {
         g_callback_registered = false;
         g_callback = nullptr;
