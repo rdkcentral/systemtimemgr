@@ -39,6 +39,7 @@ iarmtimerstatus_gtest_SOURCES = iarmtimerstatus_gtest.cpp
 iarmsubscribe_gtest_SOURCES = iarmsubscribe_gtest.cpp
 iarmpublish_gtest_SOURCES = iarmpublish_gtest.cpp
 iarmpowersubscribe_gtest_SOURCES = iarmpowersubscribe_gtest.cpp
+systimemgr_gtest_SOURCES =SysTimeMgrUnitTest.cpp
 
 
 # Apply common properties to each program
@@ -82,3 +83,7 @@ iarmpublish_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 iarmpowersubscribe_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 iarmpowersubscribe_gtest_LDADD = $(COMMON_LDADD)
 iarmpowersubscribe_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+systimemgr_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+systimemgr_gtest_LDADD = $(COMMON_LDADD)
+systimemgr_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
