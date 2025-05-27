@@ -90,25 +90,38 @@ protected:
 
     // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
 }*/
-
 TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_ThenSuccessInRetry) {
+    using ::testing::_;
+    using ::testing::Return;
+    using ::testing::InSequence;
+
     IpowerControllerSubscriber subscriber("test_subscriber");
 
-    // Simulate failure at first, then success
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .WillOnce(::testing::Return(-1)) // Initial connect fails (triggers retry thread)
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE)); // Retry thread succeeds
+    // Ensure mock pointer remains valid in the retry thread
+    gMockPowerController = &mockPowerController;
 
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    // Define strict call sequence: first fails, second succeeds
+    {
+        InSequence seq;
 
+        EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+
+        // First call (main thread)
+        EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(Return(-1));
+
+        // Second call (retry thread)
+        EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
+
+        EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(_, nullptr))
+            .WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
+    }
+
+    // Call subscribe, which triggers the thread
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-
     EXPECT_TRUE(ret);
 
-    // Give thread time to retry and exit (adjust time if needed)
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // Wait for retry thread to complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 
