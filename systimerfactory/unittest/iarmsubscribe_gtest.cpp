@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "iarmsubsribe.h"
+#include "iarmsubscribe.h"
 #include "iarmsubscribe.cpp"  // Assumes no header is available, otherwise include .h
 
 class IarmSubscriberTest : public ::testing::Test {
