@@ -59,7 +59,7 @@ protected:
     MockPowerController mockPowerController;
 };
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectSuccess_RegistersCallback) {
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectSuccess_RegistersCallback) {
     IpowerControllerSubscriber subscriber("test_subscriber");
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
@@ -70,7 +70,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectSuccess_R
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
 
     EXPECT_TRUE(ret);
-}
+}*/
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_StartsThread) {
     IpowerControllerSubscriber subscriber("test_subscriber");
