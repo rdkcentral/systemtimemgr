@@ -85,18 +85,20 @@ TEST_F(IarmTimerStatusSubscriberTest, Constructor_IarmAlreadyConnected_DoesNotRe
 }
 
 TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback) {
-    IarmTimerStatusSubscriber subscriber("test_subscriber");
-
-    EXPECT_CALL(*gMockIARM, RegisterCall(testing::_, testing::_))
-        .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
-    
+    EXPECT_CALL(*gMockIARM, IsConnected(_, _))
+        .WillOnce([](const char*, int* isConnected) {
+            *isConnected = 1;
+            return IARM_RESULT_SUCCESS;
+        });
 
     EXPECT_CALL(*gMockIARM, RegisterCall(testing::StrEq(TIMER_STATUS_MSG), testing::_))
         .WillOnce(Return(IARM_RESULT_SUCCESS));
 
+    IarmTimerStatusSubscriber subscriber("test_subscriber");
+
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
+
     EXPECT_TRUE(result);
-    
 }
 
 
