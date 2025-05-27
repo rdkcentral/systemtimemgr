@@ -37,9 +37,7 @@ void PowerController_Term() {
     g_term_called = true;
 }
 
-uint32_t PowerController_Connect() {
-    return g_callback_registered ? POWER_CONTROLLER_ERROR_NONE : POWER_CONTROLLER_ERROR_GENERAL;
-}
+
 
 uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb, void* data) {
     g_callback = cb;
