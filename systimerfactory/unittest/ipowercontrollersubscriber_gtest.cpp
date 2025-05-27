@@ -18,6 +18,8 @@ static bool g_term_called = false;
 
 extern "C" {
 
+
+
 void PowerController_Init() {
     g_init_called = true;
 }
@@ -48,13 +50,19 @@ uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_Powe
 }
 
 } // extern "C"
+int TestPowerHandler(void* data) {
+    g_callback_data = data;
+    callback_invoked = true;
 
-// Handler to test callback propagation
-void TestPowerHandler(void* status) {
-    std::string* msg = static_cast<std::string*>(status);
-    std::cout << "Handler invoked with status: " << *msg << std::endl;
+    // Optionally cast the data to expected type (e.g., PowerController_PowerState_t*)
+    return 0;  // Return success
 }
 
+// Handler to test callback propagation
+/*void TestPowerHandler(void* status) {
+    std::string* msg = static_cast<std::string*>(status);
+    std::cout << "Handler invoked with status: " << *msg << std::endl;
+} */
 // === Google Test Fixture ===
 class IpowerControllerSubscriberTest : public ::testing::Test {
 protected:
@@ -84,7 +92,8 @@ TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
 
     // Simulate PowerController invoking callback
     if (g_callback) {
-        g_callback(g_callback_data);  // Should invoke TestPowerHandler
+        g_callback(reinterpret_cast<void*>(data_pointer));
+ // Should invoke TestPowerHandler
     }
 }
 
