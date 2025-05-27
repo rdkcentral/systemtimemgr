@@ -25,6 +25,9 @@ void* g_userData = nullptr;
 // --- Mock Implementations of PowerController C API ---
 
 extern "C" {
+int PowerController_Connect() {
+    return 0;  // simulate success
+}
 
 
 
