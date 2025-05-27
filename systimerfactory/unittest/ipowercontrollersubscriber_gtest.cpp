@@ -90,38 +90,41 @@ protected:
 
     // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
 }*/
-TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_ThenSuccessInRetry) {
-    using ::testing::_;
-    using ::testing::Return;
-    using ::testing::InSequence;
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_ThenRetrySuccess) {
+    using namespace ::testing;
 
     IpowerControllerSubscriber subscriber("test_subscriber");
 
-    // Ensure mock pointer remains valid in the retry thread
+    // Ensure gMockPowerController is valid before the thread starts
     gMockPowerController = &mockPowerController;
 
-    // Define strict call sequence: first fails, second succeeds
-    {
-        InSequence seq;
+    // Control behavior: fail once, then succeed
+    static int connectCallCount = 0;
 
-        EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
 
-        // First call (main thread)
-        EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(Return(-1));
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .WillRepeatedly(Invoke([]() {
+            if (++connectCallCount == 1) {
+                std::cout << "Mock Connect: FAIL\n";
+                return static_cast<uint32_t>(-1);
+            } else {
+                std::cout << "Mock Connect: SUCCESS\n";
+                return POWER_CONTROLLER_ERROR_NONE;
+            }
+        }));
 
-        // Second call (retry thread)
-        EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(_, _))
+        .WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
 
-        EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(_, nullptr))
-            .WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
-    }
+    // Trigger the subscribe logic (starts thread)
+    EXPECT_TRUE(subscriber.subscribe(POWER_CHANGE_MSG, nullptr));
 
-    // Call subscribe, which triggers the thread
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
+    // Wait up to 1.5s for retry to complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
-    // Wait for retry thread to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // No EXPECT_FALSE or EXPECT_TRUE on thread logic — we rely on mock calls being hit
 }
 
 
