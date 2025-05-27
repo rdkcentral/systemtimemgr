@@ -21,7 +21,7 @@ public:
     MOCK_METHOD(IARM_Result_t, IsConnected, (const char*, int*), ());
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
-    MOCK_METHOD(IARM_Result_t, RegisterEventHandler, (const char*, const char*, IARM_EventHandler_t), ());
+    MOCK_METHOD(IARM_Result_t, RegisterEventHandler, (const char*,  IARM_EventId_t, IARM_EventHandler_t), ());
 };
 
 static MockIARM* gMockIARM = nullptr;
@@ -36,8 +36,8 @@ extern "C" {
     IARM_Result_t IARM_Bus_Connect() {
         return gMockIARM->Connect();
     }
-    IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, const char* eventName, IARM_EventHandler_t handler) {
-        return gMockIARM->RegisterEventHandler(ownerName, eventName, handler);
+    IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+        return gMockIARM->RegisterEventHandler(ownerName, eventId, handler);
     }
 }
 
