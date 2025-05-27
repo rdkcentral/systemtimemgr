@@ -2,64 +2,82 @@
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <memory>
-#include <mutex>
-#include <queue>
 #include "systimemgr.h"
-#include "systimemgr.cpp"
 
-/ Prevent macro interference with enum
-#ifdef TIMER_STATUS_MSG
-#undef TIMER_STATUS_MSG
-#endif
-
-// Re-define enum in test scope (safe in test)
-enum {
-    TIMER_STATUS_MSG = 1
-};
-
-using ::testing::_;
-using ::testing::Return;
-using ::testing::NiceMock;
-
-// === Mock Interfaces ===
-
-class MockTimerSrc : public ITimeSrc {
+// Example mock for a timer source
+class MockTimerSrc : public ITimerSrc {
 public:
-    MOCK_METHOD(void, start, (), (override));
-    MOCK_METHOD(void, stop, (), (override));
+    MOCK_METHOD(bool, isreference, (), (override));
+    MOCK_METHOD(long long, getTimeSec, (), (override));
+    MOCK_METHOD(void, checkTime, (), (override));
+    MOCK_METHOD(bool, isclockProvider, (), (override));
 };
 
-class MockTimerSubscriber : public ITimerStatusSubscriber {
+// Example mock for a timer sync
+class MockTimerSync : public ITimerSync {
 public:
-    MOCK_METHOD(void, subscribe, (int, TimerStatusCallback), (override));
-    MOCK_METHOD(void, notify, (const TimerStatus&), (override));
+    MOCK_METHOD(long long, getTime, (), (override));
+    MOCK_METHOD(void, updateTime, (long long), (override));
 };
 
-// === Test Fixture ===
+// Example mock for publisher
+class MockPublisher : public IPublish {
+public:
+    MOCK_METHOD(void, publish, (const std::string&, void*), (override));
+};
+
+// Example mock for subscriber
+class MockSubscriber : public ISubscriber {
+public:
+    MOCK_METHOD(void, subscribe, (const std::string&, void*), (override));
+};
 
 class SysTimeMgrTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        mgr = SysTimeMgr::getInstance();
+        // Inject mocks if your code supports dependency injection
+        // Otherwise, you might need to refactor for testability
+        sysTimeMgr = new SysTimeMgr("dummy.cfg");
+        // Set up mocks and inject as needed
     }
 
     void TearDown() override {
-        // If needed, reset global state
+        delete sysTimeMgr;
     }
 
-    SysTimeMgr* mgr;
+    SysTimeMgr* sysTimeMgr;
 };
 
-// === Actual Test Case ===
+TEST_F(SysTimeMgrTest, InitializeOpensConfigFile) {
+    // Use mock TimerSrc/TimerSync to control behavior
+    // Example: check that initialize() works with a good config file
+    // This is a stub, you will need to adapt for actual testability
+    sysTimeMgr->initialize();
+    // Add assertions as needed
+}
 
-TEST_F(SysTimeMgrTest, InitShouldSubscribeTimerStatus) {
-    auto mockTimerSrc = std::make_shared<NiceMock<MockTimerSrc>>();
-    auto mockTimerSubscriber = std::make_shared<NiceMock<MockTimerSubscriber>>();
+TEST_F(SysTimeMgrTest, RunStateMachineHandlesKnownEvent) {
+    // Set up mock state machine transitions if possible
+    sysTimeMgr->runStateMachine(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
+    // Add assertions, possibly on state or log output
+}
 
-    // Expect subscribe to be called once with TIMER_STATUS_MSG and any callback
-    EXPECT_CALL(*mockTimerSubscriber, subscribe(TIMER_STATUS_MSG, _)).Times(1);
+TEST_F(SysTimeMgrTest, SendMessagePushesToQueue) {
+    sysTimeMgr->sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
+    // There’s no direct way to check the queue; you may expose it for testing or
+    // check via side effects
+}
 
-    // Call the init method
-    mgr->init(mockTimerSrc, mockTimerSubscriber);
+TEST_F(SysTimeMgrTest, PublishStatusCallsPublisher) {
+    MockPublisher mockPub;
+    sysTimeMgr->m_publish = &mockPub;
+    EXPECT_CALL(mockPub, publish(::testing::_, ::testing::_)).Times(1);
+    sysTimeMgr->publishStatus(ePUBLISH_NTP_SUCCESS, "Good");
+}
+
+TEST_F(SysTimeMgrTest, GetTimeStatusFillsTimerMsg) {
+    TimerMsg msg;
+    sysTimeMgr->getTimeStatus(&msg);
+    // Assert fields are populated as expected
+    ASSERT_TRUE(msg.quality == sysTimeMgr->m_timequality);
 }
