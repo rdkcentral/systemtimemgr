@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <thread>
-#include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
 
