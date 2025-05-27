@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#define _IRDKLOG_H_
+#define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include "iarmtimerstatussubscriber.h"
 #include "iarmtimerstatussubscriber.cpp"  // Only include the cpp file if necessary (no .h available)
 #include "iarmsubscribe.cpp"              // Ensure this is safe to include for base class logic
@@ -12,7 +14,7 @@ public:
     MOCK_METHOD(IARM_Result_t, IsConnected, (const char*, int*), ());
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
-    MOCK_METHOD(bool, RegisterCall, (const char*, IARM_BusCall_t), ());
+    MOCK_METHOD(IARM_Result_t, RegisterCall, (const char*, IARM_BusCall_t), ());
 };
 
 static MockIARM* gMockIARM = nullptr;
@@ -31,7 +33,7 @@ extern "C" {
         return gMockIARM->Connect();
     }
 
-    bool IARM_Bus_RegisterCall(const char* name, IARM_BusCall_t handler) {
+    IARM_Result_t IARM_Bus_RegisterCall(const char* name, IARM_BusCall_t handler) {
         return gMockIARM->RegisterCall(name, handler);
     }
 }
