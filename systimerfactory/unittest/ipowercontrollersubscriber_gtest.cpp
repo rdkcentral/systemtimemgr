@@ -13,9 +13,9 @@
 class MockPowerController {
 public:
     MOCK_METHOD(void, PowerController_Init, (), ());
-    MOCK_METHOD(int, PowerController_Connect, (), ());
-    MOCK_METHOD(int, PowerController_RegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb, void*), ());
-    MOCK_METHOD(int, PowerController_UnRegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb), ());
+    MOCK_METHOD(uint32_t, PowerController_Connect, (), ());
+    MOCK_METHOD(uint32_t, PowerController_RegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb, void*), ());
+    MOCK_METHOD(uint32_t, PowerController_UnRegisterPowerModeChangedCb, (PowerController_PowerModeChangedCb), ());
     MOCK_METHOD(void, PowerController_Term, (), ());
 };
 
@@ -27,15 +27,15 @@ extern "C" {
         gMockPowerController->PowerController_Init();
     }
 
-    int PowerController_Connect() {
+    uint32_t  PowerController_Connect() {
         return gMockPowerController->PowerController_Connect();
     }
 
-    int PowerController_RegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb, void* userData) {
+    uint32_t  PowerController_RegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb, void* userData) {
         return gMockPowerController->PowerController_RegisterPowerModeChangedCb(cb, userData);
     }
 
-    int PowerController_UnRegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb) {
+    uint32_t  PowerController_UnRegisterPowerModeChangedCb(PowerController_PowerModeChangedCb cb) {
         return gMockPowerController->PowerController_UnRegisterPowerModeChangedCb(cb);
     }
 
