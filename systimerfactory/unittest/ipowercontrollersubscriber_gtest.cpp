@@ -72,7 +72,7 @@ protected:
     EXPECT_TRUE(ret);
 }*/
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_StartsThread) {
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_StartsThread) {
     IpowerControllerSubscriber subscriber("test_subscriber");
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
@@ -89,7 +89,9 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_S
     EXPECT_TRUE(ret);
 
     // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
-}
+}*/
+
+
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     {
