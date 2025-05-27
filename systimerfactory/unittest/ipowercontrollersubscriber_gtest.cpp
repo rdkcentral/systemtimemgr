@@ -6,7 +6,7 @@
 #include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
-#include "iarmsubscribe.h"
+#include "iarmsubscribe.cpp"
 
 //IarmSubscriber* IarmSubscriber::pInstance = nullptr;
 
