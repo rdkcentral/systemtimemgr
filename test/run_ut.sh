@@ -58,6 +58,7 @@ mkdir -p /opt/secure/
 ./iarmsubscribe_gtest 
 ./iarmpublish_gtest 
 ./iarmpowersubscribe_gtest
+./systimemgr_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
