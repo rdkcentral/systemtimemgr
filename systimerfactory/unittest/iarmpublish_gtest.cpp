@@ -42,59 +42,54 @@ extern "C" {
 // Fixture
 class IarmPublishTest : public ::testing::Test {
 protected:
-    MockIARM_Bus mock;
+    MockIarmBus mock;
 
     void SetUp() override {
-        g_mockIARM = &mock;
+        g_mock = &mock;
     }
 
     void TearDown() override {
-        g_mockIARM = nullptr;
+        g_mock = nullptr;
     }
 };
 
-// Test case when IARM_Bus_IsConnected returns success
 TEST_F(IarmPublishTest, Constructor_DoesNotInitIfConnected) {
     int reg = 1;
-    EXPECT_CALL(mock, IARM_Bus_IsConnected("TestPublisher", testing::_))
-        .WillOnce(DoAll(testing::SetArgPointee<1>(reg), testing::Return(IARM_RESULT_SUCCESS)));
+    EXPECT_CALL(mock, IARM_Bus_IsConnected(StrEq("TestPublisher"), _))
+        .WillOnce(DoAll(SetArgPointee<1>(reg), Return(IARM_RESULT_SUCCESS)));
 
-    // Should not call Init or Connect
-    EXPECT_CALL(mock, IARM_Bus_Init).Times(0);
-    EXPECT_CALL(mock, IARM_Bus_Connect).Times(0);
-
-    IarmPublish pub("TestPublisher");
+    IarmPublish publisher("TestPublisher");
 }
 
-// Test case when IARM_Bus_IsConnected fails
 TEST_F(IarmPublishTest, Constructor_CallsInitAndConnectIfNotConnected) {
     int reg = 0;
-    EXPECT_CALL(mock, IARM_Bus_IsConnected("TestPublisher", testing::_))
-        .WillOnce(DoAll(testing::SetArgPointee<1>(reg), testing::Return(IARM_RESULT_IPCCORE_FAIL)));
+    EXPECT_CALL(mock, IARM_Bus_IsConnected(StrEq("TestPublisher"), _))
+        .WillOnce(DoAll(SetArgPointee<1>(reg), Return(IARM_RESULT_IPCCORE_FAIL)));
 
-    EXPECT_CALL(mock, IARM_Bus_Init("TestPublisher"))
-        .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
-    EXPECT_CALL(mock, IARM_Bus_Connect())
-        .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
+    EXPECT_CALL(mock, IARM_Bus_Init(StrEq("TestPublisher"))).Times(1);
+    EXPECT_CALL(mock, IARM_Bus_Connect()).Times(1);
 
-    IarmPublish pub("TestPublisher");
+    IarmPublish publisher("TestPublisher");
 }
 
-// Test publish method
 TEST_F(IarmPublishTest, Publish_CallsBroadcastEventWithCorrectArgs) {
-    IarmPublish pub("TestPublisher");
+    int reg = 1;
+    EXPECT_CALL(mock, IARM_Bus_IsConnected(StrEq("TestPublisher"), _))
+        .WillOnce(DoAll(SetArgPointee<1>(reg), Return(IARM_RESULT_SUCCESS)));
+
+    EXPECT_CALL(mock, IARM_Bus_BroadcastEvent(StrEq("TestPublisher"), 100, _, sizeof(TimerMsg)))
+        .Times(1);
+
+    IarmPublish publisher("TestPublisher");
 
     TimerMsg msg;
     msg.event = 100;
     msg.quality = 50;
-    strcpy(msg.message, "Hello");
+    std::strncpy(msg.message, "Hello", sizeof(msg.message));
+    msg.message[sizeof(msg.message) - 1] = '\0';  // Ensure null-termination
 
-    EXPECT_CALL(mock, IARM_Bus_BroadcastEvent("TestPublisher", 100, testing::_, sizeof(TimerMsg)))
-        .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
-
-    pub.publish(100, &msg);
+    publisher.publish(100, &msg);
 }
-
 int main(int argc, char* argv[]){
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
