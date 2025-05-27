@@ -5,7 +5,7 @@
 #include "iarmtimerstatussubscriber.h"
 #include "iarmtimerstatussubscriber.cpp"  // Only include the cpp file if necessary (no .h available)
 #include "iarmsubscribe.cpp"              // Ensure this is safe to include for base class logic
-#include "pwrMgr.h."
+#include "pwrMgr.h"
 
 using ::testing::_;
 using ::testing::Return;
