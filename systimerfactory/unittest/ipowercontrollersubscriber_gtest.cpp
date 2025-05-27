@@ -50,7 +50,7 @@ uint32_t PowerController_RegisterPowerModeChangedCallback(PowerController_PowerM
 
 uint32_t PowerController_UnRegisterPowerModeChangedCallback(PowerController_PowerModeChangedCb cb) {
     if (cb == g_callback) {
-        g_callback_registered = true;
+        g_callback_registered = false;
         g_callback = nullptr;
         g_callback_data = nullptr;
         return POWER_CONTROLLER_ERROR_NONE;
@@ -98,6 +98,31 @@ protected:
     }
 };
 
+int retry_count = 0;
+
+extern "C" uint32_t PowerController_Connect() {
+    retry_count++;
+    if (retry_count < 3) {
+        return POWER_CONTROLLER_ERROR_GENERAL;
+    } else {
+        g_callback_registered = true;
+        return POWER_CONTROLLER_ERROR_NONE;
+    }
+}
+
+TEST_F(IpowerControllerSubscriberTest, ConnectEventuallySucceedsAfterRetries) {
+    retry_count = 0;
+    g_callback_registered = false;
+
+    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
+    EXPECT_TRUE(subscribed);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Let retry thread run
+
+    EXPECT_GE(retry_count, 3);  // Should retry at least 3 times
+    EXPECT_TRUE(g_callback_registered);
+}
+
 // === Tests ===
 
 /*TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
@@ -115,7 +140,18 @@ protected:
     EXPECT_TRUE(callback_invoked);
     EXPECT_EQ(g_callback_data, user_data);
 }*/
+TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectRetriesInThread) {
+    g_callback_registered = false;  // Simulate Connect failure
 
+    bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, PowerModeAdapterCallback);
+    EXPECT_TRUE(subscribed);
+
+    // Sleep briefly to let the retry thread run once or twice
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify connect did not succeed (still false)
+    EXPECT_FALSE(g_callback_registered);
+}
 
 TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectStartsThread) {
     // Set condition where connect always fails
@@ -130,6 +166,6 @@ TEST_F(IpowerControllerSubscriberTest, DestructorUnregistersCallback) {
     delete subscriber;
     subscriber = nullptr;
 
-    EXPECT_FALSE(g_callback_registered);
+    EXPECT_FALSE(g_callback_registered);  // Now correct after fixing unregister logic
     EXPECT_TRUE(g_term_called);
 }
