@@ -92,7 +92,7 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback
         .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
     EXPECT_CALL(*gMockIARM, RegisterEventHandler(
     IARM_BUS_PWRMGR_NAME,
-    IARM_BUS_PWRMGR_EVENT_TIMER_STATUS,
+    IARM_BUS_PWRMGR_EVENT_MODECHANGED,
     testing::_)
 ).WillOnce(testing::Return(IARM_RESULT_SUCCESS));
 
