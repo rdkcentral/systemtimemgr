@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
-#include "powercontroller.h"
+#include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
 
