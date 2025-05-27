@@ -10,12 +10,12 @@ class MockTimerSrc : public ITimeSrc {
 public:
     MOCK_METHOD(bool, isreference, (), (override));
     MOCK_METHOD(long long, getTimeSec, (), (override));
-    MOCK_METHOD(void, checkTime, (), (override));
+    MOCK_METHOD(bool, checkTime, (), (override));
     MOCK_METHOD(bool, isclockProvider, (), (override));
 };
 
 // Example mock for a timer sync
-class MockTimerSync : public ITimesync {
+class MockTimerSync : public ITimeSync {
 public:
     MOCK_METHOD(long long, getTime, (), (override));
     MOCK_METHOD(void, updateTime, (long long), (override));
@@ -31,7 +31,7 @@ public:
 // Example mock for subscriber
 class MockSubscriber : public ISubscribe {
 public:
-    MOCK_METHOD(void, subscribe, (string, functPtr), (override));
+    MOCK_METHOD(void, subscribe, (string, funcPtr), (override));
 };
 
 class SysTimeMgrTest : public ::testing::Test {
