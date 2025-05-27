@@ -3,9 +3,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "systimemgr.h"
+#include "itimesrc.h"
 
 // Example mock for a timer source
-class MockTimerSrc : public ITimerSrc {
+class MockTimerSrc : public ITimeSrc {
 public:
     MOCK_METHOD(bool, isreference, (), (override));
     MOCK_METHOD(long long, getTimeSec, (), (override));
@@ -14,7 +15,7 @@ public:
 };
 
 // Example mock for a timer sync
-class MockTimerSync : public ITimerSync {
+class MockTimerSync : public ITimesync {
 public:
     MOCK_METHOD(long long, getTime, (), (override));
     MOCK_METHOD(void, updateTime, (long long), (override));
@@ -27,7 +28,7 @@ public:
 };
 
 // Example mock for subscriber
-class MockSubscriber : public ISubscriber {
+class MockSubscriber : public ISubscribe {
 public:
     MOCK_METHOD(void, subscribe, (const std::string&, void*), (override));
 };
