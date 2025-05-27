@@ -90,9 +90,12 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback
 
     EXPECT_CALL(*gMockIARM, RegisterCall(testing::_, testing::_))
         .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
+    EXPECT_CALL(*gMockIARM, RegisterEventHandler(
+    IARM_BUS_PWRMGR_NAME,
+    IARM_BUS_PWRMGR_EVENT_TIMER_STATUS,
+    testing::_)
+).WillOnce(testing::Return(IARM_RESULT_SUCCESS));
 
-    EXPECT_CALL(*gMockIARM, RegisterEventHandler(IARM_BUS_RDKPWR_NAME, IARM_BUS_RDKPWR_EVENT_TIMER_STATUS, testing::_))
-        .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
 
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
