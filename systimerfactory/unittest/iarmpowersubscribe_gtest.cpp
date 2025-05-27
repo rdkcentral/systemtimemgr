@@ -10,7 +10,6 @@
 #include "iarmpowersubscriber.h"
 #include "iarmpowersubscriber.cpp"  // Use only if no header is available
 
-
 using ::testing::_;
 using ::testing::Return;
 using std::string;
@@ -45,19 +44,11 @@ extern "C" {
 static std::string gReceivedStatus;
 
 // --- Custom handler to capture event data ---
-void TestPowerHandler(void* data) {
+// Changed void->int return to match funcPtr signature
+int TestPowerHandler(void* data) {
     std::string* status = static_cast<std::string*>(data);
     gReceivedStatus = *status;
-}
-
-// --- Override getInstance() for testing ---
-namespace {
-    class TestablePowerSubscriber : public IarmPowerSubscriber {
-    public:
-        TestablePowerSubscriber(const std::string& sub) : IarmPowerSubscriber(sub) {
-            IarmSubscriber::setInstance(this);  // Inject into base
-        }
-    };
+    return 0;
 }
 
 // --- Fixture ---
@@ -71,7 +62,6 @@ protected:
     void TearDown() override {
         delete gMockIARM;
         gMockIARM = nullptr;
-        IarmSubscriber::setInstance(nullptr);
     }
 };
 
@@ -84,11 +74,11 @@ TEST_F(IarmPowerSubscriberTest, Constructor_NotConnected_CallsInitAndConnect) {
     });
     EXPECT_CALL(*gMockIARM, Init(_)).Times(1);
     EXPECT_CALL(*gMockIARM, Connect()).Times(1);
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
 }
 
 TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_Success) {
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
     EXPECT_CALL(*gMockIARM, RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _))
         .WillOnce(Return(IARM_RESULT_SUCCESS));
     bool result = subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
@@ -96,13 +86,13 @@ TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_Success) {
 }
 
 TEST_F(IarmPowerSubscriberTest, Subscribe_InvalidEvent_ReturnsFalse) {
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
     bool result = subscriber.subscribe("UNKNOWN_EVENT", TestPowerHandler);
     EXPECT_FALSE(result);
 }
 
 TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOn_TriggersHandler) {
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
     subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
 
     IARM_Bus_PWRMgr_EventData_t evt {};
@@ -114,7 +104,7 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOn_TriggersHandler) {
 }
 
 TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOff_TriggersHandler) {
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
     subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
 
     IARM_Bus_PWRMgr_EventData_t evt {};
@@ -126,11 +116,10 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOff_TriggersHandler) 
 }
 
 TEST_F(IarmPowerSubscriberTest, PowerEventHandler_UnrelatedEventId_DoesNothing) {
-    TestablePowerSubscriber subscriber("TestSub");
+    IarmPowerSubscriber subscriber("TestSub");
     subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
 
     gReceivedStatus.clear();
     IarmPowerSubscriber::powereventHandler(IARM_BUS_PWRMGR_NAME, 999, nullptr, 0);
     EXPECT_TRUE(gReceivedStatus.empty());
 }
-
