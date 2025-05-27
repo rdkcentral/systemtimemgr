@@ -91,6 +91,26 @@ protected:
     // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
 }*/
 
+TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_ThenSuccessInRetry) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+
+    // Simulate failure at first, then success
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .WillOnce(::testing::Return(-1)) // Initial connect fails (triggers retry thread)
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE)); // Retry thread succeeds
+
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+
+    EXPECT_TRUE(ret);
+
+    // Give thread time to retry and exit (adjust time if needed)
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
 
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
