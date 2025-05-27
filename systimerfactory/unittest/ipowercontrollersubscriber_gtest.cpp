@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "ipowercontrollersubscriber.h"
+#include "ipowercontrollersubscriber.cpp"
 
 // Fake PowerController state
 static PowerController_PowerModeChangedCallback g_callback = nullptr;
