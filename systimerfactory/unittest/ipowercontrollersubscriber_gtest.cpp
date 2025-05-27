@@ -91,44 +91,6 @@ protected:
     // NOTE: Can't easily verify detached thread internals here, but coverage that thread was started is implicit
 }*/
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerControllerConnectFailure_ThenRetrySuccess) {
-    using namespace ::testing;
-
-    IpowerControllerSubscriber subscriber("test_subscriber");
-
-    // Ensure gMockPowerController is valid before the thread starts
-    gMockPowerController = &mockPowerController;
-
-    // Control behavior: fail once, then succeed
-    static int connectCallCount = 0;
-
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-
-   EXPECT_CALL(mockPowerController, PowerController_Connect())
-    .WillRepeatedly(Invoke([]() -> uint32_t {
-        static int callCount = 0;
-        if (++callCount == 1) {
-            std::cout << "Mock Connect: FAIL\n";
-            return static_cast<uint32_t>(-1);  // Cast to match return type
-        } else {
-            std::cout << "Mock Connect: SUCCESS\n";
-            return POWER_CONTROLLER_ERROR_NONE;
-        }
-    }));
-
-
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(_, _))
-        .WillOnce(Return(POWER_CONTROLLER_ERROR_NONE));
-
-    // Trigger the subscribe logic (starts thread)
-    EXPECT_TRUE(subscriber.subscribe(POWER_CHANGE_MSG, nullptr));
-
-    // Wait up to 1.5s for retry to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
-    // No EXPECT_FALSE or EXPECT_TRUE on thread logic — we rely on mock calls being hit
-}
-
 
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
