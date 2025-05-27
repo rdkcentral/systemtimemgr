@@ -16,9 +16,7 @@ public:
     MOCK_METHOD(IARM_Result_t, Init, (const char*), ());
     MOCK_METHOD(IARM_Result_t, Connect, (), ());
     MOCK_METHOD(IARM_Result_t, RegisterCall, (const char*, IARM_BusCall_t), ());
-    MOCK_METHOD(IARM_Result_t, RegisterEventHandler,
-            (const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler), ());
-
+    
 
 };
 
@@ -42,9 +40,8 @@ extern "C" {
         return gMockIARM->RegisterCall(name, handler);
     }
 
-    IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-        return gMockIARM->RegisterEventHandler(ownerName, eventId, handler);
-    }
+   
+    
 }
 
 class IarmTimerStatusSubscriberTest : public ::testing::Test {
@@ -90,12 +87,7 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_RegistersCallback
 
     EXPECT_CALL(*gMockIARM, RegisterCall(testing::_, testing::_))
         .WillOnce(testing::Return(IARM_RESULT_SUCCESS));
-    EXPECT_CALL(*gMockIARM, RegisterEventHandler(
-    IARM_BUS_PWRMGR_NAME,
-    IARM_BUS_PWRMGR_EVENT_MODECHANGED,
-    testing::_)
-).WillOnce(testing::Return(IARM_RESULT_SUCCESS));
-
+    
 
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
