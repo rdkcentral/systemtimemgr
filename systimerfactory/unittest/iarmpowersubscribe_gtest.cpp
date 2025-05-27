@@ -82,7 +82,7 @@ TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_Success) {
     EXPECT_CALL(*gMockIARM, IsConnected(_, _))
         .WillRepeatedly(Return(IARM_RESULT_SUCCESS));
     EXPECT_CALL(*gMockIARM, RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _))
-        .WillOnce(Return(IARM_RESULT_SUCCESS));
+        .WillOnce(Return(IARM_RESULT_INVALID_PARAM));
     bool result = subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
     EXPECT_TRUE(result);
 }
