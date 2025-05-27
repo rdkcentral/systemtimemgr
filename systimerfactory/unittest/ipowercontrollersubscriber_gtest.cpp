@@ -88,8 +88,8 @@ TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
     bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
     EXPECT_TRUE(subscribed);
 
-    PowerController_PowerState newState = POWER_ON;
-    PowerController_PowerState oldState = POWER_OFF;
+    PowerController_PowerState newState = POWER_STATE_ON;
+    PowerController_PowerState oldState = POWER_STATE_OFF;
     void* user_data = reinterpret_cast<void*>(0x1234);
 
     g_callback = TestPowerHandler;  // Simulate internal assignment
