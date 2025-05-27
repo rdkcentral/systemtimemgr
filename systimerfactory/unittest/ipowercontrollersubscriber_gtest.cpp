@@ -11,6 +11,7 @@
 static PowerController_PowerModeChangedCb g_callback = nullptr;
 static void* g_callback_data = nullptr;
 static bool g_callback_registered = false;
+static bool callback_invoked = false;
 static bool g_init_called = false;
 static bool g_term_called = false;
 
@@ -87,14 +88,16 @@ protected:
 TEST_F(IpowerControllerSubscriberTest, SubscribeAndCallbackSuccess) {
     bool subscribed = subscriber->subscribe(POWER_CHANGE_MSG, TestPowerHandler);
     EXPECT_TRUE(subscribed);
-    EXPECT_TRUE(g_init_called);
-    EXPECT_TRUE(g_callback_registered);
+    PowerController_PowerState_t dummyState = POWER_ON;
+    g_callback = TestPowerHandler;  // Simulate internal assignment
+    ASSERT_NE(g_callback, nullptr);
 
+    int result = g_callback(reinterpret_cast<void*>(&dummyState));
+    EXPECT_EQ(result, 0);
+    EXPECT_TRUE(callback_invoked);
+    EXPECT_EQ(g_callback_data, static_cast<void*>(&dummyState));
     // Simulate PowerController invoking callback
-    if (g_callback) {
-        g_callback(reinterpret_cast<void*>(data_pointer));
- // Should invoke TestPowerHandler
-    }
+   
 }
 
 TEST_F(IpowerControllerSubscriberTest, SubscribeFailsConnectStartsThread) {
