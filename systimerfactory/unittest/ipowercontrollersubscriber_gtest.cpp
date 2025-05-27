@@ -6,7 +6,7 @@
 #include "power_controller.h"
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
-#include "iarmsubscribe.cpp"
+
 
 using ::testing::_;
 using ::testing::Return;
