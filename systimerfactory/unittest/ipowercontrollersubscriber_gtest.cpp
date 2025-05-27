@@ -9,6 +9,7 @@
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
 #include "iarmsubscribe.cpp"
+#include "power_controller.cpp"
 
 // Mocking the external PowerController API functions
 class MockPowerController {
