@@ -2,6 +2,8 @@
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include "secure_wrapper.h"
+#undef v_secure_system
 #include "systimemgr.h"
 #include "systimemgr.cpp"
 #include "timerfactory.cpp"
