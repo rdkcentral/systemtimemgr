@@ -2,6 +2,7 @@
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include "Client_Mock.h"
 #include "secure_wrapper.h"
 #include "systimemgr.h"
 #include "systimemgr.cpp"
@@ -9,7 +10,7 @@
 #include "pubsubfactory.cpp"
 #include "rdkdefaulttimesync.cpp"
 #include "drmtimersrc.cpp"
-#include "Client_Mock.h
+
 
 
 
