@@ -26,7 +26,7 @@ COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGT
 COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock 
 
 # Define the compiler flags
-COMMON_CXXFLAGS = -frtti
+COMMON_CXXFLAGS = -frtti -std=c++14
 
 # Define the source files
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
