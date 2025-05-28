@@ -18,13 +18,14 @@
 
 #include "Client_Mock.h"
 //print the Debug Lines on the console remove rdklogger dependency
+
 #define _IRDKLOG_H_
 #define RDK_LOG(level, module, format, ...) printf("[%s:%s]" format, #level, #module, __VA_ARGS__)
-
 #include "drmtimersrc.h"
 #include "drmtimersrc.cpp"
 
 using namespace testing;
+
 
 #define DRM_TEST_FILE "/opt/DRMTEST.txt"
 
