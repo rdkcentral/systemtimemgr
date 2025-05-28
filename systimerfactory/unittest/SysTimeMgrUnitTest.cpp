@@ -3,13 +3,18 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "Client_Mock.h"
-#include "secure_wrapper.h"
+//#include "secure_wrapper.h"
 #include "systimemgr.h"
 #include "systimemgr.cpp"
 #include "timerfactory.cpp"
 #include "pubsubfactory.cpp"
 #include "rdkdefaulttimesync.cpp"
 #include "drmtimersrc.cpp"
+#define v_secure_system(cmd) \
+    do { \
+        printf("[SECURE_SYSTEM] Executing: %s\n", cmd); \
+        system(cmd); \
+    } while(0)
 
 
 
