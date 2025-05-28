@@ -10,11 +10,6 @@
 #include "pubsubfactory.cpp"
 #include "rdkdefaulttimesync.cpp"
 #include "drmtimersrc.cpp"
-#define v_secure_system(cmd) \
-    do { \
-        printf("[SECURE_SYSTEM] Executing: %s\n", cmd); \
-        system(cmd); \
-    } while(0)
 
 
 
