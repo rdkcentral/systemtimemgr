@@ -21,21 +21,7 @@
 
 
 
-extern "C" int v_secure_system(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
 
-    char buffer[2048];
-
-    vsnprintf(buffer, sizeof(buffer), format, args);
-
-    va_end(args);
-
-    std::string command = buffer;
-    printf("command: %s\n", command.c_str());
-    return system(command.c_str());
-}
 
 class SysTimeMgrTest : public ::testing::Test {
 protected:
