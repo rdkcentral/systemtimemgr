@@ -27,6 +27,7 @@
 #include <jsoncpp/json/value.h>
 #include <vector>
 #include <map>
+#include <cstdarg>
 
 class VSecureSystemMock {
 public:
