@@ -3,7 +3,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "secure_wrapper.h"
-#undef v_secure_system
 #include "systimemgr.h"
 #include "systimemgr.cpp"
 #include "timerfactory.cpp"
