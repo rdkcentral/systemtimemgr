@@ -9,6 +9,7 @@
 #include "pubsubfactory.cpp"
 #include "rdkdefaulttimesync.cpp"
 #include "drmtimersrc.cpp"
+#include "Client_Mock.h
 
 
 
