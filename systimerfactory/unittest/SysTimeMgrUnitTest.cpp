@@ -12,11 +12,7 @@
 #include "drmtimersrc.cpp"
 
 
-extern "C" int v_secure_system(const char* cmd) {
-    // Optionally: Store the cmd string for verification in tests
-    // For now, just return 0 to simulate success
-    return 0;
-}
+
 
 
 
