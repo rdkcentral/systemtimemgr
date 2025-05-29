@@ -51,6 +51,14 @@ mkdir -p /opt/secure/
 ./drmtest_gtest
 ./dtttest_gtest
 ./rdkDefaulttest_gtest
+./timerfactory_gtest
+./pubsubfactory_gtest
+./ipowercontrollersubscriber_gtest
+./iarmtimerstatus_gtest 
+./iarmsubscribe_gtest 
+./iarmpublish_gtest 
+./iarmpowersubscribe_gtest
+./systimemgr_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
