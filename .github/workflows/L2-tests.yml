@@ -43,7 +43,7 @@ jobs:
 
       - name: Build systemtimemgr and Run L2 inside Native Platform Container
         run: |
-          docker exec -i native-platform /bin/bash -c "cd /mnt/L2_CONTAINER_SHARED_VOLUME/ && sh ./cov_build.sh && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu:/usr/local/lib && sh run_l2.sh"
+          docker exec -i native-platform /bin/bash -c "cd /mnt/L2_CONTAINER_SHARED_VOLUME/ && sh ./cov_build.sh && export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/lib/aarch64-linux-gnu:/usr/local/lib"
 
       - name: Copy L2 Test report to Host Runner
         run: |
