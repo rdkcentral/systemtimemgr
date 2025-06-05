@@ -39,3 +39,5 @@ export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
 
 ./configure --prefix=${INSTALL_DIR} && make && make install
+ls -l /usr/local/bin
+/usr/local/bin/sysTimeMgr
