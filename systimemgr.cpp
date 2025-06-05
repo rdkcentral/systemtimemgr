@@ -33,6 +33,7 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#include "rdkdefaulttimesync.h"
 using namespace std::chrono;
 
 
@@ -427,7 +428,31 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
-	}
+		RdkDefaultTimeSync::TimeSource time_source = RdkDefaultTimeSync::TIME_SOURCE_NONE;
+		for (auto const& i : m_timerSync)
+		{
+		 time_source = i->getTimeSource(); 
+		}
+		if (time_source == RdkDefaultTimeSync::TIME_SOURCE_BUILD || time_source == RdkDefaultTimeSync::TIME_SOURCE_NVRAM)
+                {
+                   std::ofstream fallbackFile("/tmp/fall_back_time");
+                   if (fallbackFile.is_open())
+                   {
+                        time_t set_time = static_cast<time_t>(currenttime);
+                        char buf[100];
+                        strftime(buf, sizeof(buf), "%F %T", localtime(&set_time));
+
+                        if (time_source == RdkDefaultTimeSync::TIME_SOURCE_BUILD)
+                         fallbackFile << "SOURCE=BUILD_TIME\n";
+                        else
+                        fallbackFile << "SOURCE=NVRAM_TIME\n";
+
+                        fallbackFile << "TIME=" << buf << "\n";
+                       fallbackFile.close();
+		   }
+		}
+    }
+	
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
