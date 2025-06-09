@@ -429,7 +429,7 @@ void SysTimeMgr::setInitialTime()
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
 		int fd = open(filepath, O_WRONLY | O_CREAT, 0644);
-    		if (fd > 0) 
+    		if (fd >= 0) 
 		{
         		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
         		close(fd);
