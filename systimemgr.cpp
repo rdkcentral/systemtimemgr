@@ -393,6 +393,7 @@ void SysTimeMgr::setInitialTime()
 {
 	long long locTime = 0;
 	struct timespec stime;
+	const char* filepath = "/tmp/systimeset";
 	for (auto const& i : m_timerSync)
 	{
 		locTime = i->getTime();
@@ -427,6 +428,16 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+		int fd = open(filepath, O_WRONLY | O_CREAT, 0644);
+    		if (fd > 0) 
+		{
+        		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
+        		close(fd);
+    		}
+		else
+		{
+			RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
+		}
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
