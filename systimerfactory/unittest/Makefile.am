@@ -17,21 +17,30 @@
 #
 
 # Define the program name and the source files
-bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest
+bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest iarmtimerstatus_gtest iarmsubscribe_gtest iarmpublish_gtest iarmpowersubscribe_gtest systimemgr_gtest
 
 # Define the include directories
-COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include
+COMMON_CPPFLAGS = -I../ -I../../ -I../../interface -I./mocks -I/usr/include -DGTEST_ENABLE
 
 # Define the libraries to link against
-COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock
+COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock -ljsoncpp
 
 # Define the compiler flags
-COMMON_CXXFLAGS = -frtti
+COMMON_CXXFLAGS = -frtti -std=c++14
 
 # Define the source files
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
 dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
 rdkDefaulttest_gtest_SOURCES = rdkDefaulttimesyncUnitTest.cpp
+timerfactory_gtest_SOURCES = timerfactory_gtest.cpp
+pubsubfactory_gtest_SOURCES = pubsubfactory_gtest.cpp
+ipowercontrollersubscriber_gtest_SOURCES = ipowercontrollersubscriber_gtest.cpp
+iarmtimerstatus_gtest_SOURCES = iarmtimerstatus_gtest.cpp
+iarmsubscribe_gtest_SOURCES = iarmsubscribe_gtest.cpp
+iarmpublish_gtest_SOURCES = iarmpublish_gtest.cpp
+iarmpowersubscribe_gtest_SOURCES = iarmpowersubscribe_gtest.cpp
+systimemgr_gtest_SOURCES =SysTimeMgrUnitTest.cpp
+
 
 # Apply common properties to each program
 drmtest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
@@ -45,3 +54,36 @@ dtttest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 rdkDefaulttest_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 rdkDefaulttest_gtest_LDADD = $(COMMON_LDADD)
 rdkDefaulttest_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+
+timerfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+timerfactory_gtest_LDADD = $(COMMON_LDADD)
+timerfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+pubsubfactory_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+pubsubfactory_gtest_LDADD = $(COMMON_LDADD)
+pubsubfactory_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+ipowercontrollersubscriber_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+ipowercontrollersubscriber_gtest_LDADD = $(COMMON_LDADD)
+ipowercontrollersubscriber_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+iarmtimerstatus_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+iarmtimerstatus_gtest_LDADD = $(COMMON_LDADD)
+iarmtimerstatus_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+iarmsubscribe_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+iarmsubscribe_gtest_LDADD = $(COMMON_LDADD)
+iarmsubscribe_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+iarmpublish_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+iarmpublish_gtest_LDADD = $(COMMON_LDADD)
+iarmpublish_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+iarmpowersubscribe_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+iarmpowersubscribe_gtest_LDADD = $(COMMON_LDADD)
+iarmpowersubscribe_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
+
+systimemgr_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+systimemgr_gtest_LDADD = $(COMMON_LDADD)
+systimemgr_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
