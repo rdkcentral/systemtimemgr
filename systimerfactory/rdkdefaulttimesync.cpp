@@ -70,6 +70,10 @@ long long RdkDefaultTimeSync::buildtime()
 	return ver_time;
 }
 
+RdkDefaultTimeSync::TimeSource  RdkDefaultTimeSync::getTimeSource() const {
+    return m_timeSource;
+}
+
 long long RdkDefaultTimeSync::getTime()
 {
 	//Brief Algorithm:
@@ -96,6 +100,7 @@ long long RdkDefaultTimeSync::getTime()
 		time_t safe_clock_time = static_cast<time_t>(clock_time); // Explicit conversion to time_t
                 strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_clock_time)); // Pass time_t pointer
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
+		m_timeSource = TIME_SOURCE_NVRAM;
 		m_currentTime = clock_time;
 		return clock_time;
 	}
@@ -104,6 +109,7 @@ long long RdkDefaultTimeSync::getTime()
 	time_t safe_ver_time = static_cast<time_t>(ver_time); // Explicit conversion to time_t
         strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_ver_time)); // Pass time_t pointer
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
+	m_timeSource = TIME_SOURCE_BUILD;
 	return ver_time;
 }
 
