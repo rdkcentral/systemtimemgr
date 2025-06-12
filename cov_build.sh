@@ -40,4 +40,3 @@ export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsec
 
 ./configure --prefix=${INSTALL_DIR} && make && make install
 ls -l /usr/local/bin
-/usr/local/bin/sysTimeMgr
