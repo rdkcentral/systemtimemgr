@@ -32,6 +32,6 @@ def test_check_and_start_systemtimemgr():
 sleep(5)
 
 QUERY_MSG = "Quality ="
-assert QUERY_MSG in grep_rrdlogs(QUERY_MSG)
+assert QUERY_MSG in grep_sysTimeMgrlogs(QUERY_MSG)
 
 

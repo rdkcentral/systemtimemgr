@@ -45,7 +45,7 @@ def kill_sysTimeMgr(signal: int=9):
     print(resp.stderr.decode('utf-8'))
     return ""
 
-def grep_rrdlogs(search: str):
+def grep_sysTimeMgrlogs(search: str):
     search_result = ""
     search_pattern = re.compile(re.escape(search), re.IGNORECASE)
     try:
