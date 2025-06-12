@@ -69,6 +69,6 @@ def run_shell_command(command):
     return result.stdout.strip()
 
 def is_systemtimemgr_running():
-    command_to_check = "ps aux | grep remotedebugger | grep -v grep"
+    command_to_check = "ps aux | grep sysTimeMgr | grep -v grep"
     result = run_shell_command(command_to_check)
     return result != ""
