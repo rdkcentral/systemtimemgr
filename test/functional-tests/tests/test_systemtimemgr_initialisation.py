@@ -2,7 +2,7 @@
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
 #
-# Copyright 2024 RDK Management
+# Copyright 2018 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,26 +17,7 @@
 # limitations under the License.
 ##########################################################################
 
-WORKDIR=`pwd`
-
-apt-get update
-apt-get install -y libjsonrpccpp-dev
-
-cd $WORKDIR/systimerfactory
-autoreconf -i
-export CXXFLAGS="-I../interface/ "
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make clean && make && make install
-
-cd $WORKDIR
-export INSTALL_DIR='/usr/local'
-export top_srcdir=`pwd`
-export top_builddir=`pwd`
-
-autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
-
-./configure --prefix=${INSTALL_DIR} && make && make install
-ls -l /usr/local/bin
+def is_systimemgr_running():
+    command_to_check = "ps aux | grep sysTimeMgr | grep -v grep"
+    result = run_shell_command(command_to_check)
+    return result != ""

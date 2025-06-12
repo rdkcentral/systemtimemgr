@@ -2,7 +2,7 @@
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
 #
-# Copyright 2024 RDK Management
+# Copyright 2018 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,27 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
+from helper_functions import *
 
-WORKDIR=`pwd`
+def test_check_and_start_systemtimemgr():
+    kill_sysTimeMgr()
+    remove_logfile()
+    print("Starting systemtimemgr process")
+    command_to_start = "nohup /usr/local/bin/sysTimeMgr > /dev/null 2>&1 &"
+    run_shell_silent(command_to_start)
+    command_to_get_pid = "pidof sysTimeMgr"
+    pid = run_shell_command(command_to_get_pid)
+    assert pid != "", "sysTimeMgr process did not start"
 
-apt-get update
-apt-get install -y libjsonrpccpp-dev
 
-cd $WORKDIR/systimerfactory
-autoreconf -i
-export CXXFLAGS="-I../interface/ "
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make clean && make && make install
+sleep(5)
 
-cd $WORKDIR
-export INSTALL_DIR='/usr/local'
-export top_srcdir=`pwd`
-export top_builddir=`pwd`
+QUERY_MSG = "Quality ="
+assert QUERY_MSG in grep_sysTimeMgrlogs(QUERY_MSG)
 
-autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
 
-./configure --prefix=${INSTALL_DIR} && make && make install
-ls -l /usr/local/bin
