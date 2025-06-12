@@ -28,4 +28,3 @@ def write_time():
     with open(CLOCK_FILE, 'w') as file:
         file.write(current_time)
     
-print(f"Current time Written: {current_time}")

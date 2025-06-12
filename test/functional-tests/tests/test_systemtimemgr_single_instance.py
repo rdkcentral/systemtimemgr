@@ -49,6 +49,5 @@ def test_tear_down():
     run_shell_command(command_to_stop)
     command_to_get_pid = "pidof sysTimeMgr"
     remove_logfile()
-    remove_outdir_contents(OUTPUT_DIR)
     pid = run_shell_command(command_to_get_pid)
     assert pid == ""

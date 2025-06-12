@@ -68,4 +68,7 @@ def run_shell_command(command):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout.strip()
 
-
+def is_systemtimemgr_running():
+    command_to_check = "ps aux | grep remotedebugger | grep -v grep"
+    result = run_shell_command(command_to_check)
+    return result != ""
