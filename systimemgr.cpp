@@ -406,7 +406,7 @@ void SysTimeMgr::setInitialTime()
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Returning from Setting initial time since localtime returned from timersync is zero \n",__FUNCTION__,__LINE__);
                 if ((stat(filepath, &fileStat)) != 0)
 		{
-        		ofstream ofs(filename);
+        		ofstream ofs(filepath);
         		if (!ofs) 
 			{
 				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
@@ -433,7 +433,7 @@ void SysTimeMgr::setInitialTime()
                 publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
                 if ((stat(filepath, &fileStat)) != 0)
 		{
-        		ofstream ofs(filename);
+        		ofstream ofs(filepath);
         		if (!ofs) 
 			{
 				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
@@ -458,7 +458,7 @@ void SysTimeMgr::setInitialTime()
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
                 if ((stat(filepath, &fileStat)) != 0)
 		{
-        		ofstream ofs(filename);
+        		ofstream ofs(filepath);
         		if (!ofs) 
 			{
 				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
