@@ -25,7 +25,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include "timerfactory.h"
 #include <memory>
 #include <sys/inotify.h>
@@ -394,8 +393,7 @@ void SysTimeMgr::setInitialTime()
 {
 	long long locTime = 0;
 	struct timespec stime;
-	const char* filepath = "/tmp/systimeset";
-	struct stat fileStat;
+	string filepath = "/tmp/systimeset";
 	for (auto const& i : m_timerSync)
 	{
 		locTime = i->getTime();
