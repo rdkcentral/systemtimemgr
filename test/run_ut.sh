@@ -47,18 +47,33 @@ make
 
 mkdir -p /opt/secure/
 # Execute test suites for different sub-modules
-
-./drmtest_gtest
-./dtttest_gtest
-./rdkDefaulttest_gtest
-./timerfactory_gtest
-./pubsubfactory_gtest
-./ipowercontrollersubscriber_gtest
-./iarmtimerstatus_gtest 
-./iarmsubscribe_gtest 
-./iarmpublish_gtest 
-./iarmpowersubscribe_gtest
+fail=0
+for test in \
+./drmtest_gtest \
+./dtttest_gtest \
+./rdkDefaulttest_gtest \
+./timerfactory_gtest \
+./pubsubfactory_gtest \
+./ipowercontrollersubscriber_gtest \
+./iarmtimerstatus_gtest \
+./iarmsubscribe_gtest \
+./iarmpublish_gtest \
+./iarmpowersubscribe_gtest \
 ./systimemgr_gtest
+
+do
+    $test
+    status=$?
+    if [ $status -ne 0 ]; then
+        echo "Test $test failed with exit code $status"
+        fail=1
+    fi
+done
+
+if [ $fail -ne 0 ]; then
+    echo "Some unit tests failed."
+    exit 1
+fi
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
