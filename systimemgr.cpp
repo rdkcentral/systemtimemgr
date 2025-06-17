@@ -400,23 +400,19 @@ void SysTimeMgr::setInitialTime()
 	{
 		locTime = i->getTime();
 	}
-
+	ofstream ofs(filepath);
+        if (!ofs) 
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
+        }
+	else 
+	{
+        	ofs.close();
+        	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
+	}
 	if (locTime == 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Returning from Setting initial time since localtime returned from timersync is zero \n",__FUNCTION__,__LINE__);
-                if ((stat(filepath, &fileStat)) != 0)
-		{
-        		ofstream ofs(filepath);
-        		if (!ofs) 
-			{
-				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
-        		}
-			else 
-			{
-        	 		ofs.close();
-        			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
-			}
-		}
 		return;
 	}
         struct timespec ts;
@@ -431,19 +427,6 @@ void SysTimeMgr::setInitialTime()
             {
                 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Clock Time is greater that time provided by Timesync, leaving it alone.\n",__FUNCTION__,__LINE__);
                 publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
-                if ((stat(filepath, &fileStat)) != 0)
-		{
-        		ofstream ofs(filepath);
-        		if (!ofs) 
-			{
-				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
-        		}
-			else 
-			{
-        	 		ofs.close();
-        			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
-			}
-		}
                 return;
             }
         }
@@ -456,19 +439,6 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
-                if ((stat(filepath, &fileStat)) != 0)
-		{
-        		ofstream ofs(filepath);
-        		if (!ofs) 
-			{
-				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath);
-        		}
-			else 
-			{
-        	 		ofs.close();
-        			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath);
-			}
-		}
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
