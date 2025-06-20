@@ -28,7 +28,6 @@ IPublish* createPublishTest(string type, string args)
 
 ISubscribe* createSubscriberTest(string type, string args, string subtype)
 {
-        cout << "Inside createSubscriberTest" << endl;
         ISubscribe* ret = NULL;
         if (type == "test")
         {
