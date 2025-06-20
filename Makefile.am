@@ -25,7 +25,10 @@ bin_PROGRAMS = sysTimeMgr
 
 lib_LTLIBRARIES = libsysTimeMgr.la
 
-libsysTimeMgr_la_SOURCES = systimemgr.cpp 
+libsysTimeMgr_la_SOURCES = systimemgr.cpp
+#if defined(L2_ENABLED)
+libsysTimeMgr_la_SOURCES +=./test/TestIarmInterface.cpp
+#endif
 libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper
 
 

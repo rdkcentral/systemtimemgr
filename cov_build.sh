@@ -34,7 +34,7 @@ export top_srcdir=`pwd`
 export top_builddir=`pwd`
 
 autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/"
+export CXXFLAGS="-I./interface/ -I./systimerfactory/ -I./test/ -DL2_ENABLED -DENABLE_IARM"
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
 
