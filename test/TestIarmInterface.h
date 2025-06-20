@@ -22,7 +22,6 @@
 #include <utility>
 
 #ifdef ENABLE_IARM
-#include "iarmpublish.h"
 #include "iarmsubscribe.h"
 #include "iarmtimerstatussubscriber.h"
 #endif//ENABLE_IARM
