@@ -15,6 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#if defined(L2_ENABLED)
 #include "timerfactory.h"
 #include "testpublish.h"
 #include "testsubscribe.h"
@@ -28,7 +29,6 @@
 #include "irdklog.h"
 #include "systimemgr.h"
 
-#if defined(L2_ENABLED)
 IPublish* createPublishTest(string type, string args);
 ISubscribe* createSubscriberTest(string type, string args, string subtype);
 void publishTest(int event, void* args);
