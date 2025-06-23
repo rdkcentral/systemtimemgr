@@ -44,7 +44,7 @@ ISubscribe* createSubscriberTest(string type, string args, string subtype)
         return ret;
 }
 
-IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(sub)
+IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(std::move(sub))
 {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_IsConnected Success \n",__FUNCTION__,__LINE__);
 }
@@ -65,6 +65,8 @@ bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
 
 void publishTest(int event, void* args)
 {
+   std::lock_guard<std::mutex> guard(g_instance_mutex);
+
    TimerMsg* pMsg = reinterpret_cast<TimerMsg*>(args);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARM Broadcast Info: MsgType = %d, Quality = %d, Message = %s \n",__FUNCTION__,__LINE__,pMsg->event,pMsg->quality,pMsg->message);
 }

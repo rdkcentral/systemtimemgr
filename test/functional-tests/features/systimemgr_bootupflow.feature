@@ -17,7 +17,7 @@
 # limitations under the License.
 ####################################################################################
 
-Feature: Ensures SystemTimeManager Returns the Last known Good time
+Feature: Ensures SystemTimeManager Bootup Flow
 
   Scenario: Ensures SystemTimeManager Initialization
     Given the SystemTimeManager is not already running
@@ -34,7 +34,33 @@ Feature: Ensures SystemTimeManager Returns the Last known Good time
     When the SystemTimeManager binary is invoked
     Then the SystemTimeManager LogFile should get generated
 
-  Scenario: Verify SystemTimeManager Captured Last known Good time
+  Scenario: Verify SystemTimeManager Instance is created
     Given the SystemTimeManager is running
     When the SystemTimeManager binary is invoked
-    Then the SystemTimeManager should update the lastknown Good time
+    Then the SystemTimeManager Instance should get created
+
+  Scenario: Verify SystemTimeManager Initializes timeSrc and timeSync
+    Given the SystemTimeManager is running
+    When the SystemTimeManager binary is invoked
+    Then the SystemTimeManager should initializes TimeSrc[NTP,DTT] and TimeSync[clocktime]
+
+  Scenario: Verify SystemTimeManager Registers IARM events
+    Given the SystemTimeManager is running
+    When the SystemTimeManager Initializes timesrc and timesync
+    Then the SystemTimeManager should register IARM and process events
+    And the log file should contain "IARMBUS Registering function for Event"
+
+  Scenario: Verify SystemTimeManager returns the last known good time
+    Given the SystemTimeManager is running
+    When the SystemTimeManager registers for IARM events
+    Then the SystemTimeManager should return the last known good time
+    And the log file should contain "Returning Last Known Good Time"
+
+  Scenario: Verify SystemTimeManager Sends broadcast info about time Quality
+    Given the SystemTimeManager is running
+    When the SystemTimeManager returns the last known good time
+    Then the SystemTimeManager should Send IARM broadcast msg about the time quality
+    And the log file should contain "IARM Broadcast Info:"
+
+
+

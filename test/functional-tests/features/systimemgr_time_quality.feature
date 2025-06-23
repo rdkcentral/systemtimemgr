@@ -17,7 +17,7 @@
 # limitations under the License.
 ####################################################################################
 
-Feature: Ensures SystemTimeManager Initialization
+Feature: Ensures SystemTimeManager Broadcasting Time Quality Messages
 
   Scenario: Ensures SystemTimeManager Initialization
     Given the SystemTimeManager is not already running
@@ -38,3 +38,8 @@ Feature: Ensures SystemTimeManager Initialization
     Given the SystemTimeManager is running
     When the SystemTimeManager binary is invoked
     Then the SystemTimeManager should sent time quality Poor Msg Initially since NTP Failed
+
+  Scenario: Verify SystemTimeManager should sent time quality Good when NTP is synced
+    Given the SystemTimeManager is running
+    When the SystemTimeManager binary is invoked
+    Then the SystemTimeManager should sent time quality Good When NTP is synced

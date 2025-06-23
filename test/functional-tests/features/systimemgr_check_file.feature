@@ -17,7 +17,7 @@
 # limitations under the License.
 ####################################################################################
 
-Feature: Ensures SystemTimeManager Returns the Last known Good time
+Feature: Ensures SystemTimeManager generates /opt/secure/clock.txt File
 
   Scenario: Ensures SystemTimeManager Initialization
     Given the SystemTimeManager is not already running
@@ -34,7 +34,7 @@ Feature: Ensures SystemTimeManager Returns the Last known Good time
     When the SystemTimeManager binary is invoked
     Then the SystemTimeManager LogFile should get generated
 
-  Scenario: Verify SystemTimeManager Captured Last known Good time
+  Scenario: Verify SystemTimeManager generates clock.txt File
     Given the SystemTimeManager is running
-    When the SystemTimeManager binary is invoked
-    Then the SystemTimeManager should update the lastknown Good time
+    When the SystemTimeManager returns the last known time
+    Then the SystemTimeManager should update the clock.txt File
