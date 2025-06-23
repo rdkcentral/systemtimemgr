@@ -28,7 +28,7 @@
 #include "irdklog.h"
 #include "systimemgr.h"
 
-static mutex g_instance_mutex;
+static recursive_mutex g_state_mutex;
 
 IPublish* createPublishTest(string type, string args);
 ISubscribe* createSubscriberTest(string type, string args, string subtype);

@@ -65,7 +65,7 @@ bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
 
 void publishTest(int event, void* args)
 {
-   std::lock_guard<std::mutex> guard(g_instance_mutex);
+   std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
    TimerMsg* pMsg = reinterpret_cast<TimerMsg*>(args);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARM Broadcast Info: MsgType = %d, Quality = %d, Message = %s \n",__FUNCTION__,__LINE__,pMsg->event,pMsg->quality,pMsg->message);
