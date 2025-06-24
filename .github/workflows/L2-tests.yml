@@ -2,7 +2,7 @@ name: L2 Integration Tests for systemtimemgr
 
 on:
   pull_request:
-    branches: [ develop, feature/RDK-48831-sysTimeMgr-L2 ]
+    branches: [ develop ]
 
 env:
   AUTOMATICS_UNAME: ${{ secrets.AUTOMATICS_UNAME }}
