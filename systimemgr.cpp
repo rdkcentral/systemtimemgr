@@ -33,6 +33,7 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#include "rdk_logger_milestone.h"
 using namespace std::chrono;
 #include "TestIarmInterface.h"
 
@@ -435,6 +436,7 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+		logMilestone("SYSTEM_TIME_SET");
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
