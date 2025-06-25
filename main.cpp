@@ -32,7 +32,8 @@ int main()
         SysTimeMgr* sysTimeMgr = SysTimeMgr::get_instance();
 
         sysTimeMgr->initialize();
-        t2_init("systimemgr");
+        char name[] = "systimemgr";
+        t2_init("name");
         sysTimeMgr->run();
     }
     catch (const std::bad_cast& e) {
