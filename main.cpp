@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include "irdklog.h"
 #include <iostream>
+#include <telemetry_busmessage_sender.h>
 
 int main()
 {
