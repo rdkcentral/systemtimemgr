@@ -35,7 +35,7 @@
 #include "secure_wrapper.h"
 #include "rdk_logger_milestone.h"
 using namespace std::chrono;
-
+#include <telemetry_busmessage_sender.h>
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
@@ -428,6 +428,9 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+		char value[128]={0};
+		snprintf(value, sizeof(value),"SYSTEM_TIME_SET");
+		t2_event_s("SYST_INFO_SETSYSTIME",value);
 		logMilestone("SYSTEM_TIME_SET");
 	}
 
