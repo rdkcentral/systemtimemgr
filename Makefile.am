@@ -26,7 +26,7 @@ bin_PROGRAMS = sysTimeMgr
 lib_LTLIBRARIES = libsysTimeMgr.la
 
 libsysTimeMgr_la_SOURCES = systimemgr.cpp 
-libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper -ltelemetry_msgsender 
+libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper -ltelemetry_msgsender -lt2utils -lsecure_wrapper
 
 
 sysTimeMgr_SOURCES = main.cpp
