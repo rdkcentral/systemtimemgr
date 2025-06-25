@@ -33,7 +33,7 @@ int main()
 
         sysTimeMgr->initialize();
         char name[] = "systimemgr";
-        t2_init("name");
+        t2_init(name);
         sysTimeMgr->run();
     }
     catch (const std::bad_cast& e) {
