@@ -394,11 +394,21 @@ void SysTimeMgr::setInitialTime()
 {
 	long long locTime = 0;
 	struct timespec stime;
+	string filepath = "/tmp/systimeset";
 	for (auto const& i : m_timerSync)
 	{
 		locTime = i->getTime();
 	}
-
+	ofstream ofs(filepath);
+        if (!ofs) 
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath.c_str());
+        }
+	else 
+	{
+        	ofs.close();
+        	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath.c_str());
+	}
 	if (locTime == 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Returning from Setting initial time since localtime returned from timersync is zero \n",__FUNCTION__,__LINE__);
