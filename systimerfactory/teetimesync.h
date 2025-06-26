@@ -95,6 +95,7 @@ class TeeTimeSync: public ITimeSync
 			char timeStr[100] = {0};
 			strftime(timeStr, sizeof(timeStr), "%A %c", localtime((time_t*)&ret));
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:TIME Returning = %lld, Converted Current Time in TEE: %s \n",__FUNCTION__,__LINE__,ret,timeStr);
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
 			return ret;
 		}
 };
