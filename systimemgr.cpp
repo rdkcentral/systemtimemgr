@@ -35,7 +35,7 @@
 #include "secure_wrapper.h"
 #include "rdk_logger_milestone.h"
 using namespace std::chrono;
-
+#include "TestIarmInterface.h"
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
@@ -104,6 +104,7 @@ void SysTimeMgr::initialize()
     //m_timerSrc.push_back(createTimeSrc("regular","/tmp/clock.txt"));
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
 
+#if !defined(L2_ENABLED)
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
     m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
@@ -113,6 +114,13 @@ void SysTimeMgr::initialize()
     m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
+#else
+    m_publish = createPublishTest("iarm",IARM_BUS_SYSTIME_MGR_NAME);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber  = createSubscriberTest("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+#endif
 
     //Initialize Path Event Map
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("ntp",eSYSMGR_EVENT_NTP_AVAILABLE));
@@ -468,7 +476,11 @@ void SysTimeMgr::publishStatus(publishEvent event,string message)
 	strftime(monotimeStr, sizeof(monotimeStr), "%A %c", localtime(&monotimeinSec));
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:TIME Published = %ld, Converted Real Time(included in published time): %s, Converted Monotonic Time = %s \n",__FUNCTION__,__LINE__,timeinSec,timeStr,monotimeStr); 
 	snprintf(msg.currentTime, cTIMER_STATUS_MESSAGE_LENGTH, "%s", std::to_string(timeinSec).c_str());   //CID:277715  Buffer not null terminated
+#if !defined(L2_ENABLED)
 	m_publish->publish(cTIMER_STATUS_UPDATE,&msg);
+#else
+	publishTest(cTIMER_STATUS_UPDATE,&msg);
+#endif
 }
 int SysTimeMgr::getTimeStatus(void* args)
 {
