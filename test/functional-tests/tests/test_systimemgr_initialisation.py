@@ -20,7 +20,7 @@ from time import sleep
 from helper_functions import *
 
 def test_is_systimemgr_running():
-    command_to_check = "ps aux | grep sysTimeMgr | grep -v grep"
+    command_to_check = "pidof sysTimeMgr"
     result = run_shell_command(command_to_check)
     assert result != ""
 
