@@ -20,6 +20,15 @@
 from time import sleep
 from helper_functions import *
 
+def test_check_and_start_sysTimeMgr():
+    kill_sysTimeMgr()
+    print("Starting sysTimeMgr process")
+    command_to_start = "nohup /usr/local/bin/sysTimeMgr > /dev/null 2>&1 &"
+    run_shell_silent(command_to_start)
+    command_to_get_pid = "pidof sysTimeMgr"
+    pid = run_shell_command(command_to_get_pid)
+    assert pid != "", "sysTimeMgr process did not start"
+
 def test_systemtimemgr_instance_is_started():
     command_to_get_pid = "pidof sysTimeMgr"
     pid1 = run_shell_command(command_to_get_pid)
