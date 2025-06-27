@@ -2,7 +2,7 @@
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
 #
-# Copyright 2024 RDK Management
+# Copyright 2018 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,25 +17,11 @@
 # limitations under the License.
 ##########################################################################
 
-WORKDIR=`pwd`
+Feature: SystemTimeManager runs only one instance
 
-apt-get update
-apt-get install -y libjsonrpccpp-dev
-
-cd $WORKDIR/systimerfactory
-autoreconf -i
-export CXXFLAGS="-I../interface/ "
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make clean && make && make install
-
-cd $WORKDIR
-export INSTALL_DIR='/usr/local'
-export top_srcdir=`pwd`
-export top_builddir=`pwd`
-
-autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
-
-./configure --prefix=${INSTALL_DIR} && make && make install
+  Scenario: SystemTimeManager exits if another instance is invoked
+    Given the SystemTimeManager is not already running
+    When the SystemTimeManager binary is invoked
+    Then the SystemTimeManager should be started
+    And when the SystemTimeManager is attempted to be started again
+    Then the SystemTimeManager should not start another instance
