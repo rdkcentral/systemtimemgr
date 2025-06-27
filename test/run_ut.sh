@@ -43,7 +43,6 @@ autoreconf --install
 
 find / -iname "jsonrpccpp"
 ./configure
-export CXXFLAGS="-DMILESTONE_SUPPORT_DISABLED"
 make
 
 mkdir -p /opt/secure/
