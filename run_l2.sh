@@ -26,6 +26,13 @@ touch /usr/local/bin/journalctl
 chmod -R 777 /usr/local/bin/journalctl
 ln -s /usr/local/bin/journalctl /usr/bin/journalctl
 
+echo "timesrc  ntp /ntp" > /etc/systimemgr.conf
+echo "timesrc dtt /dtt" >> /etc/systimemgr.conf
+echo "timesync rdkdefault /clock_time" >> /etc/systimemgr.conf
+
+mkdir /tmp/systimemgr/
+touch ntp
+
 rm -rf /opt/logs/systimemgr.log*
 
 # Run L2 Test cases
