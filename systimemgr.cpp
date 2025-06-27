@@ -33,7 +33,9 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
+#endif
 using namespace std::chrono;
 
 
@@ -103,7 +105,7 @@ void SysTimeMgr::initialize()
 
     //m_timerSrc.push_back(createTimeSrc("regular","/tmp/clock.txt"));
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
-
+#if !defined(IARM_SUPPORT_DISABLED)
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
     m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
@@ -113,7 +115,18 @@ void SysTimeMgr::initialize()
     m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
-
+#else    
+    m_publish = createPublish("test",IARM_BUS_SYSTIME_MGR_NAME);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber  = createSubscriber("test",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME POWER_CHANGE_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_subscriber      = createSubscriber("test",IARM_BUS_SYSTIME_MGR_NAME,POWER_CHANGE_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
+#endif
+    
     //Initialize Path Event Map
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("ntp",eSYSMGR_EVENT_NTP_AVAILABLE));
     //Keeping the NTP available event for stt as well. Source is different but no need to have separate event.
@@ -438,7 +451,9 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+#if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
+#endif		
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
