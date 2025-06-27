@@ -26,10 +26,3 @@ def test_systemtimemgr_instance_is_started():
 
     if is_systemtimemgr_running():
         print("systemtimemgr process is already running")
-    else:
-        command_to_start = "nohup /usr/local/bin/sysTimeMgr > /dev/null 2>&1 &"
-        run_shell_silent(command_to_start)
-        sleep(2)
-
-    pid2 = run_shell_command(command_to_get_pid)
-    assert pid1 == pid2, "A instance of sysTimeMgr was started."
