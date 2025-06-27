@@ -33,7 +33,9 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
+#endif
 using namespace std::chrono;
 
 
@@ -449,7 +451,9 @@ void SysTimeMgr::setInitialTime()
 	else
 	{
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+#if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
+#endif		
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
