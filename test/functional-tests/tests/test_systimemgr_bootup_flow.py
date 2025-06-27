@@ -24,11 +24,6 @@ def test_is_systimemgr_running():
     result = run_shell_command(command_to_check)
     assert result != "", "sysTimeMgr process did not start"
 
-def test_if_systimemgr_running():
-    command_to_check = "ps aux | grep sysTimeMgr | grep -v grep"
-    result = run_shell_command(command_to_check)
-    assert result != ""
-
 def test_check_systimemgr_log_file():
     log_file_path = LOG_FILE
     assert check_file_exists(log_file_path), f"Log File '{log_file_path}' does not exist."
