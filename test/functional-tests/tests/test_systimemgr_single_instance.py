@@ -22,7 +22,6 @@ from helper_functions import *
 
 def test_check_systemtimemgr_is_starting():
     kill_sysTimeMgr()
-    remove_logfile()
     print("Starting systemtimemgr process")
     command_to_start = "nohup /usr/local/bin/sysTimeMgr > /dev/null 2>&1 &"
     run_shell_silent(command_to_start)
