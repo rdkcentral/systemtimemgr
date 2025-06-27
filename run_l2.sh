@@ -31,7 +31,9 @@ rm -rf /opt/logs/systimemgr.log*
 /usr/local/bin/sysTimeMgr -d /etc/debug.ini | tee /opt/logs/systimemgr.log.0 &
 
 ps -eaf
+cat /opt/logs/systimemgr.log.0
 
+sleep(60)
 # Run L2 Test cases
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_single_instance.json test/functional-tests/tests/test_systimemgr_single_instance.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_initialisation.json test/functional-tests/tests/test_systimemgr_initialisation.py
