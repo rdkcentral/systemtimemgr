@@ -28,9 +28,11 @@ ln -s /usr/local/bin/journalctl /usr/bin/journalctl
 
 rm -rf /opt/logs/systimemgr.log*
 
-/usr/local/bin/sysTimeMgr -d /etc/debug.ini | tee /opt/logs/systimemgr.log.0 &
+/usr/local/bin/sysTimeMgr &
 
 ps -eaf
+ls -l /opt/logs/
+
 cat /opt/logs/systimemgr.log.0
 
 sleep 1m
