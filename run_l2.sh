@@ -30,6 +30,8 @@ echo "timesrc  ntp /ntp" > /etc/systimemgr.conf
 echo "timesrc dtt /dtt" >> /etc/systimemgr.conf
 echo "timesync rdkdefault /clock_time" >> /etc/systimemgr.conf
 
+echo "$(date +%s)" > /opt/secure/clock.txt
+
 mkdir /tmp/systimemgr/
 touch /tmp/systimemgr/ntp
 
