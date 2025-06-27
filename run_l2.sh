@@ -28,7 +28,7 @@ ln -s /usr/local/bin/journalctl /usr/bin/journalctl
 
 rm -rf /opt/logs/systimemgr.log*
 
-/usr/local/bin/sysTimeMgr &
+/usr/local/bin/sysTimeMgr -d /etc/debug.ini &
 
 ps -eaf
 ls -l /opt/logs/
