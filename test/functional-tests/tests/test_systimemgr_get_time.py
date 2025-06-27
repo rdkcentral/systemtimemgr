@@ -19,10 +19,10 @@
 from time import sleep
 from helper_functions import *
 
-def test_if_systimemgr_running():
-    command_to_check = "ps aux | grep sysTimeMgr | grep -v grep"
+def test_is_systimemgr_running():
+    command_to_check = "pidof sysTimeMgr"
     result = run_shell_command(command_to_check)
-    assert result != ""
+    assert result != "", "sysTimeMgr process did not start"
 
 def test_check_systimemgr_log_file():
     log_file_path = LOG_FILE
