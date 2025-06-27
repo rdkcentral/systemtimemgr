@@ -40,6 +40,7 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systim
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_initialisation.json test/functional-tests/tests/test_systimemgr_initialisation.py
 
 ls -l /opt/secure
+cat /opt/secure/clock.txt
 cat /opt/logs/systimemgr.log.0
 
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_get_time.json test/functional-tests/tests/test_systimemgr_get_time.py
