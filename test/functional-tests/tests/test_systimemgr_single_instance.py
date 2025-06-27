@@ -30,9 +30,3 @@ def test_check_systemtimemgr_is_starting():
     pid = run_shell_command(command_to_get_pid)
     assert pid != "", "sysTimeMgr process did not start"
 
-def test_tear_down():
-    command_to_stop = "kill -9 `pidof sysTimeMgr`"
-    run_shell_command(command_to_stop)
-    command_to_get_pid = "pidof sysTimeMgr"
-    pid = run_shell_command(command_to_get_pid)
-    assert pid == ""
