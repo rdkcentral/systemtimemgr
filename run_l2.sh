@@ -34,7 +34,7 @@ ps -eaf
 ls -l /opt/logs/
 
 cat /opt/logs/systimemgr.log.0
-
+cat /etc/log4crc
 sleep 1m
 
 # Run L2 Test cases
