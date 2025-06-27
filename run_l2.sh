@@ -28,17 +28,17 @@ ln -s /usr/local/bin/journalctl /usr/bin/journalctl
 
 rm -rf /opt/logs/systimemgr.log*
 
-/usr/local/bin/sysTimeMgr -d /etc/debug.ini &
+/usr/local/bin/sysTimeMgr &
 
 ps -eaf
 ls -l /opt/logs/
 
 cat /opt/logs/systimemgr.log.0
-cat /etc/log4crc
+cat /etc/debug.ini
 sleep 1m
 
 # Run L2 Test cases
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_single_instance.json test/functional-tests/tests/test_systimemgr_single_instance.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_single_instance.json test/functional-tests/tests/test_systimemgr_single_instance.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_initialisation.json test/functional-tests/tests/test_systimemgr_initialisation.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_get_time.json test/functional-tests/tests/test_systimemgr_get_time.py
 #pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_check_file.json test/functional-tests/tests/test_systimemgr_check_file.py
