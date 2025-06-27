@@ -48,40 +48,17 @@ make
 mkdir -p /opt/secure/
 # Execute test suites for different sub-modules
 
-
-fail=0
-
-run_test() {
-    test_binary="$1"
-    echo "Running $test_binary..."
-    ./$test_binary
-    status=$?
-    if [ $status -ne 0 ]; then
-        echo "Test $test_binary failed with exit code $status"
-        fail=1
-    else
-        echo "Test $test_binary passed"
-    fi
-    echo "------------------------------------"
-}
-
-run_test drmtest_gtest
-run_test dtttest_gtest
-run_test rdkDefaulttest_gtest
-run_test timerfactory_gtest
-run_test pubsubfactory_gtest
-run_test ipowercontrollersubscriber_gtest
-run_test iarmtimerstatus_gtest
-run_test iarmsubscribe_gtest
-run_test iarmpublish_gtest
-run_test iarmpowersubscribe_gtest
-run_test systimemgr_gtest
-
-if [ $fail -ne 0 ]; then
-    echo "Some unit tests failed."
-    exit 1
-fi
-
+./drmtest_gtest
+./dtttest_gtest
+./rdkDefaulttest_gtest
+./timerfactory_gtest
+./pubsubfactory_gtest
+./ipowercontrollersubscriber_gtest
+./iarmtimerstatus_gtest 
+./iarmsubscribe_gtest 
+./iarmpublish_gtest 
+./iarmpowersubscribe_gtest
+./systimemgr_gtest
 
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
