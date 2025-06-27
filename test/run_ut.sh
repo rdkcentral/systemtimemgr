@@ -43,6 +43,7 @@ autoreconf --install
 
 find / -iname "jsonrpccpp"
 ./configure
+export CXXFLAGS="-DIARM_SUPPORT_DISABLED"
 make
 
 mkdir -p /opt/secure/
