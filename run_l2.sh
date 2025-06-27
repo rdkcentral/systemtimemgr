@@ -31,7 +31,7 @@ echo "timesrc dtt /dtt" >> /etc/systimemgr.conf
 echo "timesync rdkdefault /clock_time" >> /etc/systimemgr.conf
 
 mkdir /tmp/systimemgr/
-touch ntp
+touch /tmp/systimemgr/ntp
 
 rm -rf /opt/logs/systimemgr.log*
 
