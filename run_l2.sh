@@ -38,6 +38,10 @@ rm -rf /opt/logs/systimemgr.log*
 # Run L2 Test cases
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_single_instance.json test/functional-tests/tests/test_systimemgr_single_instance.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_initialisation.json test/functional-tests/tests/test_systimemgr_initialisation.py
+
+ls -l /opt/secure
+cat /opt/logs/systimemgr.log.0
+
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_get_time.json test/functional-tests/tests/test_systimemgr_get_time.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_check_file.json test/functional-tests/tests/test_systimemgr_check_file.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_time_quality.json test/functional-tests/tests/test_systimemgr_time_quality.py
