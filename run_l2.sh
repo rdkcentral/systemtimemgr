@@ -48,7 +48,7 @@ ps -eaf
 ls -l /opt/logs
 cat /opt/logs/systimemgr.log.0
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_initialisation.json test/functional-tests/tests/test_systimemgr_initialisation.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_get_time.json test/functional-tests/tests/test_systimemgr_get_time.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_check_file.json test/functional-tests/tests/test_systimemgr_check_file.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_time_quality.json test/functional-tests/tests/test_systimemgr_time_quality.py
-#pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_bootup_flow.json test/functional-tests/tests/test_systimemgr_bootup_flow.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_get_time.json test/functional-tests/tests/test_systimemgr_get_time.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_check_file.json test/functional-tests/tests/test_systimemgr_check_file.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_time_quality.json test/functional-tests/tests/test_systimemgr_time_quality.py
+pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_bootup_flow.json test/functional-tests/tests/test_systimemgr_bootup_flow.py
