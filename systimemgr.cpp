@@ -36,6 +36,8 @@
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
 #endif
+
+#include <telemetry_busmessage_sender.h>
 using namespace std::chrono;
 
 #ifdef T2_EVENT_ENABLED
