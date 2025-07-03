@@ -35,7 +35,7 @@ sysTimeMgr_LDADD = libsysTimeMgr.la
 
 if IS_TELEMETRY2_ENABLED
 sysTimeMgr_CFLAGS +=  $(T2_EVENT_FLAG)
-AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
+sysTimeMgr_LDFLAGS += -ltelemetry_msgsender -lt2utils
 endif
 
 #libsysTimeMgr_la_includedir = ${includedir}
