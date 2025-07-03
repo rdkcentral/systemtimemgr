@@ -32,5 +32,11 @@ libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wr
 sysTimeMgr_SOURCES = main.cpp
 sysTimeMgr_LDADD = libsysTimeMgr.la
 
+
+if IS_TELEMETRY2_ENABLED
+sysTimeMgr_CFLAGS +=  $(T2_EVENT_FLAG)
+AM_LDFLAGS += -ltelemetry_msgsender -lt2utils
+endif
+
 #libsysTimeMgr_la_includedir = ${includedir}
 #libsysTimeMgr_la_include_HEADERS = systimemgr.h
