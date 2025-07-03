@@ -78,6 +78,10 @@ void SysTimeMgr::initialize()
 {
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
+    #ifdef T2_EVENT_ENABLED
+    t2_init("SysTimeMgr");
+    #endif
+	
     //Create Timer Src and Syncs.
     ifstream cfgFile(m_cfgfile.c_str());
 
