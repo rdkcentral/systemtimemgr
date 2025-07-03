@@ -38,6 +38,16 @@
 #endif
 using namespace std::chrono;
 
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val) {
+    t2_event_d(marker, val);
+}
+
+void t2ValNotify( const char *marker, const char *val )
+{
+    t2_event_s(marker, val);
+}
+#endif
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
@@ -458,6 +468,9 @@ void SysTimeMgr::setInitialTime()
 #if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
 #endif		
+	        char value[128]={0};
+		snprintf(value, sizeof(value),"SYSTEM_TIME_SET");
+		t2ValNotify("SYST_INFO_SETSYSTIME",value);
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
