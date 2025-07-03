@@ -461,6 +461,7 @@ void SysTimeMgr::setInitialTime()
 	if (clock_settime( CLOCK_REALTIME, &stime) != 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to set time \n",__FUNCTION__,__LINE__);
+		t2CountNotify("SYST_ERROR_SYSTIME_FAIL",1);
 	}
 	else
 	{
