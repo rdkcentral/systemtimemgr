@@ -19,6 +19,7 @@
 #include "irdklog.h"
 #include <string.h>
 #include <chrono>
+#include <telemetry_busmessage_sender.h>
 
 using namespace std::chrono;
 map<string, string> RdkDefaultTimeSync::tokenize(string const& s,string token)
