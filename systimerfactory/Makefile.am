@@ -35,7 +35,7 @@ endif
 
 if IS_TELEMETRY2_ENABLED
 libsystimerfactory_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsystimerfactory_la_LDFLAGS += -ltelemetry_msgsender -lt2utils
+libsystimerfactory_la_LDFLAGS = -ltelemetry_msgsender -lt2utils
 endif
 
 
