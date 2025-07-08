@@ -39,7 +39,10 @@
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
 #endif
-
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(char *marker, int val);
+void t2ValNotify(char *marker, char *val);
+#endif
 
 using namespace std;
 typedef enum 
@@ -127,11 +130,6 @@ private:
         static mutex g_instance_mutex;
         static SysTimeMgr* pInstance;
 
-       #ifdef T2_EVENT_ENABLED
-        void t2CountNotify(char *marker, int val); 
-        void t2ValNotify(char *marker, char *val);
-       #endif
-        
 
         // LIstening socket and its related addresses etc.
 public:
