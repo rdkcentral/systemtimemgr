@@ -1,4 +1,4 @@
-/*
+g/*
  * Copyright 2023 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,15 @@
 #include <fstream>
 #include <string>
 #include <map>
+
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
+
+ #ifdef T2_EVENT_ENABLED
+        void t2CountNotify(char *marker, int val); 
+        void t2ValNotify(char *marker, char *val);
+#endif
 
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
