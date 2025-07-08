@@ -94,6 +94,9 @@ long long RdkDefaultTimeSync::getTime()
 	//5. else return clock time.
 	//6. update Current Time with what we are returning.        
 
+	 #ifdef T2_EVENT_ENABLED
+         t2_init(const_cast<char*>("SysTimeMgr"));
+         #endif
 
 	long long clock_time = 0,ver_time = 0;
 	fstream myfile(m_path.c_str(), std::ios_base::in);
@@ -102,7 +105,7 @@ long long RdkDefaultTimeSync::getTime()
 		myfile>>clock_time; 
 	}
 
-
+ 
 	ver_time = buildtime();
 	if (clock_time > ver_time)
 	{
