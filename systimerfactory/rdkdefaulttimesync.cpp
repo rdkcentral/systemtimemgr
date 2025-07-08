@@ -121,7 +121,7 @@ long long RdkDefaultTimeSync::getTime()
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
 	char buffer[128];
         snprintf(buffer, 128, "Returning build time, Time = %s", timeStr);
-         t2_event_s(("SYST_INFO_SYSBUILD",buffer);
+         t2_event_s("SYST_INFO_SYSBUILD",buffer);
 	return ver_time;
 }
 
