@@ -19,7 +19,9 @@
 #include "irdklog.h"
 #include <string.h>
 #include <chrono>
+#ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
+#endif
 
 #ifdef T2_EVENT_ENABLED
 void t2CountNotify(const char *marker, int val) {
@@ -110,6 +112,7 @@ long long RdkDefaultTimeSync::getTime()
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
 		char buffer[128];
                 snprintf(buffer, 128, "Returning Last Known Good Time, time = %s", timeStr);
+		t2ValNotify("SYST_INFO_SYSLKG",buffer);
                  t2_event_s("SYST_INFO_SYSLKG",buffer);
 		m_currentTime = clock_time;
 		return clock_time;
@@ -121,7 +124,7 @@ long long RdkDefaultTimeSync::getTime()
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
 	char buffer[128];
         snprintf(buffer, 128, "Returning build time, Time = %s", timeStr);
-         t2_event_s("SYST_INFO_SYSBUILD",buffer);
+         t2ValNotify("SYST_INFO_SYSBUILD",buffer);
 	return ver_time;
 }
 
