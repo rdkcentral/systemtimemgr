@@ -41,11 +41,11 @@
 using namespace std::chrono;
 
 #ifdef T2_EVENT_ENABLED
-void t2CountNotify(const char *marker, int val) {
+void t2CountNotify(char *marker, int val) {
     t2_event_d(marker, val);
 }
 
-void t2ValNotify( const char *marker, const char *val )
+void t2ValNotify( char *marker, char *val )
 {
     t2_event_s(marker, val);
 }
@@ -91,7 +91,7 @@ void SysTimeMgr::initialize()
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
     #ifdef T2_EVENT_ENABLED
-    t2_init("SysTimeMgr");
+    t2_init((char *)"SysTimeMgr");
     #endif
 	
     //Create Timer Src and Syncs.
