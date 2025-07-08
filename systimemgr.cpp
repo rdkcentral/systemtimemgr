@@ -40,6 +40,16 @@
 #include <telemetry_busmessage_sender.h>
 using namespace std::chrono;
 
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(const char *marker, int val) {
+    t2_event_d(marker, val);
+}
+
+void t2ValNotify( const char *marker, const char *val )
+{
+    t2_event_s(marker, val);
+}
+#endif
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
@@ -81,7 +91,7 @@ void SysTimeMgr::initialize()
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
     #ifdef T2_EVENT_ENABLED
-    t2_init((char *)"SysTimeMgr");
+    t2_init(const_cast<char*>"SysTimeMgr");
     #endif
 	
     //Create Timer Src and Syncs.
