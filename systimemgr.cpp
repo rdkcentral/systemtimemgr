@@ -91,7 +91,7 @@ void SysTimeMgr::initialize()
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
     #ifdef T2_EVENT_ENABLED
-    t2_init(const_cast<char*>"SysTimeMgr");
+    t2_init(const_cast<char*>("SysTimeMgr"));
     #endif
 	
     //Create Timer Src and Syncs.
