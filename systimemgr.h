@@ -40,10 +40,9 @@
 #include <telemetry_busmessage_sender.h>
 #endif
 #ifdef T2_EVENT_ENABLED
-void t2CountNotify(const char *marker, int val);
-void t2ValNotify(const char *marker, const char *val);
+void t2CountNotify(char *marker, int val);
+void t2ValNotify(char *marker, char *val);
 #endif
-
 using namespace std;
 typedef enum 
 {
