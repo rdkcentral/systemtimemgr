@@ -485,7 +485,7 @@ void SysTimeMgr::setInitialTime()
 #endif		
 	        char value[128]={0};
 		snprintf(value, sizeof(value),"SYSTEM_TIME_SET");
-		t2ValNotify((char *) "SYST_INFO_SETSYSTIME",(char * ) value);
+		t2ValNotify((char *) "SYST_INFO_SETSYSTIME",value);
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
