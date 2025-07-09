@@ -23,16 +23,22 @@
 #include <telemetry_busmessage_sender.h>
 #endif
 
+/* Description: Use for sending telemetry Log
+ * @param marker: use for send marker details
+ * @return : void
+ * */
+void t2CountNotify(char *marker, int val) {
 #ifdef T2_EVENT_ENABLED
-void t2CountNotify(const char *marker, int val) {
     t2_event_d(marker, val);
+#endif
 }
 
-void t2ValNotify( const char *marker, const char *val )
+void t2ValNotify( char *marker, char *val )
 {
+#ifdef T2_EVENT_ENABLED
     t2_event_s(marker, val);
-}
 #endif
+}
 
 using namespace std::chrono;
 map<string, string> RdkDefaultTimeSync::tokenize(string const& s,string token)
@@ -94,9 +100,6 @@ long long RdkDefaultTimeSync::getTime()
 	//5. else return clock time.
 	//6. update Current Time with what we are returning.        
 
-	 #ifdef T2_EVENT_ENABLED
-         t2_init(const_cast<char*>("SysTimeMgr"));
-         #endif
 
 	long long clock_time = 0,ver_time = 0;
 	fstream myfile(m_path.c_str(), std::ios_base::in);
@@ -115,7 +118,7 @@ long long RdkDefaultTimeSync::getTime()
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
 		char buffer[128];
                 snprintf(buffer, 128, "Returning Last Known Good Time, time = %s", timeStr);
-		t2ValNotify(const_cast<char*>("SYST_INFO_SYSLKG"),const_cast<char*>(buffer));
+		t2ValNotify("SYST_INFO_SYSLKG",buffer);
                  t2_event_s("SYST_INFO_SYSLKG",buffer);
 		m_currentTime = clock_time;
 		return clock_time;
@@ -127,7 +130,7 @@ long long RdkDefaultTimeSync::getTime()
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
 	char buffer[128];
         snprintf(buffer, 128, "Returning build time, Time = %s", timeStr);
-         t2ValNotify(const_cast<char*>("SYST_INFO_SYSBUILD"),const_cast<char*>(buffer));
+         t2ValNotify("SYST_INFO_SYSBUILD",buffer);
 	return ver_time;
 }
 
