@@ -40,16 +40,22 @@
 #include <telemetry_busmessage_sender.h>
 using namespace std::chrono;
 
+/* Description: Use for sending telemetry Log
+ * @param marker: use for send marker details
+ * @return : void
+ * */
+void t2CountNotify(char *marker, int val) {
 #ifdef T2_EVENT_ENABLED
-void t2CountNotify(const char *marker, int val) {
     t2_event_d(marker, val);
+#endif
 }
 
-void t2ValNotify( const char *marker, const char *val )
+void t2ValNotify( char *marker, char *val )
 {
+#ifdef T2_EVENT_ENABLED
     t2_event_s(marker, val);
-}
 #endif
+}
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
@@ -92,7 +98,7 @@ void SysTimeMgr::initialize()
 
     #ifdef T2_EVENT_ENABLED
 	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"DBG:T2 Init");
-    t2_init(const_cast<char*>("SysTimeMgr"));
+    t2_init("SysTimeMgr");
 	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"DBG:T2 INIT done");
     #endif
 	
