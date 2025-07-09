@@ -37,7 +37,11 @@
 #include "rdk_logger_milestone.h"
 #endif
 
+#ifdef T2_EVENT_ENABLED
+ extern "C" {
 #include <telemetry_busmessage_sender.h>
+}
+#endif
 using namespace std::chrono;
 
 /* Description: Use for sending telemetry Log
