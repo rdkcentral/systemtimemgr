@@ -486,8 +486,8 @@ void SysTimeMgr::setInitialTime()
 #if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
 #endif		
+		 t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
 	}
-        t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)
