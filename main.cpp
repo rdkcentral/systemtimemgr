@@ -48,6 +48,6 @@ int main()
 
     #ifdef T2_EVENT_ENABLED
     t2_uninit();
-#endif
+    #endif
     return EXIT_SUCCESS;
 }
