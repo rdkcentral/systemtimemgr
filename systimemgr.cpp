@@ -38,9 +38,7 @@
 #endif
 
 #ifdef T2_EVENT_ENABLED
- extern "C" {
 #include <telemetry_busmessage_sender.h>
-}
 #endif
 using namespace std::chrono;
 
@@ -483,9 +481,6 @@ void SysTimeMgr::setInitialTime()
 #if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
 #endif		
-	        char value[128]={0};
-		snprintf(value, sizeof(value),"SYSTEM_TIME_SET");
-		t2ValNotify((char *) "SYST_INFO_SETSYSTIME",value);
 	}
 
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
