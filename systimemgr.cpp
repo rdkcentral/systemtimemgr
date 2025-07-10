@@ -99,9 +99,7 @@ void SysTimeMgr::initialize()
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
     #ifdef T2_EVENT_ENABLED
-	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"DBG:T2 Init");
     t2_init((char *)  "sysTimeMgr");
-	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"DBG:T2 INIT done");
     #endif
 	
     //Create Timer Src and Syncs.
