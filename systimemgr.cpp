@@ -475,12 +475,19 @@ void SysTimeMgr::setInitialTime()
 	}
 	else
 	{
+		char str[32];
+                struct timespec uptime;
+                unsigned long long uptimems;
+
+               clock_gettime(CLOCK_REALTIME, &uptime);
+               uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
+	       snprintf(str, sizeof(str), "%llu", uptimems); 
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
 #if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
 #endif		
 	}
-
+        t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)
