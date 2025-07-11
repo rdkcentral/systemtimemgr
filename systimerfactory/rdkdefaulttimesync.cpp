@@ -24,6 +24,25 @@
 #endif
 
 
+/* Description: Use for sending telemetry Log
+ * @param marker: use for send marker details
+ * @return : void
+ * */
+#ifndef GTEST_ENABLE
+void t2CountNotify(char *marker, int val) {
+#ifdef T2_EVENT_ENABLED
+    t2_event_d(marker, val);
+#endif
+}
+
+void t2ValNotify( char *marker, char *val )
+{
+#ifdef T2_EVENT_ENABLED
+    t2_event_s(marker, val);
+#endif
+}
+#endif
+
 using namespace std::chrono;
 map<string, string> RdkDefaultTimeSync::tokenize(string const& s,string token)
 {
