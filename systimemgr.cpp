@@ -42,11 +42,6 @@
 #endif
 using namespace std::chrono;
 
-/* Description: Use for sending telemetry Log
- * @param marker: use for send marker details
- * @return : void
- * */
-
 
 SysTimeMgr* SysTimeMgr::pInstance = NULL;
 recursive_mutex SysTimeMgr::g_state_mutex;
