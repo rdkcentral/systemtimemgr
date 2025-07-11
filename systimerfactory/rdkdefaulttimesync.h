@@ -25,12 +25,6 @@
 #include <string>
 #include <map>
 
-#ifdef T2_EVENT_ENABLED
-#include <telemetry_busmessage_sender.h>
-
-void t2CountNotify(char *marker, int val);
-void t2ValNotify(char *marker, char *val);
-#endif
 
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
