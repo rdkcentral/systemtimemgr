@@ -19,6 +19,26 @@
 #include "irdklog.h"
 #include <string.h>
 #include <chrono>
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
+
+
+/* Description: Use for sending telemetry Log
+ * @param marker: use for send marker details
+ * @return : void
+ * */
+
+#ifdef T2_EVENT_ENABLED
+void t2CountNotify(char *marker, int val) {
+    t2_event_d(marker, val);
+}
+
+void t2ValNotify( char *marker, char *val )
+{
+    t2_event_s(marker, val);
+}
+#endif
 
 using namespace std::chrono;
 map<string, string> RdkDefaultTimeSync::tokenize(string const& s,string token)
@@ -88,7 +108,7 @@ long long RdkDefaultTimeSync::getTime()
 		myfile>>clock_time; 
 	}
 
-
+ 
 	ver_time = buildtime();
 	if (clock_time > ver_time)
 	{
@@ -96,6 +116,9 @@ long long RdkDefaultTimeSync::getTime()
 		time_t safe_clock_time = static_cast<time_t>(clock_time); // Explicit conversion to time_t
                 strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_clock_time)); // Pass time_t pointer
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
+		#ifdef T2_EVENT_ENABLED
+		t2ValNotify((char *) "SYST_INFO_SYSLKG",timeStr);
+		#endif
 		m_currentTime = clock_time;
 		return clock_time;
 	}
@@ -104,6 +127,9 @@ long long RdkDefaultTimeSync::getTime()
 	time_t safe_ver_time = static_cast<time_t>(ver_time); // Explicit conversion to time_t
         strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_ver_time)); // Pass time_t pointer
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
+	#ifdef T2_EVENT_ENABLED
+        t2ValNotify((char *) "SYST_INFO_SYSBUILD",timeStr);
+	#endif
 	return ver_time;
 }
 
