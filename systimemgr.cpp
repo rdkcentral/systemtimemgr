@@ -46,7 +46,7 @@ using namespace std::chrono;
  * @param marker: use for send marker details
  * @return : void
  * */
-#ifndef GTEST_ENABLE
+#ifdef GTEST_ENABLE
 void t2CountNotify(char *marker, int val) {
 #ifdef T2_EVENT_ENABLED
     t2_event_d(marker, val);
