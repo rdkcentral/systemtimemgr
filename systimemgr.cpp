@@ -460,7 +460,9 @@ void SysTimeMgr::setInitialTime()
 	if (clock_settime( CLOCK_REALTIME, &stime) != 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to set time \n",__FUNCTION__,__LINE__);
+		#ifdef T2_EVENT_ENABLED
 		t2CountNotify((char *) "SYST_ERROR_SYSTIME_FAIL",1);
+		#endif
 	}
 	else
 	{
@@ -474,8 +476,10 @@ void SysTimeMgr::setInitialTime()
 #endif		
 		if (clock_gettime(CLOCK_REALTIME, &uptime) == 0) {
                     uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
-	            snprintf(str, sizeof(str), "%llu", uptimems); 
+	            snprintf(str, sizeof(str), "%llu", uptimems);
+		    #ifdef T2_EVENT_ENABLED
 	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
+		    #endif
 	        }
 	}
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
