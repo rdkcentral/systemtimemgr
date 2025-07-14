@@ -36,6 +36,10 @@
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
 #endif
+
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
 using namespace std::chrono;
 
 
@@ -78,6 +82,10 @@ void SysTimeMgr::initialize()
 {
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
+    #ifdef T2_EVENT_ENABLED
+    t2_init((char *)  "sysTimeMgr");
+    #endif
+	
     //Create Timer Src and Syncs.
     ifstream cfgFile(m_cfgfile.c_str());
 
@@ -447,15 +455,28 @@ void SysTimeMgr::setInitialTime()
 	if (clock_settime( CLOCK_REALTIME, &stime) != 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to set time \n",__FUNCTION__,__LINE__);
+		#ifdef T2_EVENT_ENABLED
+		t2CountNotify((char *) "SYST_ERROR_SYSTIME_FAIL",1);
+		#endif
 	}
 	else
 	{
+		char str[32];
+                struct timespec uptime;
+                unsigned long long uptimems;
+		
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
 #if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
 #endif		
+		if (clock_gettime(CLOCK_REALTIME, &uptime) == 0) {
+                    uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
+	            snprintf(str, sizeof(str), "%llu", uptimems);
+		    #ifdef T2_EVENT_ENABLED
+	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
+		    #endif
+	        }
 	}
-
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)
