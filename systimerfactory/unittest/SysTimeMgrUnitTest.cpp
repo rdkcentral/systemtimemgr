@@ -24,7 +24,7 @@ public:
     MOCK_METHOD(bool, isreference, (), (override));
     MOCK_METHOD(long long, getTimeSec, (), (override));
     MOCK_METHOD(bool, isclockProvider, (), (override));
-    MOCK_METHOD(void, checkTime, (), (override));
+    MOCK_METHOD(bool, checkTime, (), (override));
 };
 
 class MockTimeSync : public ITimeSync {
