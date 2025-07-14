@@ -22,11 +22,11 @@
 ENABLE_COV=false
 
 if [ "x$1" = "x--enable-cov" ]; then
-      echo "Enabling coverage options"
-      export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
-      export LDFLAGS="-lgcov --coverage"
-      ENABLE_COV=true
+    echo "Enabling coverage options"
+    export CXXFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+    export CFLAGS="-g -O0 -fprofile-arcs -ftest-coverage"
+    export LDFLAGS="-lgcov --coverage"
+    ENABLE_COV=true
 fi
 export TOP_DIR=`pwd`
 
@@ -41,20 +41,23 @@ cd ./systimerfactory/unittest/
 automake --add-missing
 autoreconf --install
 
-find / -iname "jsonrpccpp"
+find / -iname "jsonrpccpp" # This command might not be necessary for the build
 ./configure
 make
 
 mkdir -p /opt/secure/
-# Execute test suites for different sub-modules
 
+# Create a directory to store Gtest XML reports
+mkdir -p /tmp/gtest_reports/
 
 fail=0
 
 run_test() {
     test_binary="$1"
-    echo "Running $test_binary..."
-    ./$test_binary
+    report_file="/tmp/gtest_reports/${test_binary}.xml" # Define output path for XML report
+    echo "Running $test_binary with XML output to $report_file..."
+    # Execute the test binary with gtest_output flag
+    ./$test_binary --gtest_output=xml:"${report_file}"
     status=$?
     if [ $status -ne 0 ]; then
         echo "Test $test_binary failed with exit code $status"
@@ -82,7 +85,6 @@ if [ $fail -ne 0 ]; then
     exit 1
 fi
 
-
 echo "********************"
 echo "**** CAPTURE SYSTEM TIMEMANAGER COVERAGE DATA ****"
 echo "********************"
@@ -94,4 +96,4 @@ if [ "$ENABLE_COV" = true ]; then
     lcov --list coverage.info
 fi
 
-cd $TOP_DIR
+cd "$TOP_DIR" # Use double quotes for robust path handling
