@@ -36,7 +36,7 @@ apt-get install -y libjsonrpccpp-dev
 
 export top_srcdir=`pwd`
 
-cd ./systimerfactory/unittest/
+cd ../systimerfactory/unittest/
 
 automake --add-missing
 autoreconf --install
