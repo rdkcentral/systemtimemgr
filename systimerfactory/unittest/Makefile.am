@@ -29,6 +29,10 @@ COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock -ljsoncpp
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti -std=c++14
 
+AM_CFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
+AM_CXXFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
+AM_LDFLAGS = -fprofile-arcs -ftest-coverage # Linker flags might also need them
+
 # Define the source files
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
 dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
