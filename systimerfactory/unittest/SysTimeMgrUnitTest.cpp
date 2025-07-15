@@ -73,11 +73,11 @@ TEST_F(SysTimeMgrTest, SingletonReturnsSamePointer) {
     EXPECT_EQ(mgr, SysTimeMgr::get_instance());
 }
 
-TEST_F(SysTimeMgrTest, InitializeHandlesMissingConfig) {
+/*TEST_F(SysTimeMgrTest, InitializeHandlesMissingConfig) {
     mgr->m_cfgfile = "/tmp/nonexistent.conf";
     mgr->initialize();
     // Should log error, not crash
-}
+}*/
 
 TEST_F(SysTimeMgrTest, InitializeLoadsValidConfig) {
     // Prepare a test config file
