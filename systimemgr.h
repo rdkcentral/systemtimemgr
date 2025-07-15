@@ -85,7 +85,11 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-private:
+#if defined(GTEST_ENABLE)
+public: // Make these public when GTEST_ENABLE is defined
+#else
+private: // Keep these private for production builds
+#endif
 	typedef void (SysTimeMgr::*memfunc)(void* args);
 	map<sysTimeMgrState,map<sysTimeMgrEvent,memfunc> > stateMachine;
 	map<string,sysTimeMgrEvent> m_pathEventMap;
