@@ -35,12 +35,12 @@ public:
 
 class MockPublish : public IPublish {
 public:
-    MOCK_METHOD(void, publish, (const char*, TimerMsg*), (override));
+    MOCK_METHOD(void, publish, (int event, void* args), (override));
 };
 
 class MockSubscribe : public ISubscribe {
 public:
-    MOCK_METHOD(void, subscribe, (const char*, int(*)(void*)), (override));
+    MOCK_METHOD(void, subscribe, (const char* topic, void* callback), (override));
 };
 
 
