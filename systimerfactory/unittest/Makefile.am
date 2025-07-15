@@ -15,7 +15,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
+AUTOMAKE_OPTIONS = subdir-objects
+ACLOCAL_AMFLAGS = -I m4
 # Define the program name and the source files
 bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest iarmtimerstatus_gtest iarmsubscribe_gtest iarmpublish_gtest iarmpowersubscribe_gtest systimemgr_gtest
 
