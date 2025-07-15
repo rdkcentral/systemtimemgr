@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "Client_Mock.h"
+#include <fstream>
 //#include "secure_wrapper.h"
 #include "systimemgr.h"
 #include "itimesrc.h"
