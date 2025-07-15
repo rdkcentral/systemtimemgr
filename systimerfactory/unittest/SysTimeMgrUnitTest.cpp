@@ -35,12 +35,19 @@ public:
 
 class MockPublish : public IPublish {
 public:
+    MockPublish() : IPublish("MockPublisherForTest") {}
+
+    // FIX: This signature MUST exactly match IPublish::publish
     MOCK_METHOD(void, publish, (int event, void* args), (override));
 };
 
 class MockSubscribe : public ISubscribe {
 public:
-    MOCK_METHOD(void, subscribe, (const char* topic, void* callback), (override));
+   MockSubscribe() : ISubscribe("MockSubscriberForTest") {} // <--- ADD OR KEEP THIS
+
+    // This MUST match the signature from isubscribe.h:
+    // virtual bool subscribe(string eventname,funcPtr fptr) = 0;
+    MOCK_METHOD(bool, subscribe, (string eventname, funcPtr fptr), (override)); // <--- FIX THIS LINE
 };
 
 
