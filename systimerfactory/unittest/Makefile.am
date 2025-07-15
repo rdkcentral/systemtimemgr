@@ -39,7 +39,7 @@ iarmtimerstatus_gtest_SOURCES = iarmtimerstatus_gtest.cpp
 iarmsubscribe_gtest_SOURCES = iarmsubscribe_gtest.cpp
 iarmpublish_gtest_SOURCES = iarmpublish_gtest.cpp
 iarmpowersubscribe_gtest_SOURCES = iarmpowersubscribe_gtest.cpp
-systimemgr_gtest_SOURCES =SysTimeMgrUnitTest.cpp ../systimemgr.cpp ../timerfactory.cpp ../pubsubfactory.cpp ../rdkdefaulttimesync.cpp ../drmtimersrc.cpp
+systimemgr_gtest_SOURCES = SysTimeMgrUnitTest.cpp ../systimemgr.cpp ../timerfactory.cpp ../pubsubfactory.cpp ../rdkdefaulttimesync.cpp ../drmtimersrc.cpp
 
 
 # Apply common properties to each program
