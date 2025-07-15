@@ -16,7 +16,7 @@
 #include "ipublish.h"
 #include "isubscribe.h"
 #include "itimermsg.h"
-../../systimemgr.cpp ../timerfactory.cpp ../pubsubfactory.cpp ../rdkdefaulttimesync.cpp ../drmtimersrc.cpp
+
 
 
 
