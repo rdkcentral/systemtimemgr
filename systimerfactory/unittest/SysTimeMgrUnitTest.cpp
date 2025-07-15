@@ -6,12 +6,17 @@
 #include <fstream>
 //#include "secure_wrapper.h"
 #include "systimemgr.h"
+#include "systimemgr.cpp"
+#include "timerfactory.cpp"
+#include "pubsubfactory.cpp"
+#include "rdkdefaulttimesync.cpp"
+#include "drmtimersrc.cpp"
 #include "itimesrc.h"
 #include "itimesync.h"
 #include "ipublish.h"
 #include "isubscribe.h"
 #include "itimermsg.h"
-
+../../systimemgr.cpp ../timerfactory.cpp ../pubsubfactory.cpp ../rdkdefaulttimesync.cpp ../drmtimersrc.cpp
 
 
 
