@@ -87,9 +87,6 @@ protected:
         mgr->m_pathEventMap.insert({"dtt", eSYSMGR_EVENT_DTT_TIME_AVAILABLE});
 
         // Create a unique temporary directory for path monitoring tests
-        temp_test_dir = "/tmp/systimemgr_test_path_monitor_" + std::to_string(getpid()) + "_" + std::to_string(std::time(nullptr));
-        ASSERT_EQ(mkdir(temp_test_dir.c_str(), 0777), 0) << "Failed to create temp directory: " << temp_test_dir;
-        mgr->m_directory = temp_test_dir; // Set manager's directory for the test
     }
 
     void TearDown() override {
