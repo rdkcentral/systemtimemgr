@@ -10,7 +10,10 @@
 #include "ipowercontrollersubscriber.cpp"
 #include "iarmsubscribe.cpp"
 
-
+// Stub out to prevent thread creation in tests
+void IpowerControllerSubscriber::sysTimeMgrInitPwrEvt() {
+    // Do nothing
+}
 // Mocking the external PowerController API functions
 class MockPowerController {
 public:
@@ -58,18 +61,10 @@ protected:
 
     MockPowerController mockPowerController;
 };
-class StubPowerControllerSubscriber : public IpowerControllerSubscriber {
-public:
-    using IpowerControllerSubscriber::IpowerControllerSubscriber;
 
-    // Override to do nothing!
-    void sysTimeMgrInitPwrEvt() override {
-        // Do nothing, stub out thread creation
-    }
-};
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success_StubbedThread) {
-    StubPowerControllerSubscriber subscriber("test_subscriber");
+    IpowerControllerSubscriber subscriber("test_subscriber");
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
     EXPECT_CALL(mockPowerController, PowerController_Connect())
