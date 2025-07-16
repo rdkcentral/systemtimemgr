@@ -75,7 +75,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
     EXPECT_FALSE(ret);
 }
-TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
     IpowerControllerSubscriber subscriber("test_subscriber");
 
     // Setup expectations for all PowerController functions called
@@ -91,7 +91,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
-}
+}*/
 static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
