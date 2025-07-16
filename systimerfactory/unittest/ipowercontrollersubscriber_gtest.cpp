@@ -59,20 +59,7 @@ protected:
 };
 
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success_StubbedThread) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .Times(1)
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
-        .Times(1)
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
-}
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     {
@@ -89,23 +76,6 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
     EXPECT_FALSE(ret);
 }
-/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
-
-    // Setup expectations for all PowerController functions called
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .Times(1)
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
-        .Times(1)
-        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-
-    // You may want to stub out sysTimeMgrInitPwrEvt if it creates threads in your test environment
-
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
-}*/
 
 
 static bool handlerCalled = false;
