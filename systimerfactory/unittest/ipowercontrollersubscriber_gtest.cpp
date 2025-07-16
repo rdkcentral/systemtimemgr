@@ -92,19 +92,23 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
 }
+static bool handlerCalled = false;
+
+static int testHandler(void* status) {
+    handlerCalled = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or your expected value
+    return 0;
+}
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
+    IpowerControllerSubscriber subscriber("sub");
+    // You must make m_powerHandler accessible, e.g. via a public setter or friend class
+    subscriber.setPowerHandler(testHandler); // <-- implement setPowerHandler in your class for testing
 
-    // Use a mock handler to verify invocation
-    bool handlerCalled = false;
-    auto handler = [&](void* status) {
-        handlerCalled = true;
-        EXPECT_STREQ(static_cast<const char*>(status), "DEEP_SLEEP_ON");
-    };
-    subscriber.m_powerHandler = handler;
-
-    // Simulate POWER_STATE_OFF (should trigger DEEP_SLEEP_ON)
+    IarmSubscriber::setInstance(&subscriber);
+    handlerCalled = false;
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
     EXPECT_TRUE(handlerCalled);
 }
+
