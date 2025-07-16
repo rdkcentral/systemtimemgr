@@ -93,7 +93,8 @@ if [ "$ENABLE_COV" = true ]; then
 
     lcov --capture --directory . --base-directory . --output-file raw_coverage.info
     lcov --extract raw_coverage.info '/__w/systemtimemgr/systemtimemgr/systimerfactory/*' '/__w/systemtimemgr/systemtimemgr/systimemgr.cpp' --output-file systimer_coverage.info
-    lcov --remove systimer_coverage.info '/__w/systemtimemgr/systemtimemgr/systimerfactory/unittest/*' --output-file coverage.info
+    lcov --remove systimer_coverage.info '/__w/systemtimemgr/systemtimemgr/systimerfactory/unittest/*' --output-file processed_coverage.info
+    lcov --extract processed_coverage.info '*.cpp' --output-file coverage.info
     lcov --list coverage.info
 
     #lcov --capture --directory . --output-file coverage.info
