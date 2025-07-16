@@ -75,4 +75,36 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
     EXPECT_FALSE(ret);
 }
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
 
+    // Setup expectations for all PowerController functions called
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .Times(1)
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
+        .Times(1)
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    // You may want to stub out sysTimeMgrInitPwrEvt if it creates threads in your test environment
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+}
+
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+
+    // Use a mock handler to verify invocation
+    bool handlerCalled = false;
+    auto handler = [&](void* status) {
+        handlerCalled = true;
+        EXPECT_STREQ(static_cast<const char*>(status), "DEEP_SLEEP_ON");
+    };
+    subscriber.m_powerHandler = handler;
+
+    // Simulate POWER_STATE_OFF (should trigger DEEP_SLEEP_ON)
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
+    EXPECT_TRUE(handlerCalled);
+}
