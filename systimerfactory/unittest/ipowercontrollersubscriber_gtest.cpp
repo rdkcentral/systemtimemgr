@@ -58,7 +58,30 @@ protected:
 
     MockPowerController mockPowerController;
 };
+class StubPowerControllerSubscriber : public IpowerControllerSubscriber {
+public:
+    using IpowerControllerSubscriber::IpowerControllerSubscriber;
 
+    // Override to do nothing!
+    void sysTimeMgrInitPwrEvt() override {
+        // Do nothing, stub out thread creation
+    }
+};
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success_StubbedThread) {
+    StubPowerControllerSubscriber subscriber("test_subscriber");
+
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .Times(1)
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, nullptr))
+        .Times(1)
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+}
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     {
@@ -92,6 +115,8 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
 }*/
+
+
 static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
