@@ -92,8 +92,8 @@ if [ "$ENABLE_COV" = true ]; then
     echo "Generating coverage report"
 
     lcov --capture --directory . --base-directory . --output-file coverage.info
-    lcov --remove coverage.info '/usr/*' '*/interface/*' '*/systemd_units/*' --output-file filtered.info
-    lcov --extract filtered.info '*/systimerfactory/*' --output-file coverage.info
+    lcov --remove coverage.info '/usr/*'  '/systimerfactory/unittest/*' '*/interface/*' '*/systemd_units/*' --output-file filtered.info
+    lcov --extract filtered.info  --output-file coverage.info
     lcov --list coverage.info
 
     #lcov --capture --directory . --output-file coverage.info
