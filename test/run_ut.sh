@@ -91,9 +91,9 @@ echo "********************"
 if [ "$ENABLE_COV" = true ]; then
     echo "Generating coverage report"
 
-    lcov --capture --directory . --base-directory . --output-file coverage.info
-    lcov --remove coverage.info '/usr/*'  '/systimerfactory/unittest/*' '*/interface/*' '*/systemd_units/*' --output-file filtered.info
-    lcov --extract filtered.info '*/systimerfactory/*'  './*.cpp'  --output-file coverage.info
+    lcov --capture --directory . --base-directory . --output-file raw_coverage.info
+    lcov --extract raw_coverage.info '/__w/systemtimemgr/systemtimemgr*' --output-file systimer_coverage.info
+    lcov --remove systimer_coverage.info '/usr/*'  '/systimerfactory/unittest/*' '*/interface/*' '*/systemd_units/*' --output-file coverage.info
     lcov --list coverage.info
 
     #lcov --capture --directory . --output-file coverage.info
