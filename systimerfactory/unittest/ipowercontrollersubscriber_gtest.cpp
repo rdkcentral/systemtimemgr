@@ -10,10 +10,6 @@
 #include "ipowercontrollersubscriber.cpp"
 #include "iarmsubscribe.cpp"
 
-// Stub out to prevent thread creation in tests
-void IpowerControllerSubscriber::sysTimeMgrInitPwrEvt() {
-    // Do nothing
-}
 // Mocking the external PowerController API functions
 class MockPowerController {
 public:
