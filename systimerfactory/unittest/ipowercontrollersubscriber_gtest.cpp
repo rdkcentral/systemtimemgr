@@ -108,7 +108,7 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
 
     // If your test is in the same translation unit and m_powerHandler is accessible, this will work
     handlerCalled = false;
-    IarmSubscriber::instance = &subscriber; // If needed for getInstance() logic
+   // IarmSubscriber::instance = &subscriber; // If needed for getInstance() logic
 
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
 
