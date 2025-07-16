@@ -56,6 +56,8 @@ protected:
     MockTimeSync* mockTimeSync;
     MockPublish* mockPublish;
     MockSubscribe* mockSubscribe; // If needed later for subscribe tests
+    std::string temp_test_dir;
+    //int test_inotify_fd = -1;
 
     void SetUp() override {
         mgr = SysTimeMgr::get_instance();
