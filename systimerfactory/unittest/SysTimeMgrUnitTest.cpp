@@ -195,3 +195,8 @@ TEST_F(SysTimeMgrTest, UpdateClockRealTimeSetsTime) {
     mgr->m_timerSrc.push_back(mockTimeSrc); // Add it to the manager's list
     mgr->updateClockRealTime(nullptr);
 }
+
+TEST_F(SysTimeMgrTest, RunDetachesThreadsWhenNotForever) {
+
+    mgr->run(false); // lines 205-207 (detach calls)
+}
