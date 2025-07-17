@@ -68,16 +68,6 @@ protected:
 
 
 
-
-
-TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
-    bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
-    EXPECT_FALSE(ret);
-    // No need to do anything else; destructor will run safely
-    IarmSubscriberTestHelper::setInstance(nullptr);
-}
-
-
 static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
@@ -85,6 +75,29 @@ static int testHandler(void* status) {
     EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
     return 0;
 }
+
+TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
+    {
+        EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+        IpowerControllerSubscriber subscriber("test_subscriber");
+    }
+    // Destructor called at block exit, PowerController_Term should be invoked
+}
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+
+    bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
+
+    EXPECT_FALSE(ret);
+}
+
+
+
+
+
+
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
 
