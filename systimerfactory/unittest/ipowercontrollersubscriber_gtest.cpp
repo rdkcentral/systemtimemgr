@@ -44,11 +44,17 @@ extern "C" {
         gMockPowerController->PowerController_Term();
     }
 }
+class IarmSubscriberTestHelper : public IarmSubscriber {
+public:
+    static void setInstance(IarmSubscriber* inst) { IarmSubscriber::instance = inst; }
+};
+
 
 class IpowerControllerSubscriberTest : public ::testing::Test {
 protected:
     void SetUp() override {
         gMockPowerController = &mockPowerController;
+          IarmSubscriberTestHelper::setInstance(&subscriber);
     }
 
     void TearDown() override {
@@ -56,6 +62,7 @@ protected:
     }
 
     MockPowerController mockPowerController;
+    IpowerControllerSubscriber subscriber{"test_subscriber"};
 };
 
 
@@ -99,5 +106,14 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
 
     EXPECT_TRUE(handlerCalled);
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ConnectSuccess_CallbackSuccess) {
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_))
+        .WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, testHandler);
+    EXPECT_TRUE(ret);
 }
 
