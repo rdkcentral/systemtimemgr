@@ -46,7 +46,7 @@ extern "C" {
 }
 class IarmSubscriberTestHelper : public IarmSubscriber {
 public:
-    static void setInstance(IarmSubscriber* inst) { IarmSubscriber::instance = inst; }
+    static void setInstance(IarmSubscriber* inst) { IarmSubscriber::pinstance = inst; }
 };
 
 
