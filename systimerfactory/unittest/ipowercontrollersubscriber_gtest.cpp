@@ -69,11 +69,21 @@ protected:
 
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
-    {
-        EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
-        IpowerControllerSubscriber subscriber("test_subscriber");
-    }
-    // Destructor called at block exit, PowerController_Term should be invoked
+    EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+
+    // Ensure singleton is set
+    IarmSubscriberTestHelper::setInstance(&subscriber);
+
+    // Optionally, start the event thread so join is legal
+    subscriber.sysTimeMgrInitPwrEvt();
+
+    // Optionally, set power handler for thread
+    subscriber.m_powerHandler = testHandler;
+
+    // Optionally, send a dummy event so thread wakes up
+    subscriber.m_pwrEvtCondVar.notify_one();
+
+    // Destroy subscriber (scope exit)
 }
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
