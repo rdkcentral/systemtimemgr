@@ -68,23 +68,6 @@ protected:
 
 
 
-TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
-    EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
-
-    // Ensure singleton is set
-    IarmSubscriberTestHelper::setInstance(&subscriber);
-
-    // Optionally, start the event thread so join is legal
-    subscriber.sysTimeMgrInitPwrEvt();
-
-    // Optionally, set power handler for thread
-    subscriber.m_powerHandler = testHandler;
-
-    // Optionally, send a dummy event so thread wakes up
-    subscriber.m_pwrEvtCondVar.notify_one();
-
-    // Destroy subscriber (scope exit)
-}
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
     IpowerControllerSubscriber subscriber("test_subscriber");
@@ -101,6 +84,23 @@ static int testHandler(void* status) {
     std::string* str = static_cast<std::string*>(status);
     EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
     return 0;
+}
+TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
+    EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+
+    // Ensure singleton is set
+    IarmSubscriberTestHelper::setInstance(&subscriber);
+
+    // Optionally, start the event thread so join is legal
+    subscriber.sysTimeMgrInitPwrEvt();
+
+    // Optionally, set power handler for thread
+    subscriber.m_powerHandler = testHandler;
+
+    // Optionally, send a dummy event so thread wakes up
+    subscriber.m_pwrEvtCondVar.notify_one();
+
+    // Destroy subscriber (scope exit)
 }
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
