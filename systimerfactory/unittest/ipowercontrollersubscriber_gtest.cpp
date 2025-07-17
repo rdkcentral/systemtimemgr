@@ -59,6 +59,7 @@ protected:
 
     void TearDown() override {
         gMockPowerController = nullptr;
+        IarmSubscriberTestHelper::setInstance(nullptr);
     }
 
     MockPowerController mockPowerController;
