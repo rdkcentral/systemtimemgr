@@ -74,6 +74,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
     bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
     EXPECT_FALSE(ret);
     // No need to do anything else; destructor will run safely
+    IarmSubscriberTestHelper::setInstance(nullptr);
 }
 
 
