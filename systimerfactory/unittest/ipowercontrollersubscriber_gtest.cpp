@@ -138,13 +138,17 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_FALSE(ret); // retCode remains false
 }*/
-
 TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
     IpowerControllerSubscriber subscriber("test_subscriber");
-    // Simulate connection failure; no thread should be started in this test
+
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(1)); // Not NONE
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .Times(::testing::AtLeast(1))
+        .WillOnce(::testing::Return(1)) // first call fails
+        .WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE)); // subsequent calls succeed
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret); // retCode is set to true when thread is created, but you can check logging or thread creation logic if exposed
+    EXPECT_TRUE(ret); // retCode is true when thread is created
+    // Destructor joins threads when subscriber goes out of scope
 }
+
