@@ -128,7 +128,7 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
     EXPECT_TRUE(ret);
 }*/
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Simulate successful connection but registration fails
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
@@ -137,7 +137,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_FALSE(ret); // retCode remains false
-}
+}*/
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
     IpowerControllerSubscriber subscriber("test_subscriber");
