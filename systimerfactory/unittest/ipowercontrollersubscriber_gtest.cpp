@@ -83,7 +83,7 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     }
     // Destructor called at block exit, PowerController_Term should be invoked
 }
-}
+
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
     IpowerControllerSubscriber subscriber("test_subscriber");
