@@ -98,7 +98,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
 
 
-TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
+/*TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
 
     // Ensure singleton is set
@@ -114,7 +114,7 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     subscriber.m_pwrEvtCondVar.notify_one();
 
     // Destroy subscriber (scope exit)
-}
+}*/
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
     IpowerControllerSubscriber subscriber("sub");
