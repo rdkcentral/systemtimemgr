@@ -102,6 +102,9 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController
 										   const PowerController_PowerState_t newState,
 										   void *userdata)
 {
+	#if defined(GTEST_ENABLE)
+         return;
+        #endif
 	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
 	IpowerControllerSubscriber* instance = dynamic_cast<IpowerControllerSubscriber*>(IarmSubscriber::getInstance());
 
