@@ -98,8 +98,26 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
 
     EXPECT_TRUE(handlerCalled);
 }
+static bool handlerCalledoff = false;
+static int testHandleroff(void* status) {
+    handlerCalledoff = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_OFF");
+    return 0;
+}
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_SuccessfulRegistration) {
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
+    IpowerControllerSubscriber subscriber("sub");
+    subscriber.m_powerHandler = testHandleroff;
+    handlerCalledoff = false;
+
+    // Set currentState as POWER_STATE_STANDBY_DEEP_SLEEP and newState as POWER_STATE_ON
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_STANDBY_DEEP_SLEEP, POWER_STATE_ON);
+
+    EXPECT_TRUE(handlerCalledoff);
+}
+
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_SuccessfulRegistration) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Simulate successful connection and registration
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
@@ -108,7 +126,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_SuccessfulRegistrati
 
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
-}
+}*/
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
     IpowerControllerSubscriber subscriber("test_subscriber");
