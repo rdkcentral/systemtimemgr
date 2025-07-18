@@ -77,11 +77,12 @@ static int testHandler(void* status) {
 }
 
 
+// to properly initialize these members in its constructor or manage threads gracefully.
 TEST_F(IpowerControllerSubscriberTest, DISABLED_Destructor_CallsPowerControllerTerm) {
     // Expect PowerController_Term to be called when subscriber is destroyed
     EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
     // Expect UnRegisterPowerModeChangedCallback to be called as well
-    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(_)).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(testing::_)).Times(1); // FIX: Added testing::
 
     {
         IpowerControllerSubscriber subscriber("test_subscriber");
@@ -104,7 +105,7 @@ TEST_F(IpowerControllerSubscriberTest, DISABLED_Subscribe_InvalidEventName_Retur
     // Mock PowerController_Init and PowerController_Connect for subscribe()
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
     EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .WillOnce(Return(1)); // Simulate connection failure for this test case
+        .WillOnce(testing::Return(1)); // FIX: Added testing::
 
     // No expectation for RegisterPowerModeChangedCallback because connection failed.
 
@@ -114,8 +115,6 @@ TEST_F(IpowerControllerSubscriberTest, DISABLED_Subscribe_InvalidEventName_Retur
     // The destructor will still be called here, and if the thread was started
     // (e.g., if you test the POWER_CHANGE_MSG path), it might crash on join().
 }
-
-
 
 
 
