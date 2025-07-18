@@ -75,15 +75,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
     EXPECT_FALSE(ret);
 }
-/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEventName_Success) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    // Setup expectations for all PowerController functions called
-@@ -91,27 +91,27 @@
-
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
-}*/
 static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
@@ -105,4 +97,36 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
 
     EXPECT_TRUE(handlerCalled);
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_SuccessfulRegistration) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Simulate successful connection and registration
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Simulate successful connection but registration fails
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(1)); // Not NONE
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_FALSE(ret); // retCode remains false
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Simulate connection failure; no thread should be started in this test
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(1)); // Not NONE
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret); // retCode is set to true when thread is created, but you can check logging or thread creation logic if exposed
 }
