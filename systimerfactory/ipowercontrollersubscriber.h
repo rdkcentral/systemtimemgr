@@ -57,15 +57,17 @@ class IpowerControllerSubscriber:public IarmSubscriber
 		std::thread m_sysTimeMgrPwrEvtHandlerThread;
 		std::mutex m_pwrEvtMutexLock;
 		std::condition_variable m_pwrEvtCondVar;
+                #if defined(GTEST_ENABLE)
                 bool m_testMode = false;
                 std::atomic<bool> m_shutdown = {false};
+                #endif
 
 	public:
 		IpowerControllerSubscriber(std ::string sub);
-        #if defined(GTEST_ENABLE)
+          #if defined(GTEST_ENABLE)
           // Test-specific constructor with shutdown control
             IpowerControllerSubscriber(std::string sub, bool testMode);
-        #endif
+          #endif
 		bool subscribe(string eventname,funcPtr fptr) override;
 		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
 		static void sysTimeMgrPwrEventHandler(const PowerController_PowerState_t currentState,
