@@ -21,6 +21,50 @@
 #include "ipowercontrollersubscriber.h"
 #include "irdklog.h"
 
+#ifdef UNIT_TEST
+IpowerControllerSubscriber::IpowerControllerSubscriber(std::string sub, bool testMode)
+    : IarmSubscriber(sub), m_testMode(testMode)
+{
+    RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Test Constructor - testMode = %d\n", __FUNCTION__, __LINE__, testMode);
+}
+#endif
+
+
+while (true)
+{
+    std::unique_lock<std::mutex> lkVar(m_pwrEvtMutexLock);
+    m_pwrEvtCondVar.wait(lkVar, [this] {
+        return !m_pwrEvtQueue.empty() || (m_testMode && m_shutdown);
+    });
+
+    if (m_testMode && m_shutdown) {
+        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exiting thread (test mode)\n", __FUNCTION__, __LINE__);
+        break;
+    }
+
+    lkVar.unlock();
+
+    {
+        std::unique_lock<std::mutex> queueLock(m_pwrEvtQueueLock);
+        while (!m_pwrEvtQueue.empty()) {
+            auto event = std::move(m_pwrEvtQueue.front());
+            m_pwrEvtQueue.pop();
+            queueLock.unlock();
+
+            sysTimeMgrHandlePwrEventData(event.currentState, event.newState);
+
+            queueLock.lock();
+        }
+    }
+}
+
+
+
+
+
+
+
+
 
 IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscriber(sub)
 {
