@@ -21,56 +21,19 @@
 #include "ipowercontrollersubscriber.h"
 #include "irdklog.h"
 
-#ifdef UNIT_TEST
+#ifdef GTEST_ENABLE
 IpowerControllerSubscriber::IpowerControllerSubscriber(std::string sub, bool testMode)
     : IarmSubscriber(sub), m_testMode(testMode)
 {
     RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Test Constructor - testMode = %d\n", __FUNCTION__, __LINE__, testMode);
 }
-#endif
-
-
-while (true)
-{
-    std::unique_lock<std::mutex> lkVar(m_pwrEvtMutexLock);
-    m_pwrEvtCondVar.wait(lkVar, [this] {
-        return !m_pwrEvtQueue.empty() || (m_testMode && m_shutdown);
-    });
-
-    if (m_testMode && m_shutdown) {
-        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exiting thread (test mode)\n", __FUNCTION__, __LINE__);
-        break;
-    }
-
-    lkVar.unlock();
-
-    {
-        std::unique_lock<std::mutex> queueLock(m_pwrEvtQueueLock);
-        while (!m_pwrEvtQueue.empty()) {
-            auto event = std::move(m_pwrEvtQueue.front());
-            m_pwrEvtQueue.pop();
-            queueLock.unlock();
-
-            sysTimeMgrHandlePwrEventData(event.currentState, event.newState);
-
-            queueLock.lock();
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
+#else
 IpowerControllerSubscriber::IpowerControllerSubscriber(string sub):IarmSubscriber(sub)
 {
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry \n",__FUNCTION__,__LINE__);
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Exit \n",__FUNCTION__,__LINE__);
 }
+#endif
 
 bool IpowerControllerSubscriber::subscribe(string eventname,funcPtr fptr)
 {
@@ -146,9 +109,6 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(const PowerController
 										   const PowerController_PowerState_t newState,
 										   void *userdata)
 {
-	#if defined(GTEST_ENABLE)
-         return;
-        #endif
 	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]:Entering \n", __FUNCTION__, __LINE__);
 	IpowerControllerSubscriber* instance = dynamic_cast<IpowerControllerSubscriber*>(IarmSubscriber::getInstance());
 
@@ -167,6 +127,9 @@ void IpowerControllerSubscriber::sysTimeMgrPwrConnectHandlingThreadFunc()
 {
 	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
 	uint32_t retValPwrCtrl=0;
+
+
+       
 
 	/* Loop and check for Power controller connection and if fails sleep and retry */
 	while(true)
@@ -199,6 +162,9 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 	RDK_LOG(RDK_LOG_DEBUG, LOG_SYSTIME, "[%s:%d]: Entered \n", __FUNCTION__, __LINE__);
 
 	SysTimeMgr_Power_Event_State_t sysTimeMgrPwrEvent(POWER_STATE_UNKNOWN,POWER_STATE_UNKNOWN);
+
+
+       
 	while (true)
 	{
 		std::unique_lock<std::mutex> lkVar(m_pwrEvtMutexLock);
@@ -208,6 +174,11 @@ void IpowerControllerSubscriber::sysTimeMgrPwrEventHandlingThreadFunc()
 		{
 			return !m_pwrEvtQueue.empty();
 		});
+                
+                 if (m_testMode && m_shutdown) {
+                     RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: Exiting thread (test mode)\n", __FUNCTION__, __LINE__);
+                      break;
+                 }
 		/* Unlock before processing event from the Queue */
 		lkVar.unlock();		
 		{
