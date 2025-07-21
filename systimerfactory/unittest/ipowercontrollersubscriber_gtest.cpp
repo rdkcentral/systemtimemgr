@@ -140,25 +140,8 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
 }*/
 
 
-TEST_F(IpowerControllerSuerTest, Subscribe_ValidEvent_ConnectionFails) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect())
-        .Times(::testing::AtLeast(1))
-        .WillOnce(::testing::Return(1))
-        .WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
-
-    // Wake thread before destruction
-    {
-        std::lock_guard<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
-        subscriber.m_pwrEvtQueue.emplace(POWER_STATE_UNKNOWN, POWER_STATE_UNKNOWN);
-    }
-    subscriber.m_pwrEvtCondVar.notify_one();
-    // Subscriber gets destroyed here, threaTEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
+    TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
     IpowerControllerSubscriber subscriber("test_subscriber", true); // use test-mode constructor
 
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
