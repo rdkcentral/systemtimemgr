@@ -63,13 +63,13 @@ protected:
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     {
         EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
-        IpowerControllerSubscriber subscriber("test_subscriber");
+        IpowerControllerSubscriber subscriber("test_subscriber",true);
     }
     // Destructor called at block exit, PowerController_Term should be invoked
 }
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
+    IpowerControllerSubscriber subscriber("test_subscriber",true);
 
     bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
 
@@ -85,7 +85,7 @@ static int testHandler(void* status) {
 }
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
-    IpowerControllerSubscriber subscriber("sub");
+    IpowerControllerSubscriber subscriber("sub",true);
 
     // Directly set the private member since you can access it
     subscriber.m_powerHandler = testHandler;
@@ -107,7 +107,7 @@ static int testHandleroff(void* status) {
 }
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
-    IpowerControllerSubscriber subscriber("sub");
+    IpowerControllerSubscriber subscriber("sub",true);
     subscriber.m_powerHandler = testHandleroff;
     handlerCalledoff = false;
 
