@@ -63,16 +63,105 @@ protected:
 TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
     {
         EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
-        IpowerControllerSubscriber subscriber("test_subscriber");
+        IpowerControllerSubscriber subscriber("test_subscriber",true);
     }
     // Destructor called at block exit, PowerController_Term should be invoked
 }
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
+    IpowerControllerSubscriber subscriber("test_subscriber",true);
 
     bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
 
     EXPECT_FALSE(ret);
 }
+
+static bool handlerCalled = false;
+static int testHandler(void* status) {
+    handlerCalled = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
+    return 0;
+}
+
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
+    IpowerControllerSubscriber subscriber("sub",true);
+
+    // Directly set the private member since you can access it
+    subscriber.m_powerHandler = testHandler;
+
+    // If your test is in the same translation unit and m_powerHandler is accessible, this will work
+    handlerCalled = false;
+   // IarmSubscriber::instance = &subscriber; // If needed for getInstance() logic
+
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
+
+    EXPECT_TRUE(handlerCalled);
+}
+static bool handlerCalledoff = false;
+static int testHandleroff(void* status) {
+    handlerCalledoff = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_OFF");
+    return 0;
+}
+
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
+    IpowerControllerSubscriber subscriber("sub",true);
+    subscriber.m_powerHandler = testHandleroff;
+    handlerCalledoff = false;
+
+    // Set currentState as POWER_STATE_STANDBY_DEEP_SLEEP and newState as POWER_STATE_ON
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_STANDBY_DEEP_SLEEP, POWER_STATE_ON);
+
+    EXPECT_TRUE(handlerCalledoff);
+}
+
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_SuccessfulRegistration) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Simulate successful connection and registration
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+}*/
+
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_RegistrationFails) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Simulate successful connection but registration fails
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(1)); // Not NONE
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_FALSE(ret); // retCode remains false
+}*/
+
+
+
+    TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails) {
+    IpowerControllerSubscriber subscriber("test_subscriber", true); // use test-mode constructor
+
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect())
+        .Times(::testing::AtLeast(1))
+        .WillOnce(::testing::Return(1))
+        .WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+
+    // Add an event to unblock thread
+    {
+        std::lock_guard<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
+        subscriber.m_pwrEvtQueue.emplace(POWER_STATE_UNKNOWN, POWER_STATE_UNKNOWN);
+    }
+
+    // Set shutdown to true and notify
+    subscriber.m_shutdown = true;
+    subscriber.m_pwrEvtCondVar.notify_one();
+}
+
 
