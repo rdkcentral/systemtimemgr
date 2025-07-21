@@ -58,7 +58,7 @@ class IpowerControllerSubscriber:public IarmSubscriber
 		std::mutex m_pwrEvtMutexLock;
 		std::condition_variable m_pwrEvtCondVar;
                 bool m_testMode = false;
-                std::atomic<bool> mshutdown = false;
+                std::atomic<bool> m_shutdown = false;
 
 	public:
 		IpowerControllerSubscriber(std ::string sub);
