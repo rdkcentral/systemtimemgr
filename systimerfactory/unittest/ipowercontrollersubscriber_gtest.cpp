@@ -165,6 +165,20 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_UnknownNewState_LogsEr
     EXPECT_FALSE(handlerCalled); // Handler should not be called
 }
 
+TEST_F(IpowerControllerSubscriberTest, Destructor_UnregisterCallbackFails_StillCleansUp) {
+    IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
+    EXPECT_CALL(mockPowerController, PowerController_Term());
+    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(::testing::_)).WillOnce(::testing::Return(1));
+    delete subscriber;
+    // No crash expected, error should be logged
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_EmptyEventName_ReturnsFalse) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    bool ret = subscriber.subscribe("", nullptr);
+    EXPECT_FALSE(ret);
+}
+
 /*TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Set up mocks for two subscribe calls
