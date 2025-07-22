@@ -251,6 +251,12 @@ TEST_F(SysTimeMgrTest, DeepSleepOffPublishesStatus) {
     mgr->deepsleepoff();
 }
 
+TEST_F(SysTimeMgrTest, DeepSleepOffCoversPoorCase) {
+    mgr->m_timequality = eTIMEQUALILTY_POOR;
+    mgr->deepsleepoff();
+    // Optionally check that the message was "Poor"
+}
+
 TEST_F(SysTimeMgrTest, DeepSleepOnLogs) {
     mgr->deepsleepon(); // Just for coverage
 }
