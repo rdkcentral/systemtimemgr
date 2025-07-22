@@ -110,7 +110,7 @@ static int testHandler(void* status) {
 }
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
-    IpowerControllerSubscriber subscriber("sub",true);
+    IpowerControllerSubscriber subscriber("sub");
 
     // Directly set the private member since you can access it
     subscriber.m_powerHandler = testHandler;
@@ -132,7 +132,7 @@ static int testHandleroff(void* status) {
 }
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
-    IpowerControllerSubscriber subscriber("sub",true);
+    IpowerControllerSubscriber subscriber("sub");
     subscriber.m_powerHandler = testHandleroff;
     handlerCalledoff = false;
 
