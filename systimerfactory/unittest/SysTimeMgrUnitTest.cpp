@@ -428,7 +428,7 @@ TEST_F(SysTimeMgrTest, TimerExpiry_RefVsFileTime) {
     mgr->timerExpiry(nullptr);
 }
 
-TEST_F(SysTimeMgrFullCoverageTest, TimerThrAndProcessThrCoverage) {
+TEST_F(SysTimeMgrTest, TimerThrAndProcessThrCoverage) {
     std::thread t1([&]() { SysTimeMgr::timerThr(mgr); });
     std::thread t2([&]() { SysTimeMgr::processThr(mgr); });
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
