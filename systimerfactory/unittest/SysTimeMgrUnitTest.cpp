@@ -354,6 +354,16 @@ TEST_F(SysTimeMgrTest, GetTimeStatus_AllQualities) {
     
 }
 
+TEST_F(SysTimeMgrFullCoverageTest, PublishStatusCoversAll) {
+    EXPECT_CALL(*mockPublish, publish(_, _)).Times(AtLeast(1));
+    mgr->publishStatus(ePUBLISH_NTP_FAIL, "Poor");
+    mgr->publishStatus(ePUBLISH_NTP_SUCCESS, "Good");
+    mgr->publishStatus(ePUBLISH_SECURE_TIME_SUCCESS, "Secure");
+    mgr->publishStatus(ePUBLISH_DTT_SUCCESS, "Good");
+    mgr->publishStatus(ePUBLISH_TIME_INITIAL, "Poor");
+    mgr->publishStatus(ePUBLISH_DEEP_SLEEP_ON, "Unknown");
+}
+
 
 /*TEST_F(SysTimeMgrTest, PathThrCallsRunPathMonitorAndHandlesInitialScan) {
     // Goal: Cover the call to `mgr->runPathMonitor()` and its initial file scan logic.
