@@ -287,7 +287,7 @@ TEST_F(SysTimeMgrTest, TimerThrCallsRunTimerAndRunsOnce) {
     // the mock expectation (`EXPECT_CALL(*mockPublish, publish(...))`) would verify activity.
 }
 
-TEST_F(SysTimeMgrFullCoverageTest, UpdateClockRealTimeAllBranches) {
+TEST_F(SysTimeMgrTest, UpdateClockRealTimeAllBranches) {
     // locTime != 0
     EXPECT_CALL(*mockTimeSrc, isclockProvider()).WillOnce(Return(true));
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(1234));
