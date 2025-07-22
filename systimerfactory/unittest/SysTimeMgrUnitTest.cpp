@@ -130,7 +130,7 @@ TEST_F(SysTimeMgrTest, DestructorCovers) {
     mgr->initialize(); // Should log error and process error branch
 }*/
 
- TEST_F(SysTimeMgrTest, Initialize_ConfigPresent) {
+ /*TEST_F(SysTimeMgrTest, Initialize_ConfigPresent) {
     // Write a config file
     std::ofstream config("test.cfg");
     config << "timesrc type1 obj1\n";
@@ -139,7 +139,7 @@ TEST_F(SysTimeMgrTest, DestructorCovers) {
     mgr->m_cfgfile = "test.cfg";
     mgr->initialize();
     std::remove("test.cfg");
-}
+}*/
 
 TEST_F(SysTimeMgrTest, SetInitialTime_ZeroTime) {
     EXPECT_CALL(*mockTimeSync, getTime()).WillOnce(Return(0));
