@@ -435,3 +435,29 @@ TEST_F(SysTimeMgrTest, TimerThrAndProcessThrCoverage) {
     t1.detach();
     t2.detach();
 }
+
+TEST_F(SysTimeMgrTest, SendMessageAndProcessMsg) {
+    mgr->sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
+    // processMsg runs forever; cover via thread:
+    std::thread t([&]() { mgr->processMsg(); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    t.detach();
+}
+
+TEST_F(SysTimeMgrTest, RunStateMachine_AllStatesEvents) {
+    // Set up states and call runStateMachine for all events in all states
+    std::vector<sysTimeMgrState> states = {
+        eSYSMGR_STATE_RUNNING, eSYSMGR_STATE_NTP_WAIT, eSYSMGR_STATE_NTP_ACQUIRED,
+        eSYSMGR_STATE_NTP_FAIL, eSYSMGR_STATE_DTT_ACQUIRED, eSYSMGR_STATE_SECURE_TIME_ACQUIRED
+    };
+    std::vector<sysTimeMgrEvent> events = {
+        eSYSMGR_EVENT_TIMER_EXPIRY, eSYSMGR_EVENT_NTP_AVAILABLE,
+        eSYSMGR_EVENT_SECURE_TIME_AVAILABLE, eSYSMGR_EVENT_DTT_TIME_AVAILABLE
+    };
+    for (auto state : states) {
+        mgr->m_state = state;
+        for (auto event : events) {
+            mgr->runStateMachine(event, nullptr);
+        }
+    }
+}
