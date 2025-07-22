@@ -287,6 +287,24 @@ TEST_F(SysTimeMgrTest, TimerThrCallsRunTimerAndRunsOnce) {
     // the mock expectation (`EXPECT_CALL(*mockPublish, publish(...))`) would verify activity.
 }
 
+TEST_F(SysTimeMgrFullCoverageTest, UpdateClockRealTimeAllBranches) {
+    // locTime != 0
+    EXPECT_CALL(*mockTimeSrc, isclockProvider()).WillOnce(Return(true));
+    EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(1234));
+    EXPECT_CALL(*mockTimeSrc, checkTime()).Times(1);
+    mgr->m_timerSrc.push_back(mockTimeSrc);
+    mgr->updateClockRealTime(nullptr);
+    mgr->m_timerSrc.clear();
+
+    // locTime == 0
+    EXPECT_CALL(*mockTimeSrc, isclockProvider()).WillOnce(Return(true));
+    EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(0));
+    EXPECT_CALL(*mockTimeSrc, checkTime()).Times(1);
+    mgr->m_timerSrc.push_back(mockTimeSrc);
+    mgr->updateClockRealTime(nullptr);
+}
+
+
 /*TEST_F(SysTimeMgrTest, PathThrCallsRunPathMonitorAndHandlesInitialScan) {
     // Goal: Cover the call to `mgr->runPathMonitor()` and its initial file scan logic.
     // It also has a `while(1)` with a `read()` call that can block.
