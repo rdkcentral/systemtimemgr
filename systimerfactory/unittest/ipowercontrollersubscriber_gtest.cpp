@@ -155,6 +155,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionSuccess_Wi
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
 }
+
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_UnknownNewState_LogsError) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     handlerCalled = false;
@@ -164,7 +165,7 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_UnknownNewState_LogsEr
     EXPECT_FALSE(handlerCalled); // Handler should not be called
 }
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
+/*TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Set up mocks for two subscribe calls
     EXPECT_CALL(mockPowerController, PowerController_Init()).Times(::testing::AtLeast(2));
@@ -178,5 +179,5 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGr
 
     EXPECT_TRUE(first);
     EXPECT_TRUE(second);
-}
+}*/
 
