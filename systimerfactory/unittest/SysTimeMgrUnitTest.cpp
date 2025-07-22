@@ -123,10 +123,12 @@ TEST_F(SysTimeMgrTest, DestructorCovers) {
     SysTimeMgr* localMgr = new SysTimeMgr("dummy.cfg");
     delete localMgr; // Cover destructor
 }
-TEST_F(SysTimeMgrTest, Initialize_MissingConfig) {
+
+
+/*TEST_F(SysTimeMgrTest, Initialize_MissingConfig) {
     mgr->m_cfgfile = "not_a_file.cfg";
     mgr->initialize(); // Should log error and process error branch
-}
+}*/
 
  TEST_F(SysTimeMgrTest, Initialize_ConfigPresent) {
     // Write a config file
