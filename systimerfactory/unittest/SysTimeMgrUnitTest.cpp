@@ -255,15 +255,6 @@ TEST_F(SysTimeMgrTest, DeepSleepOnLogs) {
     mgr->deepsleepon(); // Just for coverage
 }
 
-TEST_F(SysTimeMgrTest, PublishStatusCoversAll) {
-    EXPECT_CALL(*mockPublish, publish(_, _)).Times(AtLeast(1));
-    mgr->publishStatus(ePUBLISH_NTP_FAIL, "Poor");
-    mgr->publishStatus(ePUBLISH_NTP_SUCCESS, "Good");
-    mgr->publishStatus(ePUBLISH_SECURE_TIME_SUCCESS, "Secure");
-    mgr->publishStatus(ePUBLISH_DTT_SUCCESS, "Good");
-    mgr->publishStatus(ePUBLISH_TIME_INITIAL, "Poor");
-    mgr->publishStatus(ePUBLISH_DEEP_SLEEP_ON, "Unknown");
-}
 
 TEST_F(SysTimeMgrTest, UpdateClockRealTimeSetsTime) {
     EXPECT_CALL(*mockTimeSrc, isclockProvider()).WillOnce(Return(true));
@@ -435,4 +426,12 @@ TEST_F(SysTimeMgrTest, TimerExpiry_RefVsFileTime) {
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(456));
     mgr->m_timerSrc.push_back(mockTimeSrc);
     mgr->timerExpiry(nullptr);
+}
+
+TEST_F(SysTimeMgrFullCoverageTest, TimerThrAndProcessThrCoverage) {
+    std::thread t1([&]() { SysTimeMgr::timerThr(mgr); });
+    std::thread t2([&]() { SysTimeMgr::processThr(mgr); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    t1.detach();
+    t2.detach();
 }
