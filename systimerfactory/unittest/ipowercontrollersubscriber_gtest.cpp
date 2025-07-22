@@ -149,3 +149,25 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails_With
     EXPECT_TRUE(ret);
     // No need to manage threads, queues, or shutdown.
 }
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionSuccess_WithTestSubscriber) {
+    TestSubscriber subscriber("test_subscriber");
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+}
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    // Set up mocks for success path
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    // First subscribe
+    bool first = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    // Second subscribe
+    bool second = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+
+    EXPECT_TRUE(first);
+    EXPECT_TRUE(second); // Or whatever is expected for repeated subscribe
+}
