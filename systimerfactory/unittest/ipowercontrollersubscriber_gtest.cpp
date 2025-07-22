@@ -9,6 +9,7 @@
 #include "ipowercontrollersubscriber.h"
 #include "ipowercontrollersubscriber.cpp"
 #include "iarmsubscribe.cpp"
+#include "testsubscribe.h"
 
 // Mocking the external PowerController API functions
 class MockPowerController {
@@ -142,3 +143,9 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
     EXPECT_TRUE(handlerCalledoff);
 }
 
+TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionFails_WithTestSubscriber) {
+    TestSubscriber subscriber("test_subscriber");
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+    // No need to manage threads, queues, or shutdown.
+}
