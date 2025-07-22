@@ -343,6 +343,18 @@ TEST_F(SysTimeMgrTest, UpdateClockRealTimeAllBranches) {
     mgr->updateClockRealTime(nullptr);
 }
 
+TEST_F(SysTimeMgrFullCoverageTest, GetTimeStatus_AllQualities) {
+    TimerMsg msg;
+    mgr->m_timequality = eTIMEQUALILTY_POOR;
+    mgr->getTimeStatus(&msg);
+    mgr->m_timequality = eTIMEQUALILTY_GOOD;
+    mgr->getTimeStatus(&msg);
+    mgr->m_timequality = eTIMEQUALILTY_SECURE;
+    mgr->getTimeStatus(&msg);
+    mgr->m_timequality = (sysTimeMgrQuality)999;
+    mgr->getTimeStatus(&msg);
+}
+
 
 /*TEST_F(SysTimeMgrTest, PathThrCallsRunPathMonitorAndHandlesInitialScan) {
     // Goal: Cover the call to `mgr->runPathMonitor()` and its initial file scan logic.
