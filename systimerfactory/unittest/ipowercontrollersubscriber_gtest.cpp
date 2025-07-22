@@ -179,6 +179,25 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_EmptyEventName_ReturnsFalse) {
     EXPECT_FALSE(ret);
 }
 
+TEST_F(IpowerControllerSubscriberTest, Subscribe_NullHandler_DoesNotCrash) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    EXPECT_CALL(mockPowerController, PowerController_Init());
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    // nullptr as handler
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+    // Optionally: Simulate event and ensure it doesn't crash
+}
+
+TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashOrLeak) {
+    EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+    IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
+    delete subscriber;
+    // No subscribe called, just construction and destruction
+}
+
 /*TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Set up mocks for two subscribe calls
@@ -195,3 +214,10 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_EmptyEventName_ReturnsFalse) {
     EXPECT_TRUE(second);
 }*/
 
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    subscriber.m_powerHandler = nullptr; // Explicitly unset
+    // Should not crash
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
+    SUCCEED();
+}
