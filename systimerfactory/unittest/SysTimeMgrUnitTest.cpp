@@ -202,7 +202,7 @@ TEST_F(SysTimeMgrTest, NtpAquiredPublishesStatusAndUpdatesState) {
     EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_ACQUIRED);
 }
 
-TEST_F(SysTimeMgrFullCoverageTest, NtpFailed) {
+TEST_F(SysTimeMgrTest, NtpFailed) {
     EXPECT_CALL(*mockPublish, publish(_, _)).Times(AtLeast(1));
     mgr->ntpFailed(nullptr);
     EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_FAIL);
