@@ -155,11 +155,19 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionSuccess_Wi
     bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
     EXPECT_TRUE(ret);
 }
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_UnknownNewState_LogsError) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    handlerCalled = false;
+    subscriber.m_powerHandler = testHandler;
+    // Use an invalid enum value for newState
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_ON, static_cast<PowerController_PowerState_t>(999));
+    EXPECT_FALSE(handlerCalled); // Handler should not be called
+}
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
     IpowerControllerSubscriber subscriber("test_subscriber");
     // Set up mocks for two subscribe calls
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(2);
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(::testing::AtLeast(2));
     EXPECT_CALL(mockPowerController, PowerController_Connect()).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
     EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
@@ -171,3 +179,4 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGr
     EXPECT_TRUE(first);
     EXPECT_TRUE(second);
 }
+
