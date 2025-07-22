@@ -404,3 +404,18 @@ TEST_F(SysTimeMgrTest, PublishStatusCoversAll) {
     // It should also show the lines for processing the inotify event if `modify_file` triggered it.
 }*/
 
+
+TEST_F(SysTimeMgrTest, TimerExpiry_RefVsFileTime) {
+    // Reference present
+    EXPECT_CALL(*mockTimeSrc, isreference()).WillOnce(Return(true));
+    EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(123));
+    mgr->m_timerSrc.push_back(mockTimeSrc);
+    mgr->timerExpiry(nullptr);
+    mgr->m_timerSrc.clear();
+
+    // Only filetime
+    EXPECT_CALL(*mockTimeSrc, isreference()).WillOnce(Return(false));
+    EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(456));
+    mgr->m_timerSrc.push_back(mockTimeSrc);
+    mgr->timerExpiry(nullptr);
+}
