@@ -123,6 +123,39 @@ TEST_F(SysTimeMgrTest, DestructorCovers) {
     SysTimeMgr* localMgr = new SysTimeMgr("dummy.cfg");
     delete localMgr; // Cover destructor
 }
+TEST_F(SysTimeMgrTest, Initialize_MissingConfig) {
+    mgr->m_cfgfile = "not_a_file.cfg";
+    mgr->initialize(); // Should log error and process error branch
+}
+
+ TEST_F(SysTimeMgrTest, Initialize_ConfigPresent) {
+    // Write a config file
+    std::ofstream config("test.cfg");
+    config << "timesrc type1 obj1\n";
+    config << "timesync type2 obj2\n";
+    config.close();
+    mgr->m_cfgfile = "test.cfg";
+    mgr->initialize();
+    std::remove("test.cfg");
+}
+
+TEST_F(SysTimeMgrTest, SetInitialTime_ZeroTime) {
+    EXPECT_CALL(*mockTimeSync, getTime()).WillOnce(Return(0));
+    mgr->m_timerSync.push_back(mockTimeSync);
+    mgr->setInitialTime(); // Should return early after error
+}
+
+TEST_F(SysTimeMgrTest, SetInitialTime_NonZeroTime) {
+    EXPECT_CALL(*mockTimeSync, getTime()).WillOnce(Return(100000));
+    mgr->m_timerSync.push_back(mockTimeSync);
+    mgr->setInitialTime(); // Should try to set system time (mocked)
+}
+
+TEST_F(SysTimeMgrTest, UpdateTime_InvokesCheckTime) {
+    EXPECT_CALL(*mockTimeSrc, checkTime()).Times(1);
+    mgr->m_timerSrc.push_back(mockTimeSrc);
+    mgr->updateTime(nullptr);
+}
 
 
 TEST_F(SysTimeMgrTest, RunStateMachineUnknownEvent) {
