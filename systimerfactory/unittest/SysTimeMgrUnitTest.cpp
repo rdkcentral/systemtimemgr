@@ -343,7 +343,7 @@ TEST_F(SysTimeMgrTest, UpdateClockRealTimeAllBranches) {
     mgr->updateClockRealTime(nullptr);
 }
 
-TEST_F(SysTimeMgrFullCoverageTest, GetTimeStatus_AllQualities) {
+TEST_F(SysTimeMgrTest, GetTimeStatus_AllQualities) {
     TimerMsg msg;
     mgr->m_timequality = eTIMEQUALILTY_POOR;
     mgr->getTimeStatus(&msg);
