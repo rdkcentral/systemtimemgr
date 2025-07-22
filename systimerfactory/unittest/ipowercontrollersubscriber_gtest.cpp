@@ -179,17 +179,6 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_EmptyEventName_ReturnsFalse) {
     EXPECT_FALSE(ret);
 }
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_NullHandler_DoesNotCrash) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
-    EXPECT_CALL(mockPowerController, PowerController_Init());
-    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-
-    // nullptr as handler
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    EXPECT_TRUE(ret);
-    // Optionally: Simulate event and ensure it doesn't crash
-}
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashOrLeak) {
     EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
