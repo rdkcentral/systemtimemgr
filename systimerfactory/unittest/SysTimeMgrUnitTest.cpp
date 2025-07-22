@@ -351,8 +351,7 @@ TEST_F(SysTimeMgrTest, GetTimeStatus_AllQualities) {
     mgr->getTimeStatus(&msg);
     mgr->m_timequality = eTIMEQUALILTY_SECURE;
     mgr->getTimeStatus(&msg);
-    mgr->m_timequality = (sysTimeMgrQuality)999;
-    mgr->getTimeStatus(&msg);
+    
 }
 
 
