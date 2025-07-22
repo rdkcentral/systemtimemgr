@@ -354,7 +354,7 @@ TEST_F(SysTimeMgrTest, GetTimeStatus_AllQualities) {
     
 }
 
-TEST_F(SysTimeMgrFullCoverageTest, PublishStatusCoversAll) {
+TEST_F(SysTimeMgrTest, PublishStatusCoversAll) {
     EXPECT_CALL(*mockPublish, publish(_, _)).Times(AtLeast(1));
     mgr->publishStatus(ePUBLISH_NTP_FAIL, "Poor");
     mgr->publishStatus(ePUBLISH_NTP_SUCCESS, "Good");
