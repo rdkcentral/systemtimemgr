@@ -78,7 +78,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 }
 
 
-static bool handlerCalled = false;
+/*static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
     std::string* str = static_cast<std::string*>(status);
@@ -99,5 +99,46 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
 
     EXPECT_TRUE(handlerCalled);
+}*/
+
+static bool handlerCalled = false;
+static int testHandler(void* status) {
+    handlerCalled = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
+    return 0;
+}
+
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
+    IpowerControllerSubscriber subscriber("sub",true);
+
+    // Directly set the private member since you can access it
+    subscriber.m_powerHandler = testHandler;
+
+    // If your test is in the same translation unit and m_powerHandler is accessible, this will work
+    handlerCalled = false;
+   // IarmSubscriber::instance = &subscriber; // If needed for getInstance() logic
+
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
+
+    EXPECT_TRUE(handlerCalled);
+}
+static bool handlerCalledoff = false;
+static int testHandleroff(void* status) {
+    handlerCalledoff = true;
+    std::string* str = static_cast<std::string*>(status);
+    EXPECT_EQ(*str, "DEEP_SLEEP_OFF");
+    return 0;
+}
+
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
+    IpowerControllerSubscriber subscriber("sub",true);
+    subscriber.m_powerHandler = testHandleroff;
+    handlerCalledoff = false;
+
+    // Set currentState as POWER_STATE_STANDBY_DEEP_SLEEP and newState as POWER_STATE_ON
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_STANDBY_DEEP_SLEEP, POWER_STATE_ON);
+
+    EXPECT_TRUE(handlerCalledoff);
 }
 
