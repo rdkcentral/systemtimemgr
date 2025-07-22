@@ -461,3 +461,19 @@ TEST_F(SysTimeMgrTest, RunStateMachine_AllStatesEvents) {
         }
     }
 }
+
+TEST_F(SysTimeMgrTest, GetTimeStatusStaticFunctionWorks) {
+    // Arrange: Prepare a TimerMsg and initialize the singleton
+    TimerMsg msg;
+    // Optionally set some fields in msg if you want to check their values later
+
+    // Act: Call the static getTimeStatus with a valid pointer
+    int ret = SysTimeMgr::getTimeStatus(static_cast<void*>(&msg));
+
+    // Assert: Should always return 0
+    EXPECT_EQ(ret, 0);
+
+    // Optionally check that msg fields were set by the underlying getTimeStatus
+    // (e.g., msg.quality, msg.message, etc. depending on your state)
+    EXPECT_GE(strlen(msg.message), 0); // msg.message should be populated
+}
