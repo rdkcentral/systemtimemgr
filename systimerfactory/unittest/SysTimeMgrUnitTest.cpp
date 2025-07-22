@@ -119,6 +119,10 @@ TEST_F(SysTimeMgrTest, SingletonReturnsSamePointer) {
     EXPECT_EQ(mgr, SysTimeMgr::get_instance());
 }
 
+TEST_F(SysTimeMgrTest, DestructorCovers) {
+    SysTimeMgr* localMgr = new SysTimeMgr("dummy.cfg");
+    delete localMgr; // Cover destructor
+}
 
 
 TEST_F(SysTimeMgrTest, RunStateMachineUnknownEvent) {
