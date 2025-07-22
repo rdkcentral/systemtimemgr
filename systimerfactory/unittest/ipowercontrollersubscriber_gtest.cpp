@@ -158,10 +158,10 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_ValidEvent_ConnectionSuccess_Wi
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
     IpowerControllerSubscriber subscriber("test_subscriber");
-    // Set up mocks for success path
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    // Set up mocks for two subscribe calls
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(2);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
     // First subscribe
     bool first = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
@@ -169,5 +169,5 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGr
     bool second = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
 
     EXPECT_TRUE(first);
-    EXPECT_TRUE(second); // Or whatever is expected for repeated subscribe
+    EXPECT_TRUE(second);
 }
