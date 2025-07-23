@@ -111,6 +111,9 @@ TEST(RdkDefaultTimeSyncTest, tokenizeBreakCoverage) {
     RdkDefaultTimeSync rdkDefaultTimeSync;
     std::string s = "KEY1=VALUE1\nKEY2=";
     auto result = rdkDefaultTimeSync.tokenize(s, "=");
+
+    RdkDefaultTimeSync sync;
+    sync.tokenize("KEY=VAL", "=");
     // Should cover the break line
     ASSERT_EQ(result.at("KEY1"), "VALUE1");
     // KEY2 will not be in the map, as break happens
