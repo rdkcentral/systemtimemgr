@@ -116,6 +116,32 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOff_TriggersHandler) 
     EXPECT_EQ(gReceivedStatus, "DEEP_SLEEP_OFF");
 }
 
+TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOff_LightSleep_TriggersHandler) {
+    IarmPowerSubscriber subscriber("TestSub");
+    subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+
+    IARM_Bus_PWRMgr_EventData_t evt {};
+    evt.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    evt.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
+
+    gReceivedStatus.clear();
+    IarmPowerSubscriber::powereventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &evt, sizeof(evt));
+    EXPECT_EQ(gReceivedStatus, "DEEP_SLEEP_OFF");
+}
+
+TEST_F(IarmPowerSubscriberTest, PowerEventHandler_DeepSleepOff_Standby_TriggersHandler) {
+    IarmPowerSubscriber subscriber("TestSub");
+    subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+
+    IARM_Bus_PWRMgr_EventData_t evt {};
+    evt.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    evt.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+
+    gReceivedStatus.clear();
+    IarmPowerSubscriber::powereventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &evt, sizeof(evt));
+    EXPECT_EQ(gReceivedStatus, "DEEP_SLEEP_OFF");
+}
+
 TEST_F(IarmPowerSubscriberTest, PowerEventHandler_UnrelatedEventId_DoesNothing) {
     IarmPowerSubscriber subscriber("TestSub");
     subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
@@ -123,4 +149,25 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_UnrelatedEventId_DoesNothing) 
     gReceivedStatus.clear();
     IarmPowerSubscriber::powereventHandler(IARM_BUS_PWRMGR_NAME, 999, nullptr, 0);
     EXPECT_TRUE(gReceivedStatus.empty());
+}
+
+TEST_F(IarmPowerSubscriberTest, PowerEventHandler_NullSingleton_InstancePathCovered) {
+    // Set singleton to nullptr to simulate error branch
+    IarmSubscriber::pInstance = nullptr;
+
+    // Create a valid event
+    IARM_Bus_PWRMgr_EventData_t evt {};
+    evt.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
+    evt.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
+
+    // This should now hit the error branch (instance is nullptr)
+    IarmPowerSubscriber::powereventHandler(
+        IARM_BUS_PWRMGR_NAME, 
+        IARM_BUS_PWRMGR_EVENT_MODECHANGED, 
+        &evt, 
+        sizeof(evt)
+    );
+
+    // Optional: If you want, you can assert that no crash happened or check logs.
+    // There is no crash if the test passes.
 }
