@@ -103,8 +103,15 @@ TEST(RdkDefaultTimeSyncTest, updateTimeWithOlderTimeIncrementsBy10Minutes) {
 
     // Step 2: update with an older time (smaller value)
     rdkDefaultTimeSync.updateTime(1640990000); // Dec 31, 2021 22:33:20
-
-    // Step 3: check that current time is incremented by 10*60 (600) from afterFirst
     long long afterSecond = rdkDefaultTimeSync.getTime();
     EXPECT_EQ(afterSecond, afterFirst);
+}
+
+TEST(RdkDefaultTimeSyncTest, tokenizeBreakCoverage) {
+    RdkDefaultTimeSync rdkDefaultTimeSync;
+    std::string s = "KEY1=VALUE1\nKEY2=";
+    auto result = rdkDefaultTimeSync.tokenize(s, "=");
+    // Should cover the break line
+    ASSERT_EQ(result.at("KEY1"), "VALUE1");
+    // KEY2 will not be in the map, as break happens
 }
