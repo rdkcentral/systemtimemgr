@@ -483,3 +483,26 @@ TEST_F(SysTimeMgrTest, GetTimeStatusStaticFunctionWorks) {
     // (e.g., msg.quality, msg.message, etc. depending on your state)
     EXPECT_GE(strlen(msg.message), 0); // msg.message should be populated
 }
+
+TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
+    // Arrange: Create a temp dir and file
+    std::string testdir = "/tmp/systimemgr_testdir";
+    mkdir(testdir.c_str(), 0777);
+    mgr->m_directory = testdir;
+    std::string testfile = testdir + "/ntp";
+    std::ofstream outfile(testfile); outfile << "test"; outfile.close();
+
+    // Run path monitor in a thread
+    std::thread t([&]() { mgr->runPathMonitor(); });
+
+    // Modify file to trigger IN_ATTRIB (e.g., change permissions)
+    chmod(testfile.c_str(), 0666);
+
+    // Sleep for a bit to let the thread process the event
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    // Cleanup: Detach and remove files/dirs
+    t.detach();
+    remove(testfile.c_str());
+    rmdir(testdir.c_str());
+}
