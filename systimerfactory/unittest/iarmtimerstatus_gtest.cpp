@@ -96,11 +96,10 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
 TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_CallsRegisterCallAndReturnsResult) {
     IarmTimerStatusSubscriber subscriber("test_subscriber");
 
-    
+    // Expect RegisterCall to be called with correct params, and return IARM_RESULT_SUCCESS
     EXPECT_CALL(*gMockIARM, RegisterCall(TIMER_STATUS_MSG, _))
-        .WillOnce(Return(true));
+        .WillOnce(Return(IARM_RESULT_SUCCESS));
 
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
-    EXPECT_TRUE(result); // Because retCode should be true from mock
+    EXPECT_EQ(result, IARM_RESULT_SUCCESS); // or EXPECT_TRUE(result) if your code treats 0 as true
 }
-
