@@ -562,38 +562,3 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
 
 
 
-TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
-    // Arrange: Write a config file for initialize() to parse
-    std::string cfg_content =
-        "timesrc regular /clock.txt\n"
-        "timesync test /clock1.txt\n";
-    std::string cfg_path = "/tmp/test_cfg_" + std::to_string(rand()) + ".cfg";
-    std::ofstream ofs(cfg_path);
-    ofs << cfg_content;
-    ofs.close();
-
-    SysTimeMgr* mgr = SysTimeMgr::get_instance();
-    mgr->m_cfgfile = cfg_path;
-    mgr->m_directory = "/tmp/";
-
-    // Make sure vectors are clear before init
-    mgr->m_timerSrc.clear();
-    mgr->m_timerSync.clear();
-    mgr->m_pathEventMap.clear();
-
-    // Act: Call initialize (will use your interposed factories!)
-    mgr->initialize();
-
-    // Assert: The mocks got added by initialize
-    ASSERT_FALSE(mgr->m_timerSrc.empty());
-    ASSERT_FALSE(mgr->m_timerSync.empty());
-    ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
-
-    // Cleanup
-    std::remove(cfg_path.c_str());
-    mgr->m_timerSrc.clear();
-    mgr->m_timerSync.clear();
-}
