@@ -78,6 +78,7 @@ protected:
         // For direct members like m_publish, assign it here if it's always used.
         // If m_publish is set per test, then move this line to the test itself.
         mgr->m_publish = mockPublish;
+        mgr->m_subscriber = MockSubscribe;
 
          // Initialize m_pathEventMap, as runPathMonitor relies on it.
         mgr->m_pathEventMap.clear();
