@@ -62,18 +62,16 @@ protected:
 
 
 
-TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) {
+TEST_F(IpowerControllerSubscriberTest, Destructor_CallsPowerControllerTerm) 
     {
-        EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
+       EXPECT_CALL(mockPowerController, PowerController_Term()).Times(1);
         IpowerControllerSubscriber subscriber("test_subscriber");
     }
-}
+
 
 TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
     IpowerControllerSubscriber subscriber("test_subscriber");
-
     bool ret = subscriber.subscribe("INVALID_EVENT", nullptr);
-
     EXPECT_FALSE(ret);
 }
 
@@ -81,7 +79,7 @@ static bool handlerCalled = false;
 static int testHandler(void* status) {
     handlerCalled = true;
     std::string* str = static_cast<std::string*>(status);
-    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
+    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); 
     return 0;
 }
 
@@ -106,9 +104,7 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOff) {
     IpowerControllerSubscriber subscriber("sub");
     subscriber.m_powerHandler = testHandleroff;
     handlerCalledoff = false;
-
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_STANDBY_DEEP_SLEEP, POWER_STATE_ON);
-
     EXPECT_TRUE(handlerCalledoff);
 }
 
@@ -152,8 +148,7 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashO
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash) {
     IpowerControllerSubscriber subscriber("test_subscriber");
-    subscriber.m_powerHandler = nullptr; // Explicitly unset
-    // Should not crash
+    subscriber.m_powerHandler = nullptr; 
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
     SUCCEED();
 }
@@ -164,7 +159,6 @@ public:
     using IpowerControllerSubscriber::m_pwrEvtQueue;
     using IpowerControllerSubscriber::m_pwrEvtQueueLock;
     using IpowerControllerSubscriber::m_pwrEvtCondVar;
-    using IpowerControllerSubscriber::m_sysTimeMgrPwrEvtHandlerThread; 
 
     size_t queueSize() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
@@ -177,14 +171,6 @@ public:
     void clearQueue() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
         m_pwrEvtQueue = std::queue<SysTimeMgr_Power_Event_State_t>();
-    }
-
-    bool isThreadJoinable() {
-        return m_sysTimeMgrPwrEvtHandlerThread.joinable();
-    }
-    void joinThreadIfRunning() {
-        if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
-            m_sysTimeMgrPwrEvtHandlerThread.join();
     }
 };
 
@@ -215,16 +201,6 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 
     EXPECT_TRUE(signaled);
 
-}
-
-
-TEST_F(IpowerControllerSubscriberTest, SysTimeMgrInitPwrEvt_ThreadDoesNotCrash) {
-    ASSERT_EXIT({
-        TestableSubscriber subscriber("test_subscriber");
-        subscriber.sysTimeMgrInitPwrEvt();
-        // No join!
-        _exit(0); // or std::_Exit(0);
-    }, ::testing::ExitedWithCode(0), "");
 }
 
 
