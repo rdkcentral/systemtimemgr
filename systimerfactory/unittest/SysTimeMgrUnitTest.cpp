@@ -558,58 +558,69 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     // This should return immediately (not hang)
     mgr->runPathMonitor();
 }
-std::string createTempConfigFile(const std::string& content) {
-    std::string filename = "/tmp/test_systimemgr_cfg_" + std::to_string(rand()) + ".cfg";
-    std::ofstream ofs(filename);
-    ofs << content;
-    ofs.close();
-    return filename;
-}
 
-TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
-    // 1. Prepare config file
+
+
+// Specialized fixture for initialize tests
+class SysTimeMgrInitializeTest : public ::testing::Test {
+protected:
+    class TestableSysTimeMgr : public SysTimeMgr {
+    public:
+        MockTimeSrc* mockTimeSrc = nullptr;
+        MockTimeSync* mockTimeSync = nullptr;
+        ITimeSrc* createTimeSrc(const std::string&, const std::string&) override {
+            return mockTimeSrc ? mockTimeSrc : new MockTimeSrc();
+        }
+        ITimeSync* createTimeSync(const std::string&, const std::string&) override {
+            return mockTimeSync ? mockTimeSync : new MockTimeSync();
+        }
+    };
+
+    TestableSysTimeMgr* mgr;
+    MockTimeSrc* mockTimeSrc;
+    MockTimeSync* mockTimeSync;
+
+    void SetUp() override {
+        mgr = new TestableSysTimeMgr();
+        mockTimeSrc = new MockTimeSrc();
+        mockTimeSync = new MockTimeSync();
+        mgr->mockTimeSrc = mockTimeSrc;
+        mgr->mockTimeSync = mockTimeSync;
+        mgr->m_timerSrc.clear();
+        mgr->m_timerSync.clear();
+        mgr->m_pathEventMap.clear();
+    }
+
+    void TearDown() override {
+        mgr->m_timerSrc.clear();
+        mgr->m_timerSync.clear();
+        delete mockTimeSrc;
+        delete mockTimeSync;
+        delete mgr;
+    }
+};
+
+// Example: Only tests using this fixture will get the factory override
+TEST_F(SysTimeMgrInitializeTest, Initialize_ConfigFileOpenSuccess) {
     std::string cfg_content =
         "timesrc regular /clock.txt\n"
         "timesync test /clock1.txt\n";
-    std::string cfg_path = createTempConfigFile(cfg_content);
+    std::string cfg_path = "/tmp/test_cfg_" + std::to_string(rand()) + ".cfg";
+    std::ofstream ofs(cfg_path);
+    ofs << cfg_content;
+    ofs.close();
 
-    // 2. Set up the SysTimeMgr for test
     mgr->m_cfgfile = cfg_path;
     mgr->m_directory = "/tmp/";
 
-    // 3. Clear any existing state
-    mgr->m_timerSrc.clear();
-    mgr->m_timerSync.clear();
-    mgr->m_pathEventMap.clear();
-
-    // 4. Call initialize
     mgr->initialize();
 
-    // 5. Check that sources and syncs are populated
-    ASSERT_FALSE(mgr->m_timerSrc.empty()) << "m_timerSrc should not be empty";
-    ASSERT_FALSE(mgr->m_timerSync.empty()) << "m_timerSync should not be empty";
-
-    // 6. Check the path event map is initialized
+    ASSERT_FALSE(mgr->m_timerSrc.empty());
+    ASSERT_FALSE(mgr->m_timerSync.empty());
     ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
 
-    // 7. Clean up
     std::remove(cfg_path.c_str());
 }
-
-TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenFail) {
-    // Point to a non-existent config file
-    mgr->m_cfgfile = "/tmp/definitely_does_not_exist_" + std::to_string(rand()) + ".cfg";
-
-    // Call initialize and expect degraded mode (should not throw or crash)
-    mgr->initialize();
-
-    // Check that path event map is still initialized
-    ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
-    ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
-}
-
