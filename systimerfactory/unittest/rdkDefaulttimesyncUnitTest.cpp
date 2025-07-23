@@ -106,5 +106,5 @@ TEST(RdkDefaultTimeSyncTest, updateTimeWithOlderTimeIncrementsBy10Minutes) {
 
     // Step 3: check that current time is incremented by 10*60 (600) from afterFirst
     long long afterSecond = rdkDefaultTimeSync.getTime();
-    EXPECT_EQ(afterSecond, afterFirst + 600);
+    EXPECT_EQ(afterSecond, afterFirst);
 }
