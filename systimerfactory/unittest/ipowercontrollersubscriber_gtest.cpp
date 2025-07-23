@@ -180,35 +180,43 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash
 }
 
 
+
+
 class TestableSubscriber : public IpowerControllerSubscriber {
 public:
     using IpowerControllerSubscriber::IpowerControllerSubscriber;
     using IpowerControllerSubscriber::m_pwrEvtQueue;
     using IpowerControllerSubscriber::m_pwrEvtQueueLock;
     using IpowerControllerSubscriber::m_pwrEvtCondVar;
+
     size_t queueSize() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
         return m_pwrEvtQueue.size();
     }
-    std::pair<PowerController_PowerState_t, PowerController_PowerState_t> queueFront() {
+    SysTimeMgr_Power_Event_State_t queueFront() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
         return m_pwrEvtQueue.front();
+    }
+    void clearQueue() {
+        std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
+        m_pwrEvtQueue = std::queue<SysTimeMgr_Power_Event_State_t>();
     }
 };
 
 TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAndSignals) {
     TestableSubscriber subscriber("test_subscriber");
-    // If you need to set the singleton, do so here (adjust as needed for your codebase)
-    IarmSubscriber::instance = &subscriber;
+    // If you need singleton, set here (adjust for your codebase)
+    // e.g., IarmSubscriber::setInstance(&subscriber);
 
     subscriber.clearQueue();
 
     std::atomic<bool> signaled{false};
     std::thread waiter([&]() {
         std::unique_lock<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
-        subscriber.m_pwrEvtCondVar.wait_for(lock, std::chrono::milliseconds(200), [&]{
-            return !subscriber.m_pwrEvtQueue.empty();
-        });
+        subscriber.m_pwrEvtCondVar.wait_for(
+            lock, std::chrono::milliseconds(200),
+            [&] { return !subscriber.m_pwrEvtQueue.empty(); }
+        );
         signaled = true;
     });
 
@@ -225,5 +233,6 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 
     EXPECT_TRUE(signaled);
 
-    IarmSubscriber::instance = nullptr;
+    // Reset singleton if you set it above
+    // IarmSubscriber::setInstance(nullptr);
 }
