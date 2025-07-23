@@ -126,6 +126,7 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_UnknownNewState_LogsEr
     subscriber.m_powerHandler = testHandler;
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_ON, static_cast<PowerController_PowerState_t>(999));
     EXPECT_FALSE(handlerCalled); 
+}
 
 TEST_F(IpowerControllerSubscriberTest, Destructor_UnregisterCallbackFails_StillCleansUp) {
     IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
