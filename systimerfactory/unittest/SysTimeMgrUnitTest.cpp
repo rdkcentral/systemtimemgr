@@ -564,3 +564,14 @@ TEST_F(SysTimeMgrTest, Initialize_DeathTest_ForCoverage) {
     mgr->m_cfgfile = "/tmp/missing_cfgfile.cfg";
     EXPECT_DEATH(mgr->initialize(), ".*");
 }
+
+TEST_F(SysTimeMgrTest, RunStateMachine_HitsFunctionPointer) {
+    // Setup: assign a valid function pointer for a specific state and event
+    mgr->stateMachine[eSYSMGR_STATE_RUNNING][eSYSMGR_EVENT_TIMER_EXPIRY] = &SysTimeMgr::updateTime;
+    mgr->m_state = eSYSMGR_STATE_RUNNING;
+
+    // Call: should hit lines 173 and 174, and call updateTime
+    mgr->runStateMachine(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
+
+    // Optionally, check side effects if updateTime modifies state
+}
