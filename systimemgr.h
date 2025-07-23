@@ -99,8 +99,12 @@ private: // Keep these private for production builds
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
 	string m_timersrc;
-
-	const string m_directory = "/tmp/systimemgr";
+        #ifdef GTEST_ENABLE
+              std::string m_directory = "/tmp/systimemgr";
+        #else
+              const string m_directory = "/tmp/systimemgr";
+        #endif
+	
 
         vector<ITimeSrc*> m_timerSrc;
 	vector<ITimeSync*> m_timerSync;
