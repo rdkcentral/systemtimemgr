@@ -546,4 +546,17 @@ TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
     rmdir(temp_test_dir.c_str());
 }
 
+TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
+    // Pick a unique, guaranteed-nonexistent directory name
+    std::string random_dir = "/tmp/definitely_does_not_exist_" + std::to_string(rand());
+    // Double-check it does not exist
+    ASSERT_EQ(access(random_dir.c_str(), F_OK), -1);
+
+    mgr->m_directory = random_dir;
+    mgr->m_pathEventMap.clear();
+
+    // This should return immediately (not hang)
+    mgr->runPathMonitor();
+}
+
 
