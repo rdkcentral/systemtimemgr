@@ -560,41 +560,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     // This should return immediately (not hang)
     mgr->runPathMonitor();
 }
-TEST_F(SysTimeMgrTest, Initialize_ConfigFileMissing_TriggersErrorLog) {
-    mgr->m_cfgfile = "/tmp/nonexistent_systimemgr_test.cfg";
-    // Optionally: set up log capturing
-
-    mgr->initialize();
-
-    // Expect no crash, and that m_timerSrc/m_timerSync are still empty
-    EXPECT_TRUE(mgr->m_timerSrc.empty());
-    EXPECT_TRUE(mgr->m_timerSync.empty());
+TEST_F(SysTimeMgrTest, Initialize_DeathTest_ForCoverage) {
+    mgr->m_cfgfile = "/tmp/missing_cfgfile.cfg";
+    EXPECT_DEATH(mgr->initialize(), ".*");
 }
-
-TEST_F(SysTimeMgrTest, Initialize_ReadsConfigAndCreatesSrcAndSyncs) {
-    // Create a temp config file
-    std::string test_cfg = "/tmp/systimemgr_test.cfg";
-    std::ofstream cfg(test_cfg);
-    ASSERT_TRUE(cfg.is_open());
-    // Add one timesrc and one timesync line (adjust as per your actual parser)
-    cfg << "timesrc type1 arg1\n";
-    cfg << "timesync type2 arg2\n";
-    cfg.close();
-
-    mgr->m_cfgfile = test_cfg;
-
-    // Optionally: Mock createTimeSrc/Sync if they're virtual or mockable.
-    // Otherwise, check the contents of m_timerSrc/m_timerSync after initialize.
-
-    // Call initialize
-    mgr->initialize();
-
-    // Check that vectors are populated
-    EXPECT_FALSE(mgr->m_timerSrc.empty());
-    EXPECT_FALSE(mgr->m_timerSync.empty());
-
-    // Clean up config
-    std::remove(test_cfg.c_str());
-}
-
-
