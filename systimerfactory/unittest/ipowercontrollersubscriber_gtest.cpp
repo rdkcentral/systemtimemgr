@@ -80,12 +80,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 
 
 
-static int testHandler(void* status) {
-    handlerCalled = true;
-    std::string* str = static_cast<std::string*>(status);
-    EXPECT_EQ(*str, "DEEP_SLEEP_ON"); // or whatever value you expect
-    return 0;
-}
+
 
 
 
