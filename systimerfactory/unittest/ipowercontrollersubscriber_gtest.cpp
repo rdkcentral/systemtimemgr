@@ -188,6 +188,7 @@ public:
     using IpowerControllerSubscriber::m_pwrEvtQueue;
     using IpowerControllerSubscriber::m_pwrEvtQueueLock;
     using IpowerControllerSubscriber::m_pwrEvtCondVar;
+    using IpowerControllerSubscriber::m_sysTimeMgrPwrEvtHandlerThread; 
 
     size_t queueSize() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
@@ -200,6 +201,15 @@ public:
     void clearQueue() {
         std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
         m_pwrEvtQueue = std::queue<SysTimeMgr_Power_Event_State_t>();
+    }
+
+    
+    bool isThreadJoinable() {
+        return m_sysTimeMgrPwrEvtHandlerThread.joinable();
+    }
+    void joinThreadIfRunning() {
+        if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
+            m_sysTimeMgrPwrEvtHandlerThread.join();
     }
 };
 
@@ -232,17 +242,6 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 
 }
 
-class TestableSubscriber : public IpowerControllerSubscriber {
-public:
-    using IpowerControllerSubscriber::IpowerControllerSubscriber;
-    bool isThreadJoinable() {
-        return m_sysTimeMgrPwrEvtHandlerThread.joinable();
-    }
-    void joinThreadIfRunning() {
-        if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
-            m_sysTimeMgrPwrEvtHandlerThread.join();
-    }
-};
 
 
 TEST_F(IpowerControllerSubscriberTest, SysTimeMgrInitPwrEvt_StartsThreadSuccessfully) {
