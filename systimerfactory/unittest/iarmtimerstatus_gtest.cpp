@@ -110,3 +110,4 @@ TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_ReturnsTrueOnFail
         .WillOnce(Return(IARM_RESULT_INVALID_STATE)); 
     bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
     EXPECT_TRUE(result);
+}
