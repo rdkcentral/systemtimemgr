@@ -198,14 +198,10 @@ public:
 
 TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAndSignals) {
     TestableSubscriber subscriber("test_subscriber");
+    // If you need to set the singleton, do so here (adjust as needed for your codebase)
     IarmSubscriber::instance = &subscriber;
 
-    // Clear queue before test
-    {
-        std::lock_guard<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
-        std::queue<std::pair<PowerController_PowerState_t, PowerController_PowerState_t>> empty;
-        std::swap(subscriber.m_pwrEvtQueue, empty);
-    }
+    subscriber.clearQueue();
 
     std::atomic<bool> signaled{false};
     std::thread waiter([&]() {
@@ -223,9 +219,9 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
     waiter.join();
 
     EXPECT_EQ(subscriber.queueSize(), 1u);
-    auto front = subscriber.queueFront();
-    EXPECT_EQ(front.first, curr);
-    EXPECT_EQ(front.second, next);
+    SysTimeMgr_Power_Event_State_t front = subscriber.queueFront();
+    EXPECT_EQ(front.currentState, curr);
+    EXPECT_EQ(front.newState, next);
 
     EXPECT_TRUE(signaled);
 
