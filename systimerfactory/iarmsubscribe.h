@@ -28,7 +28,11 @@
 using namespace std;
 class IarmSubscriber:public ISubscribe
 {
-	private:
+	#ifdef GTEST_ENABLE
+        public:
+        #else
+        private:
+        #endif
 		static IarmSubscriber* pInstance;
 
 	public:
