@@ -94,3 +94,17 @@ TEST(RdkDefaultTimeSyncTest, updateTimeWithExistingTime) {
     time_t expectedTime = updatedTime + 10 * 60;
     EXPECT_GT(expectedTime, C_TIME);
 }
+TEST(RdkDefaultTimeSyncTest, updateTimeWithOlderTimeIncrementsBy10Minutes) {
+    // Arrange
+    RdkDefaultTimeSync rdkDefaultTimeSync("/tmp/clock.txt");
+    // Step 1: set a large time
+    rdkDefaultTimeSync.updateTime(1640995200); // Jan 1, 2022 00:00:00
+    long long afterFirst = rdkDefaultTimeSync.getTime();
+
+    // Step 2: update with an older time (smaller value)
+    rdkDefaultTimeSync.updateTime(1640990000); // Dec 31, 2021 22:33:20
+
+    // Step 3: check that current time is incremented by 10*60 (600) from afterFirst
+    long long afterSecond = rdkDefaultTimeSync.getTime();
+    EXPECT_EQ(afterSecond, afterFirst + 600);
+}
