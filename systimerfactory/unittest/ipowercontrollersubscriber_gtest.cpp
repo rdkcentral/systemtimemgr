@@ -205,9 +205,6 @@ public:
 
 TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAndSignals) {
     TestableSubscriber subscriber("test_subscriber");
-    // If you need singleton, set here (adjust for your codebase)
-    // e.g., IarmSubscriber::setInstance(&subscriber);
-
     subscriber.clearQueue();
 
     std::atomic<bool> signaled{false};
@@ -233,6 +230,31 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 
     EXPECT_TRUE(signaled);
 
-    // Reset singleton if you set it above
-    // IarmSubscriber::setInstance(nullptr);
+}
+
+class TestableSubscriber : public IpowerControllerSubscriber {
+public:
+    using IpowerControllerSubscriber::IpowerControllerSubscriber;
+    bool isThreadJoinable() {
+        return m_sysTimeMgrPwrEvtHandlerThread.joinable();
+    }
+    void joinThreadIfRunning() {
+        if (m_sysTimeMgrPwrEvtHandlerThread.joinable())
+            m_sysTimeMgrPwrEvtHandlerThread.join();
+    }
+};
+
+
+TEST_F(IpowerControllerSubscriberTest, SysTimeMgrInitPwrEvt_StartsThreadSuccessfully) {
+    TestableSubscriber subscriber("test_subscriber");
+    // The thread should NOT be joinable before initialization
+    EXPECT_FALSE(subscriber.isThreadJoinable());
+
+    subscriber.sysTimeMgrInitPwrEvt();
+
+    // After initialization, the thread should be joinable
+    EXPECT_TRUE(subscriber.isThreadJoinable());
+
+    // Clean up the thread to avoid std::terminate on destruction
+    subscriber.joinThreadIfRunning();
 }
