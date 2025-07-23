@@ -561,14 +561,6 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
 
 
 
-ITimeSrc* createTimeSrc(std::string type, std::string args) {
-    static MockTimeSrc* mockSrc = new MockTimeSrc();
-    return mockSrc;
-}
-ITimeSync* createTimeSync(std::string type, std::string args) {
-    static MockTimeSync* mockSync = new MockTimeSync();
-    return mockSync;
-}
 
 TEST(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
     // Arrange: Write a config file for initialize() to parse
