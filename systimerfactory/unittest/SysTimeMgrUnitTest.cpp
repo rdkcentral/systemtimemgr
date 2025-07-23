@@ -558,7 +558,6 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     // This should return immediately (not hang)
     mgr->runPathMonitor();
 }
-// Helper function to create a temporary config file
 std::string createTempConfigFile(const std::string& content) {
     std::string filename = "/tmp/test_systimemgr_cfg_" + std::to_string(rand()) + ".cfg";
     std::ofstream ofs(filename);
@@ -568,28 +567,35 @@ std::string createTempConfigFile(const std::string& content) {
 }
 
 TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
-    // Prepare config file with timesrc and timesync entries
-    std::string cfg_content = "timesrc regular /clock.txt\n"
-                              "timesync test /clock1.txt\n";
+    // 1. Prepare config file
+    std::string cfg_content =
+        "timesrc regular /clock.txt\n"
+        "timesync test /clock1.txt\n";
     std::string cfg_path = createTempConfigFile(cfg_content);
 
+    // 2. Set up the SysTimeMgr for test
     mgr->m_cfgfile = cfg_path;
     mgr->m_directory = "/tmp/";
 
-    // Call initialize and expect no exceptions/errors
+    // 3. Clear any existing state
+    mgr->m_timerSrc.clear();
+    mgr->m_timerSync.clear();
+    mgr->m_pathEventMap.clear();
+
+    // 4. Call initialize
     mgr->initialize();
 
-    // Ensure that m_timerSrc and m_timerSync are populated
-    ASSERT_FALSE(mgr->m_timerSrc.empty());
-    ASSERT_FALSE(mgr->m_timerSync.empty());
+    // 5. Check that sources and syncs are populated
+    ASSERT_FALSE(mgr->m_timerSrc.empty()) << "m_timerSrc should not be empty";
+    ASSERT_FALSE(mgr->m_timerSync.empty()) << "m_timerSync should not be empty";
 
-    // Check that path event map is initialized
+    // 6. Check the path event map is initialized
     ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
 
-    // Clean up
+    // 7. Clean up
     std::remove(cfg_path.c_str());
 }
 
