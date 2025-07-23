@@ -85,7 +85,7 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-#if defined(GTEST_ENABLE)
+#ifdef GTEST_ENABLE
 public: // Make these public when GTEST_ENABLE is defined
 #else
 private: // Keep these private for production builds

@@ -96,11 +96,6 @@ if [ "$ENABLE_COV" = true ]; then
     lcov --remove systimer_coverage.info '/__w/systemtimemgr/systemtimemgr/systimerfactory/unittest/*' --output-file processed_coverage.info
     lcov --extract processed_coverage.info '*.cpp' --output-file coverage.info
     lcov --list coverage.info
-
-    #lcov --capture --directory . --output-file coverage.info
-    #lcov --remove coverage.info '/usr/*' --output-file coverage.info
-    #lcov --remove coverage.info './systimerfactory/unittest/*' --output-file coverage.info
-    #lcov --list coverage.info
 fi
 
 cd "$TOP_DIR" # Use double quotes for robust path handling

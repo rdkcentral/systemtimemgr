@@ -31,7 +31,7 @@ COMMON_CXXFLAGS = -frtti -std=c++14
 
 AM_CFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
 AM_CXXFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
-AM_LDFLAGS = -fprofile-arcs -ftest-coverage # Linker flags might also need them
+AM_LDFLAGS = -fprofile-arcs -ftest-coverage 
 
 # Define the source files
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 

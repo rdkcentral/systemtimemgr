@@ -151,16 +151,12 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_UnrelatedEventId_DoesNothing) 
     EXPECT_TRUE(gReceivedStatus.empty());
 }
 
-TEST_F(IarmPowerSubscriberTest, PowerEventHandler_NullSingleton_InstancePathCovered) {
-    // Set singleton to nullptr to simulate error branch
+TEST_F(IarmPowerSubscriberTest, PowerEventHandler_NullSingleton_InstancePathCovered) 
+{
     IarmSubscriber::pInstance = nullptr;
-
-    // Create a valid event
     IARM_Bus_PWRMgr_EventData_t evt {};
     evt.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
     evt.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
-
-    // This should now hit the error branch (instance is nullptr)
     IarmPowerSubscriber::powereventHandler(
         IARM_BUS_PWRMGR_NAME, 
         IARM_BUS_PWRMGR_EVENT_MODECHANGED, 
@@ -168,6 +164,4 @@ TEST_F(IarmPowerSubscriberTest, PowerEventHandler_NullSingleton_InstancePathCove
         sizeof(evt)
     );
 
-    // Optional: If you want, you can assert that no crash happened or check logs.
-    // There is no crash if the test passes.
 }

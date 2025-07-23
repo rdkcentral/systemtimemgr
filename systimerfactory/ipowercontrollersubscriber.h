@@ -46,7 +46,7 @@ typedef struct SysTimeMgr_Power_Event_State{
 
 class IpowerControllerSubscriber:public IarmSubscriber
 {
-        #if defined(GTEST_ENABLE)
+        #ifdef GTEST_ENABLE
            public: // Make these public when GTEST_ENABLE is defined
         #else
            private: // Keep these private for production builds
