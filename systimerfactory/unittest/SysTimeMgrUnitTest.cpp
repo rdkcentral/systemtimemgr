@@ -518,3 +518,28 @@ TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
     remove(testfile.c_str());
     rmdir(temp_test_dir.c_str());
 }
+
+TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
+    mgr->m_directory = "/nonexistentdir";
+    mgr->m_pathEventMap.clear();
+    mgr->runPathMonitor(); // Should return after logging error
+}
+
+TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
+    temp_test_dir = "/tmp/systimemgr_test_tmp2";
+    mkdir(temp_test_dir.c_str(), 0777);
+    mgr->m_directory = temp_test_dir;
+    std::string fname = "ntp";
+    mgr->m_pathEventMap[fname] = SOME_EVENT; // Use a real event if you have one
+    std::ofstream((temp_test_dir + "/" + fname)).close();
+
+    // Optionally: Mock sendMessage and expect it to be called
+
+    mgr->runPathMonitor();
+
+    // Cleanup
+    remove((temp_test_dir + "/" + fname).c_str());
+    rmdir(temp_test_dir.c_str());
+}
+
+
