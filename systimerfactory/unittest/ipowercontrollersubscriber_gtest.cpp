@@ -79,7 +79,7 @@ TEST_F(IpowerControllerSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) 
 }
 
 
-/*static bool handlerCalled = false;
+
 static int testHandler(void* status) {
     handlerCalled = true;
     std::string* str = static_cast<std::string*>(status);
@@ -87,20 +87,7 @@ static int testHandler(void* status) {
     return 0;
 }
 
-TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_DeepSleepOn) {
-    IpowerControllerSubscriber subscriber("sub");
 
-    // Directly set the private member since you can access it
-    subscriber.m_powerHandler = testHandler;
-
-    // If your test is in the same translation unit and m_powerHandler is accessible, this will work
-    handlerCalled = false;
-   // IarmSubscriber::instance = &subscriber; // If needed for getInstance() logic
-
-    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
-
-    EXPECT_TRUE(handlerCalled);
-}*/
 
 static bool handlerCalled = false;
 static int testHandler(void* status) {
@@ -187,21 +174,7 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashO
     // No subscribe called, just construction and destruction
 }
 
-/*TEST_F(IpowerControllerSubscriberTest, Subscribe_CalledTwice_SecondCallHandledGracefully) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
-    // Set up mocks for two subscribe calls
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(::testing::AtLeast(2));
-    EXPECT_CALL(mockPowerController, PowerController_Connect()).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).Times(2).WillRepeatedly(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
 
-    // First subscribe
-    bool first = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-    // Second subscribe
-    bool second = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
-
-    EXPECT_TRUE(first);
-    EXPECT_TRUE(second);
-}*/
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash) {
     IpowerControllerSubscriber subscriber("test_subscriber");
