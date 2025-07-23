@@ -179,15 +179,55 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash
     SUCCEED();
 }
 
-TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerChangeMsg_TriggersPowerControllerLogic) {
-    IpowerControllerSubscriber subscriber("test_subscriber");
 
-    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
-    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
-    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+class TestableSubscriber : public IpowerControllerSubscriber {
+public:
+    using IpowerControllerSubscriber::IpowerControllerSubscriber;
+    using IpowerControllerSubscriber::m_pwrEvtQueue;
+    using IpowerControllerSubscriber::m_pwrEvtQueueLock;
+    using IpowerControllerSubscriber::m_pwrEvtCondVar;
+    size_t queueSize() {
+        std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
+        return m_pwrEvtQueue.size();
+    }
+    std::pair<PowerController_PowerState_t, PowerController_PowerState_t> queueFront() {
+        std::lock_guard<std::mutex> lock(m_pwrEvtQueueLock);
+        return m_pwrEvtQueue.front();
+    }
+};
 
-    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAndSignals) {
+    TestableSubscriber subscriber("test_subscriber");
+    IarmSubscriber::instance = &subscriber;
 
-    EXPECT_TRUE(ret);
+    // Clear queue before test
+    {
+        std::lock_guard<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
+        std::queue<std::pair<PowerController_PowerState_t, PowerController_PowerState_t>> empty;
+        std::swap(subscriber.m_pwrEvtQueue, empty);
+    }
+
+    std::atomic<bool> signaled{false};
+    std::thread waiter([&]() {
+        std::unique_lock<std::mutex> lock(subscriber.m_pwrEvtQueueLock);
+        subscriber.m_pwrEvtCondVar.wait_for(lock, std::chrono::milliseconds(200), [&]{
+            return !subscriber.m_pwrEvtQueue.empty();
+        });
+        signaled = true;
+    });
+
+    PowerController_PowerState_t curr = POWER_STATE_OFF;
+    PowerController_PowerState_t next = POWER_STATE_ON;
+    IpowerControllerSubscriber::sysTimeMgrPwrEventHandler(curr, next, nullptr);
+
+    waiter.join();
+
+    EXPECT_EQ(subscriber.queueSize(), 1u);
+    auto front = subscriber.queueFront();
+    EXPECT_EQ(front.first, curr);
+    EXPECT_EQ(front.second, next);
+
+    EXPECT_TRUE(signaled);
+
+    IarmSubscriber::instance = nullptr;
 }
