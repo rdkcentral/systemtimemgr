@@ -561,47 +561,17 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
 
 
 
-// Specialized fixture for initialize tests
-class SysTimeMgrInitializeTest : public ::testing::Test {
-protected:
-    class TestableSysTimeMgr : public SysTimeMgr {
-    public:
-        MockTimeSrc* mockTimeSrc = nullptr;
-        MockTimeSync* mockTimeSync = nullptr;
-        ITimeSrc* createTimeSrc(const std::string&, const std::string&) override {
-            return mockTimeSrc ? mockTimeSrc : new MockTimeSrc();
-        }
-        ITimeSync* createTimeSync(const std::string&, const std::string&) override {
-            return mockTimeSync ? mockTimeSync : new MockTimeSync();
-        }
-    };
+ITimeSrc* createTimeSrc(std::string type, std::string args) {
+    static MockTimeSrc* mockSrc = new MockTimeSrc();
+    return mockSrc;
+}
+ITimeSync* createTimeSync(std::string type, std::string args) {
+    static MockTimeSync* mockSync = new MockTimeSync();
+    return mockSync;
+}
 
-    TestableSysTimeMgr* mgr;
-    MockTimeSrc* mockTimeSrc;
-    MockTimeSync* mockTimeSync;
-
-    void SetUp() override {
-        mgr = new TestableSysTimeMgr();
-        mockTimeSrc = new MockTimeSrc();
-        mockTimeSync = new MockTimeSync();
-        mgr->mockTimeSrc = mockTimeSrc;
-        mgr->mockTimeSync = mockTimeSync;
-        mgr->m_timerSrc.clear();
-        mgr->m_timerSync.clear();
-        mgr->m_pathEventMap.clear();
-    }
-
-    void TearDown() override {
-        mgr->m_timerSrc.clear();
-        mgr->m_timerSync.clear();
-        delete mockTimeSrc;
-        delete mockTimeSync;
-        delete mgr;
-    }
-};
-
-// Example: Only tests using this fixture will get the factory override
-TEST_F(SysTimeMgrInitializeTest, Initialize_ConfigFileOpenSuccess) {
+TEST(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
+    // Arrange: Write a config file for initialize() to parse
     std::string cfg_content =
         "timesrc regular /clock.txt\n"
         "timesync test /clock1.txt\n";
@@ -610,11 +580,19 @@ TEST_F(SysTimeMgrInitializeTest, Initialize_ConfigFileOpenSuccess) {
     ofs << cfg_content;
     ofs.close();
 
+    SysTimeMgr* mgr = SysTimeMgr::get_instance();
     mgr->m_cfgfile = cfg_path;
     mgr->m_directory = "/tmp/";
 
+    // Make sure vectors are clear before init
+    mgr->m_timerSrc.clear();
+    mgr->m_timerSync.clear();
+    mgr->m_pathEventMap.clear();
+
+    // Act: Call initialize (will use your interposed factories!)
     mgr->initialize();
 
+    // Assert: The mocks got added by initialize
     ASSERT_FALSE(mgr->m_timerSrc.empty());
     ASSERT_FALSE(mgr->m_timerSync.empty());
     ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
@@ -622,5 +600,8 @@ TEST_F(SysTimeMgrInitializeTest, Initialize_ConfigFileOpenSuccess) {
     ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
     ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
 
+    // Cleanup
     std::remove(cfg_path.c_str());
+    mgr->m_timerSrc.clear();
+    mgr->m_timerSync.clear();
 }
