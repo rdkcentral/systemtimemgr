@@ -486,10 +486,10 @@ TEST_F(SysTimeMgrTest, GetTimeStatusStaticFunctionWorks) {
 
 TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
     // Arrange: Create a temp dir and file
-    std::string testdir = "/tmp/systimemgr_testdir";
-    mkdir(testdir.c_str(), 0777);
-    mgr->m_directory = testdir;
-    std::string testfile = testdir + "/ntp";
+    temp_test_dir = "/tmp/systimemgr_test_tmp";
+    mkdir(temp_test_dir.c_str(), 0777);
+    mgr->m_directory = temp_test_dir;
+    std::string testfile = temp_test_dir + "/ntp";
     std::ofstream outfile(testfile); outfile << "test"; outfile.close();
 
     // Run path monitor in a thread
@@ -504,5 +504,5 @@ TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
     // Cleanup: Detach and remove files/dirs
     t.detach();
     remove(testfile.c_str());
-    rmdir(testdir.c_str());
+    rmdir(temp_test_dir.c_str());
 }
