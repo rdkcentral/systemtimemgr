@@ -178,3 +178,16 @@ TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash
     subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_UNKNOWN, POWER_STATE_OFF);
     SUCCEED();
 }
+
+TEST_F(IpowerControllerSubscriberTest, Subscribe_PowerChangeMsg_TriggersPowerControllerLogic) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+
+    EXPECT_CALL(mockPowerController, PowerController_Init()).Times(1);
+    EXPECT_CALL(mockPowerController, PowerController_Connect()).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(::testing::_)).WillOnce(::testing::Return(POWER_CONTROLLER_ERROR_NONE));
+
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+
+    EXPECT_TRUE(ret);
+}
