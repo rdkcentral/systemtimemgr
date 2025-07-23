@@ -526,18 +526,22 @@ TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
 }*/
 
 TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
-    temp_test_dir = "/tmp/systimemgr_test_tmp2";
+    std::string temp_test_dir = "/tmp/systimemgr_test_tmp2";
     mkdir(temp_test_dir.c_str(), 0777);
     mgr->m_directory = temp_test_dir;
     std::string fname = "ntp";
-    mgr->m_pathEventMap[fname] = eSYSMGR_EVENT_NTP_AVAILABLE; // Use a real event if you have one
+    mgr->m_pathEventMap[fname] = eSYSMGR_EVENT_NTP_AVAILABLE;
     std::ofstream((temp_test_dir + "/" + fname)).close();
 
-    // Optionally: Mock sendMessage and expect it to be called
+    // Run in a thread to avoid blocking forever
+    std::thread t([&] { mgr->runPathMonitor(); });
 
-    mgr->runPathMonitor();
+    // Wait a short time for startup logic
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
-    // Cleanup
+    // Detach (leak) the thread so test can exit
+    t.detach();
+
     remove((temp_test_dir + "/" + fname).c_str());
     rmdir(temp_test_dir.c_str());
 }
