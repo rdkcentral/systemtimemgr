@@ -562,7 +562,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
 
 
 
-TEST(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
+TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
     // Arrange: Write a config file for initialize() to parse
     std::string cfg_content =
         "timesrc regular /clock.txt\n"
