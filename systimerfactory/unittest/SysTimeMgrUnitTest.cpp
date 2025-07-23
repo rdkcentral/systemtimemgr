@@ -159,6 +159,16 @@ TEST_F(SysTimeMgrTest, UpdateTime_InvokesCheckTime) {
     mgr->updateTime(nullptr);
 }
 
+TEST_F(SysTimeMgrTest, SetInitialTime_FileCreationFails) {
+    // Simulate inability to create file (e.g., unwritable directory)
+    // This assumes you can set the file path in SysTimeMgr for testing
+    mgr->timeFilePath = "/root/forbidden_file"; // Or similar unwritable path
+    EXPECT_CALL(*mockTimeSync, getTime()).WillOnce(Return(12345));
+    mgr->m_timerSync.push_back(mockTimeSync);
+
+    mgr->setInitialTime();
+    // Should log error for file creation, and continue logic
+}
 
 TEST_F(SysTimeMgrTest, RunStateMachineUnknownEvent) {
     mgr->runStateMachine(eSYSMGR_EVENT_UNKNOWN, nullptr);
