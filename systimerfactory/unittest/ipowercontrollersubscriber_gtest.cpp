@@ -244,16 +244,12 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 
 
 
+
+
 TEST_F(IpowerControllerSubscriberTest, SysTimeMgrInitPwrEvt_StartsThreadSuccessfully) {
     TestableSubscriber subscriber("test_subscriber");
-    // The thread should NOT be joinable before initialization
     EXPECT_FALSE(subscriber.isThreadJoinable());
-
     subscriber.sysTimeMgrInitPwrEvt();
-
-    // After initialization, the thread should be joinable
     EXPECT_TRUE(subscriber.isThreadJoinable());
-
-    // Clean up the thread to avoid std::terminate on destruction
-    subscriber.joinThreadIfRunning();
+    // Do NOT join the thread, or your test will hang!
 }
