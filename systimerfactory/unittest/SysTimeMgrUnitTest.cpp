@@ -530,7 +530,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
     mkdir(temp_test_dir.c_str(), 0777);
     mgr->m_directory = temp_test_dir;
     std::string fname = "ntp";
-    mgr->m_pathEventMap[fname] = SOME_EVENT; // Use a real event if you have one
+    mgr->m_pathEventMap[fname] = eSYSMGR_EVENT_NTP_AVAILABLE; // Use a real event if you have one
     std::ofstream((temp_test_dir + "/" + fname)).close();
 
     // Optionally: Mock sendMessage and expect it to be called
