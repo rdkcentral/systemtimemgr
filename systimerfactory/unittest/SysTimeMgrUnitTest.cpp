@@ -558,5 +558,52 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     // This should return immediately (not hang)
     mgr->runPathMonitor();
 }
+// Helper function to create a temporary config file
+std::string createTempConfigFile(const std::string& content) {
+    std::string filename = "/tmp/test_systimemgr_cfg_" + std::to_string(rand()) + ".cfg";
+    std::ofstream ofs(filename);
+    ofs << content;
+    ofs.close();
+    return filename;
+}
 
+TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenSuccess) {
+    // Prepare config file with timesrc and timesync entries
+    std::string cfg_content = "timesrc regular /clock.txt\n"
+                              "timesync test /clock1.txt\n";
+    std::string cfg_path = createTempConfigFile(cfg_content);
+
+    mgr->m_cfgfile = cfg_path;
+    mgr->m_directory = "/tmp/";
+
+    // Call initialize and expect no exceptions/errors
+    mgr->initialize();
+
+    // Ensure that m_timerSrc and m_timerSync are populated
+    ASSERT_FALSE(mgr->m_timerSrc.empty());
+    ASSERT_FALSE(mgr->m_timerSync.empty());
+
+    // Check that path event map is initialized
+    ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
+
+    // Clean up
+    std::remove(cfg_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_ConfigFileOpenFail) {
+    // Point to a non-existent config file
+    mgr->m_cfgfile = "/tmp/definitely_does_not_exist_" + std::to_string(rand()) + ".cfg";
+
+    // Call initialize and expect degraded mode (should not throw or crash)
+    mgr->initialize();
+
+    // Check that path event map is still initialized
+    ASSERT_EQ(mgr->m_pathEventMap["ntp"], eSYSMGR_EVENT_NTP_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["stt"], eSYSMGR_EVENT_NTP_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["drm"], eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    ASSERT_EQ(mgr->m_pathEventMap["dtt"], eSYSMGR_EVENT_DTT_TIME_AVAILABLE);
+}
 
