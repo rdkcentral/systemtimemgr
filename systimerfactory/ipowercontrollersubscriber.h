@@ -68,6 +68,15 @@ class IpowerControllerSubscriber:public IarmSubscriber
 		void sysTimeMgrInitPwrEvt(void);
 		void sysTimeMgrDeinitPwrEvt(void);
 		~IpowerControllerSubscriber();
+
+
+#ifdef GTEST_ENABLE 
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_DeepSleepOn_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_DeepSleepOff_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_UnknownNewState_LogsError_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_NoHandler_DoesNotCrash_Test;
+    friend class TestableSubscriber; 
+#endif
 };
 
 
