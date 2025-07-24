@@ -146,8 +146,23 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashO
     IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
     delete subscriber;
 }
+
+class TestableSubscriberNoThread : public IpowerControllerSubscriber {
+public:
+    TestableSubscriberNoThread(const std::string& name)
+        : IpowerControllerSubscriber(name) 
+    {
+        // forcibly detach or replace the thread object with a dummy
+        if (m_sysTimeMgrPwrEvtHandlerThread.joinable()) {
+            m_sysTimeMgrPwrEvtHandlerThread.detach(); // Avoid join hang
+        }
+    }
+    ~TestableSubscriberNoThread() {
+        // nothing
+    }
+};
 TEST_F(IpowerControllerSubscriberTest, Destructor_UnregisterCallbackFails_PathCovered) {
-    IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
+    IpowerControllerSubscriber* subscriber = new TestableSubscriberNoThread("test_subscriber");
     EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(0));
     EXPECT_CALL(mockPowerController, PowerController_Term());
     EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(::testing::_)).WillOnce(::testing::Return(1)); 
