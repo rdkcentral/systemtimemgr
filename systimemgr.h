@@ -36,7 +36,12 @@
 #include "itimermsg.h"
 #include <memory>
 
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
 
+void t2CountNotify(char *marker, int val);
+void t2ValNotify(char *marker, char *val);
+#endif
 
 using namespace std;
 typedef enum 
@@ -80,7 +85,11 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-private:
+#ifdef GTEST_ENABLE
+public: // Make these public when GTEST_ENABLE is defined
+#else
+private: // Keep these private for production builds
+#endif
 	typedef void (SysTimeMgr::*memfunc)(void* args);
 	map<sysTimeMgrState,map<sysTimeMgrEvent,memfunc> > stateMachine;
 	map<string,sysTimeMgrEvent> m_pathEventMap;
@@ -90,8 +99,12 @@ private:
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
 	string m_timersrc;
-
-	const string m_directory = "/tmp/systimemgr";
+        #ifdef GTEST_ENABLE
+              std::string m_directory = "/tmp/systimemgr";
+        #else
+              const string m_directory = "/tmp/systimemgr";
+        #endif
+	
 
         vector<ITimeSrc*> m_timerSrc;
 	vector<ITimeSync*> m_timerSync;
@@ -123,7 +136,7 @@ private:
         static recursive_mutex g_state_mutex;
         static mutex g_instance_mutex;
         static SysTimeMgr* pInstance;
-        
+
 
         // LIstening socket and its related addresses etc.
 public:

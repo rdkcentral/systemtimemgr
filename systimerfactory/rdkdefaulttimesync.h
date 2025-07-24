@@ -25,11 +25,16 @@
 #include <string>
 #include <map>
 
+
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
-{
-	private:
-		string m_path;
+{     
+      #ifdef GTEST_ENABLE
+      public:
+      #else
+      private:
+      #endif
+                string m_path;
                 long long m_currentTime;
                 map<string, string> tokenize(string const& s,string token);
                 long long buildtime();

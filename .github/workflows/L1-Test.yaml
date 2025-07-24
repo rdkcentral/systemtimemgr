@@ -25,4 +25,5 @@ jobs:
       - name: Upload test results to automatic test result management system
         if: github.repository_owner == 'rdkcentral'
         run: |
-          gtest-json-result-push.py /tmp/Gtest_Report https://rdkeorchestrationservice.apps.cloud.comcast.net/rdke_orchestration_api/push_unit_test_results `pwd`
+          # Point the script to the directory containing all XML reports
+          gtest-json-result-push.py /tmp/gtest_reports/ https://rdkeorchestrationservice.apps.cloud.comcast.net/rdke_orchestration_api/push_unit_test_results `pwd`

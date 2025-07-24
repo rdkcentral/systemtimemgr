@@ -46,7 +46,11 @@ typedef struct SysTimeMgr_Power_Event_State{
 
 class IpowerControllerSubscriber:public IarmSubscriber
 {
-	private:
+        #ifdef GTEST_ENABLE
+           public: // Make these public when GTEST_ENABLE is defined
+        #else
+           private: // Keep these private for production builds
+        #endif
 		funcPtr m_powerHandler;
 		std::queue<SysTimeMgr_Power_Event_State_t> m_pwrEvtQueue;
 		std::mutex m_pwrEvtQueueLock;
