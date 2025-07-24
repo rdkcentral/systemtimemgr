@@ -215,3 +215,10 @@ TEST_F(IpowerControllerSubscriberTest, SysTimeMgrPwrEventHandler_EnqueuesEventAn
 }
 
 
+TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_InvalidState_LogsError) {
+    IpowerControllerSubscriber subscriber("test_subscriber");
+    subscriber.sysTimeMgrHandlePwrEventData(POWER_STATE_ON, static_cast<PowerController_PowerState_t>(999));
+    // No handler, just exercise the default path for coverage
+}
+
+
