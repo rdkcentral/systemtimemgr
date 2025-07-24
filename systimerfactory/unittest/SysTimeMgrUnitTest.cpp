@@ -67,6 +67,7 @@ protected:
 
         mgr->m_timerSrc.clear();
 	mgr->m_timerSync.clear();
+        mgr->m_publish = mockPublish;
         mgr->m_subscriber = mockSubscribe;
         mgr->m_tmrsubscriber = mockSubscribe;
         mgr->m_pathEventMap.clear();
