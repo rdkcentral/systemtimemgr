@@ -146,6 +146,15 @@ TEST_F(IpowerControllerSubscriberTest, Destructor_WithoutSubscribe_DoesNotCrashO
     IpowerControllerSubscriber* subscriber = new IpowerControllerSubscriber("test_subscriber");
     delete subscriber;
 }
+TEST_F(IpowerControllerSubscriberTest, Destructor_UnregisterCallbackFails_PathCovered) {
+    IpowerControllerSubscriber* subscriber("test_subscriber");
+    EXPECT_CALL(mockPowerController, PowerController_RegisterPowerModeChangedCallback(::testing::_, ::testing::_)).WillOnce(::testing::Return(0));
+    EXPECT_CALL(mockPowerController, PowerController_Term());
+    EXPECT_CALL(mockPowerController, PowerController_UnRegisterPowerModeChangedCallback(::testing::_)).WillOnce(::testing::Return(1)); 
+    bool ret = subscriber.subscribe(POWER_CHANGE_MSG, nullptr);
+    EXPECT_TRUE(ret);
+    delete subscriber;
+}
 
 TEST_F(IpowerControllerSubscriberTest, HandlePwrEventData_NoHandler_DoesNotCrash) {
     IpowerControllerSubscriber subscriber("test_subscriber");
