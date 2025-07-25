@@ -85,11 +85,7 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-#ifdef GTEST_ENABLE
-public: // Make these public when GTEST_ENABLE is defined
-#else
-private: // Keep these private for production builds
-#endif
+private: 
 	typedef void (SysTimeMgr::*memfunc)(void* args);
 	map<sysTimeMgrState,map<sysTimeMgrEvent,memfunc> > stateMachine;
 	map<string,sysTimeMgrEvent> m_pathEventMap;
@@ -99,11 +95,7 @@ private: // Keep these private for production builds
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
 	string m_timersrc;
-        #ifdef GTEST_ENABLE
-              std::string m_directory = "/tmp/systimemgr";
-        #else
-              const string m_directory = "/tmp/systimemgr";
-        #endif
+        const string m_directory = "/tmp/systimemgr";
 	
 
         vector<ITimeSrc*> m_timerSrc;
