@@ -39,6 +39,10 @@ class RdkDefaultTimeSync: public ITimeSync
 		~RdkDefaultTimeSync(){}
 		virtual void  updateTime(long long locTime); 
 		virtual long long getTime(); 
+
+#ifdef GTEST_ENABLE 
+friend class RdkDefaultTimeSyncTest_tokenizeBreakCoverage_Test;
+#endif
 };
 
 #endif// _RDKDEFAULTTIMESYNC_H_
