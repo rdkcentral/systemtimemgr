@@ -85,7 +85,7 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-private:
+private: 
 	typedef void (SysTimeMgr::*memfunc)(void* args);
 	map<sysTimeMgrState,map<sysTimeMgrEvent,memfunc> > stateMachine;
 	map<string,sysTimeMgrEvent> m_pathEventMap;
@@ -96,7 +96,8 @@ private:
 	qualityOfTime m_timequality;
 	string m_timersrc;
 
-	const string m_directory = "/tmp/systimemgr";
+        const string m_directory = "/tmp/systimemgr";
+	
 
         vector<ITimeSrc*> m_timerSrc;
 	vector<ITimeSync*> m_timerSync;
@@ -159,6 +160,10 @@ public:
 	static int powerhandler(void* args);
 	void deepsleepon();
 	void deepsleepoff();
+
+#ifdef GTEST_ENABLE 
+friend class SysTimeMgrTest;
+#endif
 
 };
 

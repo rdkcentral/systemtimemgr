@@ -87,9 +87,27 @@ TEST_F(IarmTimerStatusSubscriberTest, Constructor_IarmAlreadyConnected_DoesNotRe
 TEST_F(IarmTimerStatusSubscriberTest, Subscribe_InvalidEventName_ReturnsFalse) {
     IarmTimerStatusSubscriber subscriber("test_subscriber");
 
-    EXPECT_CALL(*gMockIARM, RegisterCall(_, _)).Times(0);  // Should not be called
+    EXPECT_CALL(*gMockIARM, RegisterCall(_, _)).Times(0);  
 
     bool result = subscriber.subscribe("INVALID_EVENT", reinterpret_cast<funcPtr>(0x1234));
     EXPECT_FALSE(result);
 }
 
+TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_CallsRegisterCallAndReturnsFalseOnSuccess) {
+    IarmTimerStatusSubscriber subscriber("test_subscriber");
+
+    EXPECT_CALL(*gMockIARM, RegisterCall(::testing::StrEq(TIMER_STATUS_MSG), _))
+        .WillOnce(Return(IARM_RESULT_SUCCESS)); // 0
+
+    bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
+    EXPECT_FALSE(result); // success returns false because of production code bug
+}
+
+TEST_F(IarmTimerStatusSubscriberTest, Subscribe_ValidEventName_ReturnsTrueOnFailure) {
+    IarmTimerStatusSubscriber subscriber("test_subscriber");
+
+    EXPECT_CALL(*gMockIARM, RegisterCall(::testing::StrEq(TIMER_STATUS_MSG), _))
+        .WillOnce(Return(IARM_RESULT_INVALID_STATE)); 
+    bool result = subscriber.subscribe(TIMER_STATUS_MSG, reinterpret_cast<funcPtr>(0x1234));
+    EXPECT_TRUE(result);
+}

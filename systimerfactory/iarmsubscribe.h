@@ -28,13 +28,18 @@
 using namespace std;
 class IarmSubscriber:public ISubscribe
 {
-	private:
+        private:
 		static IarmSubscriber* pInstance;
 
 	public:
 		IarmSubscriber(string sub);
 		static IarmSubscriber* getInstance() { return pInstance;}
 		virtual bool subscribe(string eventname,funcPtr fptr)=0;
+
+#ifdef GTEST_ENABLE 
+friend class IarmPowerSubscriberTest_PowerEventHandler_NullSingleton_InstancePathCovered_Test;
+#endif
+
 };
 
 

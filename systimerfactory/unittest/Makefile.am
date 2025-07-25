@@ -15,7 +15,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
+AUTOMAKE_OPTIONS = subdir-objects
+ACLOCAL_AMFLAGS = -I m4
 # Define the program name and the source files
 bin_PROGRAMS = drmtest_gtest dtttest_gtest rdkDefaulttest_gtest timerfactory_gtest pubsubfactory_gtest ipowercontrollersubscriber_gtest iarmtimerstatus_gtest iarmsubscribe_gtest iarmpublish_gtest iarmpowersubscribe_gtest systimemgr_gtest
 
@@ -28,6 +29,10 @@ COMMON_LDADD = -ljsoncpp -lgtest -lgtest_main -lgmock_main -lgmock -ljsoncpp
 # Define the compiler flags
 COMMON_CXXFLAGS = -frtti -std=c++14
 
+AM_CFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
+AM_CXXFLAGS = -fprofile-arcs -ftest-coverage -O0 -g
+AM_LDFLAGS = -fprofile-arcs -ftest-coverage 
+
 # Define the source files
 drmtest_gtest_SOURCES = drmtimerUnitTest.cpp 
 dtttest_gtest_SOURCES = dtttimerUnitTest.cpp
@@ -39,7 +44,7 @@ iarmtimerstatus_gtest_SOURCES = iarmtimerstatus_gtest.cpp
 iarmsubscribe_gtest_SOURCES = iarmsubscribe_gtest.cpp
 iarmpublish_gtest_SOURCES = iarmpublish_gtest.cpp
 iarmpowersubscribe_gtest_SOURCES = iarmpowersubscribe_gtest.cpp
-systimemgr_gtest_SOURCES =SysTimeMgrUnitTest.cpp
+systimemgr_gtest_SOURCES = SysTimeMgrUnitTest.cpp 
 
 
 # Apply common properties to each program
