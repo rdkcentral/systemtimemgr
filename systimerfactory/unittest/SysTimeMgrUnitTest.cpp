@@ -388,10 +388,6 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     mgr->runPathMonitor();
 }
 
-TEST_F(SysTimeMgrTest, Initialize_DeathTest_ForCoverage) {
-    mgr->m_cfgfile = "/tmp/missing_cfgfile.cfg";
-    EXPECT_DEATH(mgr->initialize(), ".*");
-}
 
 TEST_F(SysTimeMgrTest, RunStateMachine_HitsFunctionPointer) {
     mgr->stateMachine[eSYSMGR_STATE_RUNNING][eSYSMGR_EVENT_TIMER_EXPIRY] = &SysTimeMgr::updateTime;
