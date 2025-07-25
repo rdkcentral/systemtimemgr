@@ -95,6 +95,7 @@ private:
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
 	string m_timersrc;
+
         const string m_directory = "/tmp/systimemgr";
 	
 
@@ -159,6 +160,10 @@ public:
 	static int powerhandler(void* args);
 	void deepsleepon();
 	void deepsleepoff();
+
+#ifdef GTEST_ENABLE 
+friend class SysTimeMgrTest_RunStateMachine_HitsFunctionPointer_Test;
+#endif
 
 };
 
