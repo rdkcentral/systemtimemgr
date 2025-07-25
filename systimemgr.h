@@ -162,7 +162,7 @@ public:
 	void deepsleepoff();
 
 #ifdef GTEST_ENABLE 
-friend class SysTimeMgrUnitTest;
+friend class SysTimeMgrTest;
 #endif
 
 };
