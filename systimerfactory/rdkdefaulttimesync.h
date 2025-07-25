@@ -29,11 +29,7 @@
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
 {     
-      #ifdef GTEST_ENABLE
-      public:
-      #else
       private:
-      #endif
                 string m_path;
                 long long m_currentTime;
                 map<string, string> tokenize(string const& s,string token);
