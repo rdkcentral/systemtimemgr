@@ -195,6 +195,7 @@ friend class SysTimeMgrTest_RunPathMonitorFileExistsAtStartup_Test;
 friend class SysTimeMgrTest_RunPathMonitorInotifyAddWatchFails_Test;
 friend class SysTimeMgrTest_UpdateClockRealTimeSetsTime_Test;
 friend class SysTimeMgrTest_TimerExpiry_RefVsFileTime_Test;
+friend class SysTimeMgrTest_ProcessThrCallsProcessMsgAndRunsOneIteration_Test;
 #endif
 
 };
