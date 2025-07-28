@@ -162,7 +162,7 @@ public:
 	void deepsleepoff();
 
 #ifdef GTEST_ENABLE 
-friend class SysTimeMgrTest;
+friend class SysTimeMgrTest_RunStateMachine_HitsFunctionPointer_Test;
 #endif
 
 };
