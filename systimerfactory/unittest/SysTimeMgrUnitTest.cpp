@@ -352,17 +352,17 @@ TEST_F(SysTimeMgrTest, GetTimeStatusStaticFunctionWorks) {
 }
 
 TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
-    temp_test_dir = "/tmp/systimemgr_test_tmp";
-    mkdir(temp_test_dir.c_str(), 0777);
-  //  mgr->m_directory = temp_test_dir;
-    std::string testfile = temp_test_dir + "/ntp";
+    std::string test_dir = "/tmp/systimemgr";
+    mkdir(test_dir.c_str(), 0777);
+  //  mgr->m_directory = test_dir;
+    std::string testfile = test_dir + "/ntp";
     std::ofstream outfile(testfile); outfile << "test"; outfile.close();
     std::thread t([&]() { mgr->runPathMonitor(); });
     chmod(testfile.c_str(), 0666);
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     t.detach();
     remove(testfile.c_str());
-    rmdir(temp_test_dir.c_str());
+    rmdir(test_dir.c_str());
 }
 
 TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
@@ -382,8 +382,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
 TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     std::string random_dir = "/tmp/definitely_does_not_exist_" + std::to_string(rand());
     ASSERT_EQ(access(random_dir.c_str(), F_OK), -1);
-
-  //  mgr->m_directory = random_dir;
+    //  mgr->m_directory = random_dir;
     mgr->m_pathEventMap.clear();
     mgr->runPathMonitor();
 }
