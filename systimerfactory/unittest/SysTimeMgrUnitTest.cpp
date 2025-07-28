@@ -354,7 +354,7 @@ TEST_F(SysTimeMgrTest, GetTimeStatusStaticFunctionWorks) {
 TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
     temp_test_dir = "/tmp/systimemgr_test_tmp";
     mkdir(temp_test_dir.c_str(), 0777);
-    mgr->m_directory = temp_test_dir;
+  //  mgr->m_directory = temp_test_dir;
     std::string testfile = temp_test_dir + "/ntp";
     std::ofstream outfile(testfile); outfile << "test"; outfile.close();
     std::thread t([&]() { mgr->runPathMonitor(); });
@@ -368,7 +368,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorCoversInotifyEvent) {
 TEST_F(SysTimeMgrTest, RunPathMonitorFileExistsAtStartup) {
     std::string temp_test_dir = "/tmp/systimemgr_test_tmp2";
     mkdir(temp_test_dir.c_str(), 0777);
-    mgr->m_directory = temp_test_dir;
+ // mgr->m_directory = temp_test_dir;
     std::string fname = "ntp";
     mgr->m_pathEventMap[fname] = eSYSMGR_EVENT_NTP_AVAILABLE;
     std::ofstream((temp_test_dir + "/" + fname)).close();
