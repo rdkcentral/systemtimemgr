@@ -163,6 +163,10 @@ public:
 
 #ifdef GTEST_ENABLE 
 friend class SysTimeMgrTest_RunStateMachine_HitsFunctionPointer_Test;
+friend class SysTimeMgrTest_RunPathMonitorFileExistsAtStartup_Test;
+friend class SysTimeMgrTest_RunPathMonitorCoversInotifyEvent_Test;
+friend class SysTimeMgrTest_RunStateMachine_AllStatesEvents_Test;
+friend class SysTimeMgrTest_SetInitialTime_NonZeroTime_Test;
 #endif
 
 };
