@@ -46,7 +46,7 @@ typedef struct SysTimeMgr_Power_Event_State{
 
 class IpowerControllerSubscriber:public IarmSubscriber
 {
-	private:
+           private:
 		funcPtr m_powerHandler;
 		std::queue<SysTimeMgr_Power_Event_State_t> m_pwrEvtQueue;
 		std::mutex m_pwrEvtQueueLock;
@@ -68,6 +68,15 @@ class IpowerControllerSubscriber:public IarmSubscriber
 		void sysTimeMgrInitPwrEvt(void);
 		void sysTimeMgrDeinitPwrEvt(void);
 		~IpowerControllerSubscriber();
+
+
+#ifdef GTEST_ENABLE 
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_DeepSleepOn_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_DeepSleepOff_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_UnknownNewState_LogsError_Test;
+    friend class IpowerControllerSubscriberTest_HandlePwrEventData_NoHandler_DoesNotCrash_Test;
+    friend class TestableSubscriber; 
+#endif
 };
 
 
