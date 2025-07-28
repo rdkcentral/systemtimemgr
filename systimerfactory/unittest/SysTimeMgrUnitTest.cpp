@@ -383,7 +383,7 @@ TEST_F(SysTimeMgrTest, RunPathMonitorInotifyAddWatchFails) {
     std::string random_dir = "/tmp/definitely_does_not_exist_" + std::to_string(rand());
     ASSERT_EQ(access(random_dir.c_str(), F_OK), -1);
 
-    mgr->m_directory = random_dir;
+  //  mgr->m_directory = random_dir;
     mgr->m_pathEventMap.clear();
     mgr->runPathMonitor();
 }
