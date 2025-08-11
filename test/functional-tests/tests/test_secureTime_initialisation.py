@@ -2,7 +2,7 @@
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
 #
-# Copyright 2024 RDK Management
+# Copyright 2018 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,26 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
+from time import sleep
+from helper_functions import *
 
-WORKDIR=`pwd`
+def test_is_systimemgr_running():
+    command_to_check = "pidof sysTimeMgr"
+    result = run_shell_command(command_to_check)
+    assert result != "", "sysTimeMgr process did not start"
 
-apt-get update
-apt-get install -y libjsonrpccpp-dev
+def test_check_systimemgr_log_file():
+    log_file_path = LOG_FILE
+    assert check_file_exists(log_file_path), f"Log File '{log_file_path}' does not exist."
 
-cd $WORKDIR/systimerfactory
-autoreconf -i
-export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_"
-./configure --prefix=${RDKLOGGER_INSTALL_DIR}
-make clean && make && make install
-
-cd $WORKDIR
-export INSTALL_DIR='/usr/local'
-export top_srcdir=`pwd`
-export top_builddir=`pwd`
-
-autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED"
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
-
-./configure --prefix=${INSTALL_DIR} && make && make install
+def test_Initialization():
+    INITIALIZATION_MSG = "Initializing Src and Syncs. Category = timesrc, Type = drm, Args = /drm"
+    assert INITIALIZATION_MSG in grep_sysTimeMgrlogs(INITIALIZATION_MSG)
