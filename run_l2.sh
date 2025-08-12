@@ -63,3 +63,5 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systim
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_securetime_Initialisation.json test/functional-tests/tests/test_secureTime_initialisation.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_secureTime_checkEvent.json test/functional-tests/tests/test_secureTime_checkEvent.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_secureTime_Quality.json test/functional-tests/tests/test_secureTime_quality.py
+
+cat /opt/logs/systimemgr.log.0
