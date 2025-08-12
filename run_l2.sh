@@ -56,6 +56,7 @@ rm -rf /opt/secure/clock.txt
 echo "timesrc drm /drm" >> /etc/systimemgr.conf
 echo "timesync rdkdefault /clock_time" >> /etc/systimemgr.conf
 
+cat /opt/logs/systimemgr.log.0
 echo "$(date +%s)" > /opt/secure/clock.txt
 touch /tmp/systimemgr/drm
 
