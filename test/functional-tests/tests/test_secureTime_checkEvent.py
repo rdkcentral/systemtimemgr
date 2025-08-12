@@ -33,7 +33,7 @@ def test_time_quality():
     assert NOTIFY_PATH in grep_sysTimeMgrlogs(NOTIFY_PATH)
 
 def test_Event_check():
-    FIND_EVENT = "FOUND EVENT = 7"
+    FIND_EVENT = "Event = 7"
     assert FIND_EVENT in grep_sysTimeMgrlogs(FIND_EVENT)
 
 def test_Event_processing():
