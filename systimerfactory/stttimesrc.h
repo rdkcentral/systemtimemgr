@@ -31,7 +31,7 @@ class SttTimeSrc : public ITimeSrc
 
 		long long getTimeSec(){
 			time_t timeinSec = time(NULL);
-                        RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:STT Time in seconds = %d \n",__FUNCTION__,__LINE__,timeinSec);
+                        RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:STT Time in seconds = %ld \n",__FUNCTION__,__LINE__,timeinSec);
 
 			return timeinSec;
 		}
