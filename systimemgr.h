@@ -94,7 +94,6 @@ private:
 
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
-	string m_timersrc;
 
         const string m_directory = "/tmp/systimemgr";
 	
@@ -105,6 +104,7 @@ private:
 	IPublish* m_publish;
         ISubscribe* m_subscriber;
         ISubscribe* m_tmrsubscriber;
+	string m_timersrc;
 
 	//Config file to load plugins.
 	string m_cfgfile;
