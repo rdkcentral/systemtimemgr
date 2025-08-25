@@ -104,7 +104,7 @@ private:
 	IPublish* m_publish;
         ISubscribe* m_subscriber;
         ISubscribe* m_tmrsubscriber;
-	string m_timersrc;
+        string m_timersrc;
 
 	//Config file to load plugins.
 	string m_cfgfile;

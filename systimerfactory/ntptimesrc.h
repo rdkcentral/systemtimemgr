@@ -32,7 +32,11 @@ class NtpTimeSrc : public ITimeSrc
 		long long getTimeSec(){
 			struct ntptimeval tVal; 
 			ntp_gettime(&tVal);
+#if defined(__aarch64__)
 			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:NTP Time Values, MaxValue = %ld, Time in Sec = %ld, Time in Microsec = %ld, Estimated Error = %ld, TAI = %ld \n",__FUNCTION__,__LINE__,tVal.maxerror,tVal.time.tv_sec,tVal.time.tv_usec,tVal.esterror,tVal.tai);
+#else
+                        RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:NTP Time Values, MaxValue = %d, Time in Sec = %d, Time in Microsec = %d, Estimated Error = %d, TAI = %d \n",__FUNCTION__,__LINE__,tVal.maxerror,tVal.time.tv_sec,tVal.time.tv_usec,tVal.esterror,tVal.tai);
+#endif
 
 			return tVal.time.tv_sec;
 		}
