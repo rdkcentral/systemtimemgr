@@ -30,7 +30,7 @@ class IPublish
 	protected:
 		string m_publisher;
 	public:
-		IPublish(string pub):m_publisher(pub) {}
+		IPublish(string pub):m_publisher(std::move(pub)) {}
 		virtual void publish(int event, void* args) = 0;
 };
 

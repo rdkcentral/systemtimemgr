@@ -25,19 +25,24 @@
 #include <string>
 #include <map>
 
+
 using namespace std;
 class RdkDefaultTimeSync: public ITimeSync
-{
-	private:
-		string m_path;
+{     
+      private:
+                string m_path;
                 long long m_currentTime;
                 map<string, string> tokenize(string const& s,string token);
                 long long buildtime();
 	public: 
-		RdkDefaultTimeSync(string path = "/opt/secure/clock.txt"):ITimeSync(),m_path(path),m_currentTime(0) {}
+		RdkDefaultTimeSync(string path = "/opt/secure/clock.txt"):ITimeSync(),m_path(std::move(path)),m_currentTime(0) {}
 		~RdkDefaultTimeSync(){}
 		virtual void  updateTime(long long locTime); 
 		virtual long long getTime(); 
+
+#ifdef GTEST_ENABLE 
+friend class RdkDefaultTimeSyncTest_tokenizeBreakCoverage_Test;
+#endif
 };
 
 #endif// _RDKDEFAULTTIMESYNC_H_

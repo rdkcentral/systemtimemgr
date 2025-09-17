@@ -28,15 +28,18 @@
 using namespace std;
 class IarmSubscriber:public ISubscribe
 {
-	private:
+        private:
 		static IarmSubscriber* pInstance;
-		funcPtr m_powerHandler;
+
 	public:
 		IarmSubscriber(string sub);
-		bool subscribe(string eventname,funcPtr fptr);
 		static IarmSubscriber* getInstance() { return pInstance;}
-		void invokepowerhandler(void* args){ if (m_powerHandler) (*m_powerHandler)(args);}
-		static void powereventHandler(const char *owner, int eventId, void *data, size_t len);
+		virtual bool subscribe(string eventname,funcPtr fptr)=0;
+
+#ifdef GTEST_ENABLE 
+friend class IarmPowerSubscriberTest_PowerEventHandler_NullSingleton_InstancePathCovered_Test;
+#endif
+
 };
 
 

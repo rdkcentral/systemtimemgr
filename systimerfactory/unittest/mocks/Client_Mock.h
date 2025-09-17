@@ -27,6 +27,29 @@
 #include <jsoncpp/json/value.h>
 #include <vector>
 #include <map>
+#include <cstdarg>
+
+class VSecureSystemMock {
+public:
+    MOCK_METHOD(int, call, (const char* format, va_list args));
+};
+
+// Global pointer to the mock (set this in your tests)
+static VSecureSystemMock* globalVSecureSystemMock = nullptr;
+
+// C-style v_secure_system implementation for tests
+extern "C" int v_secure_system(const char* format, ...) {
+    int ret = 0;
+    if (globalVSecureSystemMock) {
+        va_list args;
+        va_start(args, format);
+        ret = globalVSecureSystemMock->call(format, args);
+        va_end(args);
+    } else {
+        ret = 0;
+    }
+    return ret;
+}
 class TestMock{
     public:
         MOCK_METHOD((Json::Value), getReturnValue,() );

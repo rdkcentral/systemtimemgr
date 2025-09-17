@@ -39,7 +39,7 @@ using namespace jsonrpc;
 #ifdef WPEVGDRM_ENABLED
 void dttTimeavailable(const JsonObject& params)
 {
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:DTTTime Notification Received. Value of UTC Time = %d \n",__FUNCTION__,__LINE__,params["timeUtc"].Number());
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:DTTTime Notification Received. Value of UTC Time =  %lld \n",__FUNCTION__,__LINE__,params["timeUtc"].Number());
 
 }
 #endif//WPEVGDRM_ENABLED

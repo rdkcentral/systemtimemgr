@@ -36,7 +36,12 @@
 #include "itimermsg.h"
 #include <memory>
 
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
 
+void t2CountNotify(char *marker, int val);
+void t2ValNotify(char *marker, char *val);
+#endif
 
 using namespace std;
 typedef enum 
@@ -80,7 +85,7 @@ typedef struct sysTimeMsg
 
 class SysTimeMgr
 {
-private:
+private: 
 	typedef void (SysTimeMgr::*memfunc)(void* args);
 	map<sysTimeMgrState,map<sysTimeMgrEvent,memfunc> > stateMachine;
 	map<string,sysTimeMgrEvent> m_pathEventMap;
@@ -91,13 +96,15 @@ private:
 	qualityOfTime m_timequality;
 	string m_timersrc;
 
-	const string m_directory = "/tmp/systimemgr";
+        const string m_directory = "/tmp/systimemgr";
+	
 
         vector<ITimeSrc*> m_timerSrc;
 	vector<ITimeSync*> m_timerSync;
 
 	IPublish* m_publish;
         ISubscribe* m_subscriber;
+        ISubscribe* m_tmrsubscriber;
 
 	//Config file to load plugins.
 	string m_cfgfile;
@@ -122,7 +129,7 @@ private:
         static recursive_mutex g_state_mutex;
         static mutex g_instance_mutex;
         static SysTimeMgr* pInstance;
-        
+
 
         // LIstening socket and its related addresses etc.
 public:
@@ -153,6 +160,45 @@ public:
 	static int powerhandler(void* args);
 	void deepsleepon();
 	void deepsleepoff();
+
+#ifdef GTEST_ENABLE 
+friend class SysTimeMgrTest_RunStateMachine_HitsFunctionPointer_Test;
+friend class SysTimeMgrTest_RunPathMonitorFileExistsAtStartup_Test;
+friend class SysTimeMgrTest_RunPathMonitorCoversInotifyEvent_Test;
+friend class SysTimeMgrTest_RunStateMachine_AllStatesEvents_Test;
+friend class SysTimeMgrTest_SetInitialTime_NonZeroTime_Test;
+friend class SysTimeMgrTest;
+friend class SysTimeMgrTest_DestructorCovers_Test;
+friend class SysTimeMgrTest_SetInitialTime_ZeroTime_Test;
+friend class SysTimeMgrTest_UpdateTime_InvokesCheckTime_Test;
+friend class SysTimeMgrTest_SetInitialTime_FileCreationFails_Test;
+friend class SysTimeMgrTest_TimerExpiryUsesReference_Test;
+friend class SysTimeMgrTest_TimerExpiryUsesFileTime_Test;
+friend class SysTimeMgrTest_UpdateTimeSyncCallsSyncs_Test;
+friend class SysTimeMgrTest_NtpAquiredPublishesStatusAndUpdatesState_Test;
+friend class SysTimeMgrTest_NtpFailed_Test;
+friend class SysTimeMgrTest_DttAcquiredPublishesStatusAndUpdatesState_Test;
+friend class SysTimeMgrTest_SecureTimeAcquiredUpdatesState_Test;
+friend class SysTimeMgrTest_UpdateSecureTimePublishesStatusAndUpdatesState_Test;
+friend class SysTimeMgrTest_DeepSleepOffPublishesStatus_Test;
+friend class SysTimeMgrTest_DeepSleepOffCoversPoorCase_Test;
+friend class SysTimeMgrTest_UpdateClockRealTimeSetsTime_Test;
+friend class SysTimeMgrTest_UpdateClockRealTimeAllBranches_Test;
+friend class SysTimeMgrTest_GetTimeStatus_AllQualities_Test;
+friend class SysTimeMgrTest_PublishStatusCoversAll_Test;
+friend class SysTimeMgrTest_TimerExpiry_RefVsFileTime_Test;
+friend class SysTimeMgrTest_RunPathMonitorCoversInotifyEvent_Test;
+friend class SysTimeMgrTest_RunPathMonitorFileExistsAtStartup_Test;
+friend class SysTimeMgrTest_RunPathMonitorInotifyAddWatchFails_Test;
+friend class SysTimeMgrTest_RunPathMonitorCoversInotifyEvent_Test;
+friend class SysTimeMgrTest_RunPathMonitorFileExistsAtStartup_Test;
+friend class SysTimeMgrTest_RunPathMonitorInotifyAddWatchFails_Test;
+friend class SysTimeMgrTest_UpdateClockRealTimeSetsTime_Test;
+friend class SysTimeMgrTest_TimerExpiry_RefVsFileTime_Test;
+friend class SysTimeMgrTest_ProcessThrCallsProcessMsgAndRunsOneIteration_Test;
+friend class SysTimeMgrTest_TimerThrCallsRunTimerAndRunsOnce_Test;
+friend class  SysTimeMgrTest_TimerThrAndProcessThrCoverage_Test;
+#endif
 
 };
 

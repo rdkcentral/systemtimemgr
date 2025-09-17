@@ -29,7 +29,7 @@ using namespace std;
 ITimeSrc* createTimeSrc(string type, string args);
 ITimeSync* createTimeSync(string type, string args);
 IPublish* createPublish(string type, string args);
-ISubscribe* createSubscriber(string type, string args);
+ISubscribe* createSubscriber(string type, string args, string subtype);
 
 
 #endif// __TIMERFACTORY_H_

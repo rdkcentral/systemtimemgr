@@ -18,7 +18,7 @@
 #include "iarmpublish.h"
 #include "irdklog.h"
 
-IarmPublish::IarmPublish(string pub):IPublish(pub)
+IarmPublish::IarmPublish(string pub):IPublish(std::move(pub))
 {
    int registered;
    if (IARM_Bus_IsConnected(m_publisher.c_str(),&registered) != IARM_RESULT_SUCCESS) {

@@ -73,6 +73,8 @@ AC_ARG_ENABLE([unittest],
 IARM_LIBS=" "
 IARM_CFLAGS=" "
 IARM_ENABLED=""
+PWRMGR_CFLAGS=" "
+PWRMGRPLUGIN_ENABLED=""
 TEE_CXXFLAGS=" "
 WPEVGDRM_CXXFLAGS=" "
 DTT_ENABLED=""
@@ -89,6 +91,23 @@ AC_ARG_ENABLE([iarm],
            esac
            ],
          [echo "iarm build is enable"])
+#The pwrmgrplugin is used for either iarmpowersubscriber or powercontroller
+#The timerstatussubscriber uses the IARMBus and dbus libaries.
+#set defualt value of PWRMGRPLUGIN_ENABLED to false if not passed 
+PWRMGRPLUGIN_ENABLED=false
+AC_ARG_ENABLE([pwrmgrplugin],
+        AS_HELP_STRING([--enable-pwrmgrplugin],[enable pwrmgrplugin ]),
+        [
+          case "${enableval}" in
+           yes) IARM_LIBS=" -ldbus-1  -lIARMBus"
+                PWRMGR_CFLAGS="-DPWRMGRPLUGIN_ENABLED"
+                PWRMGRPLUGIN_ENABLED=true;;
+           no) PWRMGRPLUGIN_ENABLED=false;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-pwrmgrplugin ]) ;;
+           esac
+           ],
+         [echo "pwrmgrplugin build is enable"])
+
 
 AC_ARG_ENABLE([dtt],
         AS_HELP_STRING([--enable-dtt],[enable dtt ]),
@@ -128,7 +147,23 @@ AC_ARG_ENABLE([wpevgdrm],
            ],
          [echo "wpevgdrm build is enable"])
 
+AC_ARG_ENABLE([t2api],
+        AS_HELP_STRING([--enable-t2api],[enables telemetry]),
+        [
+          case "${enableval}" in
+           yes) IS_TELEMETRY2_ENABLED=true
+                T2_EVENT_FLAG=" -DT2_EVENT_ENABLED ";;
+           no)  IS_TELEMETRY2_ENABLED=false ;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-t2enable]) ;;
+           esac
+           ],
+        [echo "telemetry is disabled"])
+AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
+AC_SUBST(T2_EVENT_FLAG)
+
+
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
+AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])
@@ -138,6 +173,7 @@ AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(UNITTEST_CXXFLAGS)
 AC_SUBST(IARM_LIBS)
 AC_SUBST(IARM_CFLAGS)
+AC_SUBST(PWRMGR_CFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(WPEVGDRM_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
