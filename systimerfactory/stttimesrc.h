@@ -31,7 +31,7 @@ class SttTimeSrc : public ITimeSrc
 
 		long long getTimeSec(){
 			time_t timeinSec = time(NULL);
-#if __WORDSIZE == 64
+#if (defined(UINTPTR_MAX) && UINTPTR_MAX > 0xFFFFFFFF) || (defined(__WORDSIZE) && __WORDSIZE == 64)
                         RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:STT Time in seconds = %ld \n",__FUNCTION__,__LINE__,timeinSec);
 #else
                         RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:STT Time in seconds = %d \n",__FUNCTION__,__LINE__,timeinSec);
