@@ -33,7 +33,13 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
+#endif
+
+#ifdef T2_EVENT_ENABLED
+#include <telemetry_busmessage_sender.h>
+#endif
 using namespace std::chrono;
 
 
@@ -76,6 +82,10 @@ void SysTimeMgr::initialize()
 {
     std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 
+    #ifdef T2_EVENT_ENABLED
+    t2_init((char *)  "sysTimeMgr");
+    #endif
+	
     //Create Timer Src and Syncs.
     ifstream cfgFile(m_cfgfile.c_str());
 
@@ -103,7 +113,7 @@ void SysTimeMgr::initialize()
 
     //m_timerSrc.push_back(createTimeSrc("regular","/tmp/clock.txt"));
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
-
+#if !defined(IARM_SUPPORT_DISABLED)
     m_publish = createPublish("iarm",IARM_BUS_SYSTIME_MGR_NAME);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
     m_tmrsubscriber  = createSubscriber("iarm",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
@@ -113,7 +123,18 @@ void SysTimeMgr::initialize()
     m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
-
+#else    
+    m_publish = createPublish("test",IARM_BUS_SYSTIME_MGR_NAME);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME TIMER_STATUS_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber  = createSubscriber("test",IARM_BUS_SYSTIME_MGR_NAME,TIMER_STATUS_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:createSubscriber IARM_BUS_SYSTIME_MGR_NAME POWER_CHANGE_MSG Invoke\n",__FUNCTION__,__LINE__);
+    m_subscriber      = createSubscriber("test",IARM_BUS_SYSTIME_MGR_NAME,POWER_CHANGE_MSG);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_tmrsubscriber->subscribe(TIMER_STATUS_MSG,SysTimeMgr::getTimeStatus);
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
+    m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
+#endif
+    
     //Initialize Path Event Map
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("ntp",eSYSMGR_EVENT_NTP_AVAILABLE));
     //Keeping the NTP available event for stt as well. Source is different but no need to have separate event.
@@ -394,11 +415,21 @@ void SysTimeMgr::setInitialTime()
 {
 	long long locTime = 0;
 	struct timespec stime;
+	string filepath = "/tmp/systimeset";
 	for (auto const& i : m_timerSync)
 	{
 		locTime = i->getTime();
 	}
-
+	ofstream ofs(filepath);
+        if (!ofs) 
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath.c_str());
+        }
+	else 
+	{
+        	ofs.close();
+        	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath.c_str());
+	}
 	if (locTime == 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Returning from Setting initial time since localtime returned from timersync is zero \n",__FUNCTION__,__LINE__);
@@ -424,13 +455,28 @@ void SysTimeMgr::setInitialTime()
 	if (clock_settime( CLOCK_REALTIME, &stime) != 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to set time \n",__FUNCTION__,__LINE__);
+		#ifdef T2_EVENT_ENABLED
+		t2CountNotify((char *) "SYST_ERROR_SYSTIME_FAIL",1);
+		#endif
 	}
 	else
 	{
+		char str[32];
+                struct timespec uptime;
+                unsigned long long uptimems;
+		
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully to set time \n",__FUNCTION__,__LINE__);
+#if !defined(MILESTONE_SUPPORT_DISABLED)		
 		logMilestone("SYSTEM_TIME_SET");
+#endif		
+		if (clock_gettime(CLOCK_REALTIME, &uptime) == 0) {
+                    uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
+	            snprintf(str, sizeof(str), "%llu", uptimems);
+		    #ifdef T2_EVENT_ENABLED
+	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
+		    #endif
+	        }
 	}
-
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)

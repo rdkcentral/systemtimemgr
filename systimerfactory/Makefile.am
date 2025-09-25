@@ -33,6 +33,11 @@ libsystimerfactory_la_SOURCES += iarmpowersubscriber.cpp
 endif
 endif
 
+if IS_TELEMETRY2_ENABLED
+libsystimerfactory_la_CPPFLAGS = $(T2_EVENT_FLAG)
+libsystimerfactory_la_LDFLAGS = -ltelemetry_msgsender -lt2utils
+endif
+
 
 if DTT_ENABLED
 libsystimerfactory_la_SOURCES += dtttimersrc.cpp

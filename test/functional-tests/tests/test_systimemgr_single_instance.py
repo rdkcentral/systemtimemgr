@@ -17,26 +17,15 @@
 # limitations under the License.
 ##########################################################################
 
-AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) $(TEE_CXXFLAGS) $(DTT_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc
-ACLOCAL_AMFLAGS = -I m4
+from time import sleep
+from helper_functions import *
 
+def test_check_systemtimemgr_is_starting():
+    kill_sysTimeMgr()
+    print("Starting systemtimemgr process")
+    command_to_start = "nohup /usr/local/bin/sysTimeMgr > /dev/null 2>&1 &"
+    run_shell_silent(command_to_start)
+    command_to_get_pid = "pidof sysTimeMgr"
+    pid = run_shell_command(command_to_get_pid)
+    assert pid != "", "sysTimeMgr process did not start"
 
-bin_PROGRAMS = sysTimeMgr
-
-lib_LTLIBRARIES = libsysTimeMgr.la
-
-libsysTimeMgr_la_SOURCES = systimemgr.cpp 
-libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper
-
-
-sysTimeMgr_SOURCES = main.cpp
-sysTimeMgr_LDADD = libsysTimeMgr.la
-
-
-if IS_TELEMETRY2_ENABLED
-libsysTimeMgr_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsysTimeMgr_la_LDFLAGS += -ltelemetry_msgsender -lt2utils
-endif
-
-#libsysTimeMgr_la_includedir = ${includedir}
-#libsysTimeMgr_la_include_HEADERS = systimemgr.h

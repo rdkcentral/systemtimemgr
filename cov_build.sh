@@ -24,7 +24,7 @@ apt-get install -y libjsonrpccpp-dev
 
 cd $WORKDIR/systimerfactory
 autoreconf -i
-export CXXFLAGS="-I../interface/ "
+export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_"
 ./configure --prefix=${RDKLOGGER_INSTALL_DIR}
 make clean && make && make install
 
@@ -34,7 +34,7 @@ export top_srcdir=`pwd`
 export top_builddir=`pwd`
 
 autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/"
+export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED"
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
 

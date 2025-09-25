@@ -16,27 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
+from time import sleep
+from helper_functions import *
 
-AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) $(TEE_CXXFLAGS) $(DTT_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc
-ACLOCAL_AMFLAGS = -I m4
+def test_is_systimemgr_running():
+    command_to_check = "pidof sysTimeMgr"
+    result = run_shell_command(command_to_check)
+    assert result != "", "sysTimeMgr process did not start"
 
+def test_check_systimemgr_log_file():
+    log_file_path = LOG_FILE
+    assert check_file_exists(log_file_path), f"Log File '{log_file_path}' does not exist."
 
-bin_PROGRAMS = sysTimeMgr
-
-lib_LTLIBRARIES = libsysTimeMgr.la
-
-libsysTimeMgr_la_SOURCES = systimemgr.cpp 
-libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper
-
-
-sysTimeMgr_SOURCES = main.cpp
-sysTimeMgr_LDADD = libsysTimeMgr.la
-
-
-if IS_TELEMETRY2_ENABLED
-libsysTimeMgr_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsysTimeMgr_la_LDFLAGS += -ltelemetry_msgsender -lt2utils
-endif
-
-#libsysTimeMgr_la_includedir = ${includedir}
-#libsysTimeMgr_la_include_HEADERS = systimemgr.h
+def test_Initialization():
+    INITIALIZATION_MSG = "Initializing Src and Syncs. Category = timesrc, Type = drm, Args = /drm"
+    assert INITIALIZATION_MSG in grep_sysTimeMgrlogs(INITIALIZATION_MSG)

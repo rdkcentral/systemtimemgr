@@ -17,26 +17,11 @@
 # limitations under the License.
 ##########################################################################
 
-AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) $(TEE_CXXFLAGS) $(DTT_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc
-ACLOCAL_AMFLAGS = -I m4
+Feature: SystemTimeManager runs only one instance
 
-
-bin_PROGRAMS = sysTimeMgr
-
-lib_LTLIBRARIES = libsysTimeMgr.la
-
-libsysTimeMgr_la_SOURCES = systimemgr.cpp 
-libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper
-
-
-sysTimeMgr_SOURCES = main.cpp
-sysTimeMgr_LDADD = libsysTimeMgr.la
-
-
-if IS_TELEMETRY2_ENABLED
-libsysTimeMgr_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsysTimeMgr_la_LDFLAGS += -ltelemetry_msgsender -lt2utils
-endif
-
-#libsysTimeMgr_la_includedir = ${includedir}
-#libsysTimeMgr_la_include_HEADERS = systimemgr.h
+  Scenario: SystemTimeManager exits if another instance is invoked
+    Given the SystemTimeManager is not already running
+    When the SystemTimeManager binary is invoked
+    Then the SystemTimeManager should be started
+    And when the SystemTimeManager is attempted to be started again
+    Then the SystemTimeManager should not start another instance
