@@ -627,8 +627,10 @@ void SysTimeMgr::deepsleepoff()
 	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
 	//Turn on the NTP time sync.
-        v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
-	v_secure_system("/bin/systemctl restart systemd-timesyncd.service");
+	v_secure_system("/bin/systemctl reset-failed ntp-pcap-collector.service");
+	v_secure_system("/bin/systemctl restart ntp-pcap-collector.service");
+        v_secure_system("/bin/systemctl reset-failed chronyd.service");
+	v_secure_system("/bin/systemctl restart chronyd.service");
 }
 
 void SysTimeMgr::deepsleepon()
