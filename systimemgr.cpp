@@ -473,7 +473,7 @@ void SysTimeMgr::setInitialTime()
                     uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
 	            snprintf(str, sizeof(str), "%llu", uptimems);
 		    #ifdef T2_EVENT_ENABLED
-	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
+	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME_split",str);
 		    #endif
 	        }
 	}
