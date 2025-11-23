@@ -117,7 +117,7 @@ long long RdkDefaultTimeSync::getTime()
                 strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_clock_time)); // Pass time_t pointer
 		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning Last Known Good Time, time = %s \n",__FUNCTION__,__LINE__,timeStr);
 		#ifdef T2_EVENT_ENABLED
-		t2ValNotify((char *) "SYST_INFO_SYSLKG",timeStr);
+		t2ValNotify((char *) "SYST_INFO_SYSLKG_split",timeStr);
 		#endif
 		m_currentTime = clock_time;
 		return clock_time;
@@ -128,7 +128,7 @@ long long RdkDefaultTimeSync::getTime()
         strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&safe_ver_time)); // Pass time_t pointer
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Returning build time, Time = %s\n",__FUNCTION__,__LINE__,timeStr);
 	#ifdef T2_EVENT_ENABLED
-        t2ValNotify((char *) "SYST_INFO_SYSBUILD",timeStr);
+        t2ValNotify((char *) "SYST_INFO_SYSBUILD_split",timeStr);
 	#endif
 	return ver_time;
 }
