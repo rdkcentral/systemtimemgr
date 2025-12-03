@@ -66,10 +66,10 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 	                  m_event(eSYSMGR_EVENT_UNKNOWN),
 			  m_timerInterval(600000),
 			  m_timequality(eTIMEQUALILTY_UNKNOWN),
-			  m_timersrc("Last Known"),
                           m_publish(NULL),
 			  m_subscriber(NULL),
 			  m_tmrsubscriber(NULL),
+			  m_timersrc("Last Known"),
 			  m_cfgfile(std::move(cfgfile))
 
 {
@@ -473,7 +473,7 @@ void SysTimeMgr::setInitialTime()
                     uptimems = (unsigned long long)uptime.tv_sec * 1000 + uptime.tv_nsec / 1000000;
 	            snprintf(str, sizeof(str), "%llu", uptimems);
 		    #ifdef T2_EVENT_ENABLED
-	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME",str);
+	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME_split",str);
 		    #endif
 	        }
 	}
