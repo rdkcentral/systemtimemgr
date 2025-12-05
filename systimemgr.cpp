@@ -626,7 +626,17 @@ void SysTimeMgr::deepsleepoff()
 
 	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
+	if (remove("/tmp/systimemgr/ntp") == 0) {
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully removed /tmp/systimemgr/ntp file.\n",__FUNCTION__,__LINE__);
+	} else {
+		RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:/tmp/systimemgr/ntp file does not exist or could not be removed.\n",__FUNCTION__,__LINE__);
+	}
+
 	//Turn on the NTP time sync.
+	v_secure_system("/bin/systemctl reset-failed ntp-metrics-collector.service");
+	v_secure_system("/bin/systemctl restart ntp-metrics-collector.service");
+	v_secure_system("/bin/systemctl reset-failed ntp-pcap-collector.service");
+	v_secure_system("/bin/systemctl restart ntp-pcap-collector.service");
         v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
 	v_secure_system("/bin/systemctl restart systemd-timesyncd.service");
 }
