@@ -36,6 +36,7 @@
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
 #endif
+#include "libchronyctl.h"
 
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
@@ -111,6 +112,9 @@ void SysTimeMgr::initialize()
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to open Config file: %s , will run in degraded mode.\n",__FUNCTION__,__LINE__,m_cfgfile.c_str());
     }
 
+	if (chronyctl_init() != CHRONYCTL_SUCCESS) {
+    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Initialization failed\n");
+    }
     //m_timerSrc.push_back(createTimeSrc("regular","/tmp/clock.txt"));
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
 #if !defined(IARM_SUPPORT_DISABLED)
@@ -301,6 +305,16 @@ void SysTimeMgr::runPathMonitor()
 		{
 			//This is file changed or created.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
+			 double offset = 0.0;
+			int ret = chronyctl_get_offset(&offset);
+        if (ret == CHRONYCTL_SUCCESS) {
+            // You can later send this to telemetry
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
+        } else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
+        }
+
+        sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY, NULL);
 			string fName(pevent->name);
 			auto iter = m_pathEventMap.find(fName);
 			if (iter != m_pathEventMap.end())
