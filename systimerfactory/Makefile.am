@@ -43,11 +43,11 @@ if DTT_ENABLED
 libsystimerfactory_la_SOURCES += dtttimersrc.cpp
 endif
 
+libsystimerfactory_la_LIBADD = $(IARM_LIBS) $(JSONRPC_LIBS) -lrdkloggers $(WPEFRAMEWORKCORE_LIBS) $(WPEFRAMEWORKWEBSOCKET_LIBS)
+
 if CHRONY_ENABLED
 libsystimerfactory_la_LIBADD += -lchronyctl
 endif
-
-libsystimerfactory_la_LIBADD += $(IARM_LIBS) $(JSONRPC_LIBS) -lrdkloggers $(WPEFRAMEWORKCORE_LIBS) $(WPEFRAMEWORKWEBSOCKET_LIBS)
 
 
 libsystimerfactory_la_includedir = ${includedir}
