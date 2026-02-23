@@ -109,10 +109,12 @@ This will:
 When chrony support is enabled, you can configure systemtimemgr to use chrony as a time source by adding the following to the configuration file:
 
 ```
-timesrc chrony <args>
+timesrc chrony ""
 ```
 
-**Note:** The libchronyctl.so library must be installed on the target system for chrony support to work.
+**Note:** 
+- The ChronyTimeSrc currently uses a placeholder implementation. Integration with the actual libchronyctl.so API needs to be completed based on the available libchronyctl API documentation.
+- The libchronyctl.so library must be installed on the target system for chrony support to work.
 
 # 6. Appendix
 

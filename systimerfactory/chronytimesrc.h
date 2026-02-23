@@ -30,11 +30,15 @@ class ChronyTimeSrc : public ITimeSrc
 		bool isreference() { return true;}
 
 		long long getTimeSec(){
+			// NOTE: This is a placeholder implementation
+			// In production, this should call the actual libchronyctl API
+			// to communicate with chronyd daemon and get synchronized time.
+			// The actual implementation would use functions from libchronyctl.so
+			// Example: chronyctl_get_time() or similar API
+			
 			struct timespec ts;
-			// Get time from chronyd via libchronyctl
-			// This is a placeholder implementation that uses clock_gettime
-			// In production, this should use the actual libchronyctl API
-			// to get time from chronyd daemon
+			// Temporary fallback using clock_gettime
+			// Replace this with actual libchronyctl API call when available
 			if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
 				RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Chrony Time Values, Time in Sec = %ld, Time in Nanosec = %ld\n",__FUNCTION__,__LINE__,ts.tv_sec,ts.tv_nsec);
 				return ts.tv_sec;
