@@ -507,17 +507,15 @@ void SysTimeMgr::setInitialTime()
         printf("Chrony makestep failed: %s\n", chronyctl_strerror(result));
 		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep Failed");
     }
-	}
-	sleep 10;
+	
+	sleep(10);
 	const char* ntp_server = "devicetime1.sky.com";
-int add_result = chronyctl_add_server(ntp_server, 5, 10); // 6 and 10 are example min/max poll intervals
-if (add_result == CHRONYCTL_SUCCESS) {
-    printf("NTP server %s added successfully\n", ntp_server);
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] NTP server %s added successfully\n", ntp_server);
-} else {
-    printf("Failed to add NTP server %s: %s\n", ntp_server, chronyctl_strerror(add_result));
-	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Failed to add NTP server %s: %s\n", ntp_server, chronyctl_strerror(add_result));
-}
+    int add_result = chronyctl_add_server(ntp_server, 5, 10); // 6 and 10 are example min/max poll intervals
+    if (add_result == CHRONYCTL_SUCCESS) {
+	   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] NTP server %s added successfully\n", ntp_server);
+    } else {
+	   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Failed to add NTP server %s: %s\n", ntp_server, chronyctl_strerror(add_result));
+    }
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)
