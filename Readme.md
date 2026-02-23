@@ -28,7 +28,11 @@ This is an interface class for operating with time sources and provide an interf
 
 This class implements ITimeSrc interface. It uses ntp api (ntp\_gettime) to extract the time. we can find out time as well as the drift info which is populated by the ntp daemons.
 
-### 2.2.2 RegularTimeSrc
+### 2.2.2 ChronyTimeSrc
+
+This class implements ITimeSrc interface. It uses the chronyd daemon via libchronyctl library to obtain time. Chrony is a versatile implementation of the Network Time Protocol (NTP) that is designed to perform well in a wide range of conditions. This time source is conditionally compiled when the `--enable-chrony` configure flag is used.
+
+### 2.2.3 RegularTimeSrc
 
 This class implements ITimeSrc interface. This is a class which reads time from the configured file.
 
@@ -86,6 +90,30 @@ The following are the states and its definition.
 - **DTTAcquired:** This state indicates acquisition of DTT Time and waiting for NTP and Secure Time.
 - **Running:** This state indicates that NTP and Secure Time is acquired. On every 10 min timer expiry we check the drift of securetime and ntp time. If the drift is greater that 10 minutes, we update TEE Time to 0 otherwise we update with NTP Time.
 
-# 5. Appendix
+# 5. Build Configuration
+
+## 5.1 Building with Chrony Support
+
+To build systemtimemgr with chrony time source support, use the `--enable-chrony` configure flag:
+
+```bash
+./configure --enable-chrony
+make
+```
+
+This will:
+- Define the `CHRONY_ENABLED` macro
+- Include the ChronyTimeSrc class in the build
+- Link against libchronyctl.so library
+
+When chrony support is enabled, you can configure systemtimemgr to use chrony as a time source by adding the following to the configuration file:
+
+```
+timesrc chrony <args>
+```
+
+**Note:** The libchronyctl.so library must be installed on the target system for chrony support to work.
+
+# 6. Appendix
 
 Tried out using Lambda functions for ISubscriber, but considering aspect that bus registration could be using C dropped the idea. If interested pls read at [https://www.cprogramming.com/c++11/c++11-lambda-closures.html](https://www.cprogramming.com/c++11/c++11-lambda-closures.html)
