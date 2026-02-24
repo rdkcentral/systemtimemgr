@@ -519,7 +519,7 @@ void SysTimeMgr::setInitialTime()
 	            t2ValNotify((char *) "SYST_INFO_SETSYSTIME_split",str);
 		    #endif
 	        }
-
+	}
 	publishStatus(ePUBLISH_TIME_INITIAL,"Poor");
 }
 void SysTimeMgr::publishStatus(publishEvent event,string message)
