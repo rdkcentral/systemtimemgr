@@ -435,7 +435,7 @@ void SysTimeMgr::setInitialTime()
 		locTime = i->getTime();
 	}
 
-        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME."[ChronyCTL] Entering setInitial Time");
+        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,"[ChronyCTL] Entering setInitial Time");
            double offset = 0.0;
 			int ret = chronyctl_get_offset(&offset);
         if (ret == CHRONYCTL_SUCCESS) {
