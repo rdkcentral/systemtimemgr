@@ -627,8 +627,25 @@ void SysTimeMgr::deepsleepoff()
 	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
 
 	//Turn on the NTP time sync.
+
+	int ret = system("systemctl is-active --quiet systemd-timesyncd.service");
+    if (ret == 0) {
+        // timesyncd is running
+        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:systemd-timesyncd is active, restarting service\n",__FUNCTION__,__LINE__);
         v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
-	v_secure_system("/bin/systemctl restart systemd-timesyncd.service");
+        v_secure_system("/bin/systemctl restart systemd-timesyncd.service");
+    } else {
+        // timesyncd not active, check chronyd
+        ret = system("systemctl is-active --quiet chronyd.service");
+        if (ret == 0) {
+            // chronyd is running
+            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
+            v_secure_system("/usr/bin/chronyc makestep");
+        } else {
+            RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
+        }
+    }
+    
 }
 
 void SysTimeMgr::deepsleepon()
