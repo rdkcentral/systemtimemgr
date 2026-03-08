@@ -1,0 +1,34 @@
+name: PR Diff Summary
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}
+
+      - name: Generate diff summary
+        run: |
+          echo "##  Diff Summary" > summary.txt
+          echo "" >> summary.txt
+          git diff --stat origin/${{ github.base_ref }} >> summary.txt
+          echo "" >> summary.txt
+          echo "### Files changed:" >> summary.txt
+          git diff --name-only origin/${{ github.base_ref }} >> summary.txt
+
+      - name: Post comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: summary.txt
