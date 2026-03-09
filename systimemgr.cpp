@@ -592,6 +592,9 @@ void SysTimeMgr::deepsleepoff()
 {
 	//Reset State Machine
 	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Deep Sleep is Turned off. Resetting State Machine and restarting ntp service. \n",__FUNCTION__,__LINE__);
+
+	std::string message; 
+    { 
 	std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
 	if (m_timequality == eTIMEQUALILTY_SECURE) {
 		m_timequality = eTIMEQUALILTY_GOOD;
@@ -625,7 +628,7 @@ void SysTimeMgr::deepsleepoff()
 	}
 
 	publishStatus(ePUBLISH_DEEP_SLEEP_ON,std::move(message));
-
+	}
 	//Turn on the NTP time sync.
 
 	int ret = v_secure_system("/bin/systemctl is-active --quiet systemd-timesyncd.service");
