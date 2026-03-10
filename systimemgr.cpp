@@ -643,7 +643,7 @@ void SysTimeMgr::deepsleepoff()
 		if (ret == 0) {
             // chronyd is running
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
-            v_secure_system("/usr/bin/chronyc makestep");
+            v_secure_system("/usr/sbin/chronyc makestep");
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
         }
