@@ -413,6 +413,7 @@ void SysTimeMgr::sendMessage(sysTimeMgrEvent event, void* args)
 
 void SysTimeMgr::setInitialTime()
 {
+	long lctime=0;
 	long long locTime = 0;
 	struct timespec stime;
 	string filepath = "/tmp/systimeset";
