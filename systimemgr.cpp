@@ -644,7 +644,10 @@ void SysTimeMgr::deepsleepoff()
             // chronyd is running
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc burst\n",__FUNCTION__,__LINE__);
 			v_secure_system("/usr/sbin/chronyc burst 3/4");
-			sleep(3);
+
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
+            v_secure_system("/usr/sbin/chronyc waitsync");
+			
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
             v_secure_system("/usr/sbin/chronyc makestep");
         } else {
