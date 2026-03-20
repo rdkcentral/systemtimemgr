@@ -647,9 +647,9 @@ void SysTimeMgr::deepsleepoff()
             if (ret != 0) {
                 RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
             }
-
+            // Wait for chronyd to synchronize with at least 1 source, for up to 20 tries.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
-            ret = v_secure_system("/usr/sbin/chronyc waitsync 10 0 0 1");
+            ret = v_secure_system("/usr/sbin/chronyc waitsync 20 0 0 1");
             if (ret != 0) {
                 RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyc waitsync failed with code %d\n",__FUNCTION__,__LINE__, ret);
             }
