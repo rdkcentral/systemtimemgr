@@ -280,7 +280,7 @@ void SysTimeMgr::runPathMonitor()
 		return;
 	}
 	
-	wd = inotify_add_watch(inotifyFd, m_directory.c_str(), IN_DELETE|IN_MODIFY|IN_ATTRIB);
+	wd = inotify_add_watch(inotifyFd, m_directory.c_str(), IN_DELETE|IN_MODIFY|IN_ATTRIB|IN_CREATE);
 	if (wd == -1)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Unable to create Watchi descriptor. Exiting thread \n",__FUNCTION__,__LINE__);
