@@ -649,7 +649,7 @@ void SysTimeMgr::deepsleepoff()
             }
 
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
-            ret = v_secure_system("/usr/sbin/chronyc waitsync");
+            ret = v_secure_system("/usr/sbin/chronyc waitsync 10 0 0 1");
             if (ret != 0) {
                 RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyc waitsync failed with code %d\n",__FUNCTION__,__LINE__, ret);
             }
