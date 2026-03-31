@@ -23,7 +23,7 @@ ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libsystimerfactory.la
 
 libsystimerfactory_la_SOURCES = timerfactory.cpp pubsubfactory.cpp rdkdefaulttimesync.cpp drmtimersrc.cpp
-libsystimerfactory_la_LDFLAGS = -lchronyctl 
+#libsystimerfactory_la_LDFLAGS = -lchronyctl 
 
 if IARM_ENABLED
 libsystimerfactory_la_SOURCES += iarmpublish.cpp  iarmsubscribe.cpp iarmtimerstatussubscriber.cpp
@@ -36,7 +36,7 @@ endif
 
 if IS_TELEMETRY2_ENABLED
 libsystimerfactory_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsystimerfactory_la_LDFLAGS += -ltelemetry_msgsender -lt2utils
+libsystimerfactory_la_LDFLAGS = -ltelemetry_msgsender -lt2utils
 endif
 
 
