@@ -317,9 +317,9 @@ void SysTimeMgr::runPathMonitor()
 			int ret = chronyctl_get_offset(&offset);
         if (ret == CHRONYCTL_SUCCESS) {
             // You can later send this to telemetry
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] [runPathMonitor] Offset: %f seconds\n", offset);
         } else {
-            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] [runPathMonitor] Error fetching offset: %s\n", chronyctl_strerror(ret));
         }
 
         sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY, NULL);
