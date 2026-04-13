@@ -435,25 +435,6 @@ void SysTimeMgr::setInitialTime()
 		locTime = i->getTime();
 	}
 
-        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,"[ChronyCTL] Entering setInitial Time");
-           double offset = 0.0;
-			int ret = chronyctl_get_offset(&offset);
-        if (ret == CHRONYCTL_SUCCESS) {
-            // You can later send this to telemetry
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
-        } else {
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
-        }
-
-		int result = chronyctl_makestep();
-    if (result == CHRONYCTL_SUCCESS) {
-        printf("Chrony makestep success\n");
-		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep success");
-    } else {
-        printf("Chrony makestep failed: %s\n", chronyctl_strerror(result));
-		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep Failed");
-    }
-	
 	sleep(10);
 	const char* ntp_server = "devicetime1.sky.com";
     int add_result = chronyctl_add_server(ntp_server, 5, 10); // 6 and 10 are example min/max poll intervals
