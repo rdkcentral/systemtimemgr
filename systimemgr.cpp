@@ -683,9 +683,11 @@ void SysTimeMgr::deepsleepoff()
 		if (ret == 0) {
             // chronyd is running
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc burst\n",__FUNCTION__,__LINE__);
-			ret = v_secure_system("/usr/sbin/chronyc burst 3/4");
-            if (ret != 0) {
-                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
+			ret = chronyctl_burst(NULL, NULL, 3, 4);
+			if (ret == CHRONYCTL_SUCCESS) {
+                  RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyctl_burst succeeded\n",__FUNCTION__,__LINE__);
+            } else {
+                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyctl_burst failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(burst_result));
             }
             // Wait for chronyd to synchronize with at least 1 source, for up to 20 tries.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
@@ -695,9 +697,11 @@ void SysTimeMgr::deepsleepoff()
             }
 			
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
-            ret = v_secure_system("/usr/sbin/chronyc makestep");
-            if (ret != 0) {
-                RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyc makestep failed with code %d\n",__FUNCTION__,__LINE__, ret);
+            ret = chronyctl_makestep();
+            if (ret == CHRONYCTL_SUCCESS) {
+		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep success");
+            } else {
+		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep Failed");
             }
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
