@@ -256,6 +256,14 @@ void SysTimeMgr::runTimer()
 	while (1)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(m_timerInterval));
+		double offset = 0.0;
+        int ret = chronyctl_get_offset(&offset);
+        if (ret == CHRONYCTL_SUCCESS) {
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL][TimerThread] Offset: %f seconds\n", offset);
+            // [Optionally send to telemetry or handle as needed]
+        } else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL][TimerThread] Error fetching offset: %s\n", chronyctl_strerror(ret));
+        }
 		sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY,NULL);
 	}
 }
