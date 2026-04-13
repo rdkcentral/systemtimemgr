@@ -687,7 +687,7 @@ void SysTimeMgr::deepsleepoff()
 			if (ret == CHRONYCTL_SUCCESS) {
                   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyctl_burst succeeded\n",__FUNCTION__,__LINE__);
             } else {
-                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyctl_burst failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(burst_result));
+                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyctl_burst failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(ret));
             }
             // Wait for chronyd to synchronize with at least 1 source, for up to 20 tries.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
