@@ -42,7 +42,7 @@ namespace {
 const unsigned int ACTIVATION_RETRY_COUNT = 5;
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 const char* ACTIVATION_METHOD = "Controller.1.activate";
-const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
+const char* NETWORK_MANAGER_CALLSIGN = "client.events.1";
 const char* NETWORK_MANAGER_PLUGIN = "client.events.1";
 const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 10;
