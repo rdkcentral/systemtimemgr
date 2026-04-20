@@ -143,8 +143,8 @@ void SysTimeMgr::initialize()
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("drm",eSYSMGR_EVENT_SECURE_TIME_AVAILABLE));
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("dtt",eSYSMGR_EVENT_DTT_TIME_AVAILABLE));
 
-    static NetworkStatusSrc networkStatusSrc;
-    networkStatusSrc.subscribeInternetStatusEvent();
+    static NetworkStatusSrc networkStatusMonitor;
+    networkStatusMonitor.subscribeInternetStatusEvent();
 
     //Initialize time from the sync.
     setInitialTime();

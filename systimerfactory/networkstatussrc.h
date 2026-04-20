@@ -25,8 +25,8 @@ class NetworkStatusSrc
                bool m_networkeventsubscribed;
 
         public:
-                NetworkStatusSrc():m_pluginactivated(false),m_networkeventsubscribed(false){}
+                NetworkStatusSrc():m_pluginactivated(false), m_networkeventsubscribed(false){}
                 void subscribeInternetStatusEvent();
 };
 
-#endif// _NETWORKSTATUSSRC_H_
+#endif // _NETWORKSTATUSSRC_H_
