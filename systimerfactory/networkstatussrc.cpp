@@ -44,7 +44,7 @@ const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 const char* ACTIVATION_METHOD = "Controller.1.activate";
 const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
 const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
-const char* INTERNET_EVENT_NAME = "onInternetStatusChanged";
+const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 10;
 
 void internetStatusChanged(const JsonObject& params)
@@ -113,10 +113,10 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
    WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_PLUGIN);
    if (wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,INTERNET_EVENT_NAME,std::bind(internetStatusChanged,std::placeholders::_1)) != 0) {
-      RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChanged.\n",__FUNCTION__,__LINE__);
+      RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
    }
    else {
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChanged.\n",__FUNCTION__,__LINE__);
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
    }
 #else
