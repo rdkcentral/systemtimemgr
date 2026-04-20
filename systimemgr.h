@@ -65,6 +65,7 @@ typedef enum
    eSYSMGR_EVENT_NTP_AVAILABLE,
    eSYSMGR_EVENT_DTT_TIME_AVAILABLE,
    eSYSMGR_EVENT_SECURE_TIME_AVAILABLE,
+   eSYSMGR_EVENT_INTERNET_STATUS_CHANGE,  /* onInternetStatusChange from NetworkManager */
    eSYSMGR_EVENT_UNKNOWN,
 } sysTimeMgrEvent;
 
@@ -104,6 +105,9 @@ private:
 	IPublish* m_publish;
         ISubscribe* m_subscriber;
         ISubscribe* m_tmrsubscriber;
+#ifdef NETWORKMGR_ENABLED
+        ISubscribe* m_netmgrSubscriber;  /* NetworkManager internet-status subscriber */
+#endif
         string m_timersrc;
 
 	//Config file to load plugins.
@@ -149,17 +153,26 @@ public:
         static SysTimeMgr* get_instance();
         void run(bool forever=true);
 
+        static int getTimeStatus(void* args);
+        void getTimeStatus(TimerMsg* pMsg);
+        static int powerhandler(void* args);
+        void deepsleepoff();
+        void deepsleepon();
+
+#ifdef NETWORKMGR_ENABLED
+        /* Static callback invoked by NetworkMgrSubscriber on each
+         * onInternetStatusChange event.  args points to an InternetStatusData. */
+        static int internetStatusHandler(void* args);
+        /* Called when internet becomes fully connected; triggers NTP re-sync
+         * when systimemgr is still waiting for time acquisition. */
+        void onInternetConnected();
+#endif
+
 	void sendMessage(sysTimeMgrEvent event, void* args);
 
 	void processMsg();
 	void runTimer();
 	void runPathMonitor();
-
-	void getTimeStatus(TimerMsg* pMsg);
-	static int getTimeStatus(void* args);
-	static int powerhandler(void* args);
-	void deepsleepon();
-	void deepsleepoff();
 
 #ifdef GTEST_ENABLE 
 friend class SysTimeMgrTest_RunStateMachine_HitsFunctionPointer_Test;

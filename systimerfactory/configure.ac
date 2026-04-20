@@ -161,6 +161,22 @@ AC_ARG_ENABLE([t2api],
 AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
 AC_SUBST(T2_EVENT_FLAG)
 
+NETWORKMGR_CFLAGS=" "
+NETWORKMGR_ENABLED=false
+AC_ARG_ENABLE([networkmgr],
+        AS_HELP_STRING([--enable-networkmgr],
+                       [enable subscription to NetworkManager Thunder plugin events]),
+        [
+          case "${enableval}" in
+           yes) NETWORKMGR_CFLAGS="-DNETWORKMGR_ENABLED"
+                NETWORKMGR_ENABLED=true;;
+           no)  NETWORKMGR_ENABLED=false;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-networkmgr]) ;;
+           esac
+           ],
+         [echo "networkmgr event subscription is disabled"])
+AM_CONDITIONAL([NETWORKMGR_ENABLED], [test x$NETWORKMGR_ENABLED = xtrue])
+AC_SUBST(NETWORKMGR_CFLAGS)
 
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
 AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])

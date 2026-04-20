@@ -24,9 +24,19 @@ extern "C" {
 
 
 #define IARM_BUS_SYSTIME_MGR_NAME "SystemTimeMgr"
-#define TIMER_STATUS_MSG  "TIMER_STATUS"
-#define POWER_CHANGE_MSG  "POWER_CHANGE"
+#define TIMER_STATUS_MSG    "TIMER_STATUS"
+#define POWER_CHANGE_MSG    "POWER_CHANGE"
+#define INTERNET_STATUS_MSG "INTERNET_STATUS"
 #define cTIMER_STATUS_MESSAGE_LENGTH  80
+#define cINTERNET_STATUS_LENGTH       32
+#define cINTERFACE_NAME_LENGTH        16
+
+/* Internet connectivity states (matches INetworkManager::InternetStatus enum) */
+#define INTERNET_STATUS_NO_INTERNET     0
+#define INTERNET_STATUS_LIMITED         1
+#define INTERNET_STATUS_CAPTIVE_PORTAL  2
+#define INTERNET_STATUS_FULLY_CONNECTED 3
+#define INTERNET_STATUS_UNKNOWN         4
 
 const int cTIMER_STATUS_UPDATE = 0;
 
@@ -38,6 +48,20 @@ typedef struct
 	char currentTime[cTIMER_STATUS_MESSAGE_LENGTH];
 	char  message[cTIMER_STATUS_MESSAGE_LENGTH];
 }TimerMsg;
+
+/*
+ * Data structure carrying the onInternetStatusChange event payload from the
+ * NetworkManager Thunder plugin.  Fields match the JSON params documented at:
+ * https://github.com/rdkcentral/networkmanager/blob/develop/docs/NetworkManagerPlugin.md#event.onInternetStatusChange
+ */
+typedef struct
+{
+    int  prevState;                              /* previous internet connectivity state */
+    char prevStatus[cINTERNET_STATUS_LENGTH];    /* e.g. "NO_INTERNET" */
+    int  state;                                  /* current internet connectivity state */
+    char status[cINTERNET_STATUS_LENGTH];        /* e.g. "FULLY_CONNECTED" */
+    char interface[cINTERFACE_NAME_LENGTH];      /* default interface, e.g. "eth0" */
+} InternetStatusData;
 
 
 typedef enum

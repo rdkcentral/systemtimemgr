@@ -17,7 +17,7 @@
 # limitations under the License.
 ##########################################################################
 
-AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) $(TEE_CXXFLAGS) $(DTT_CXXFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc
+AM_CXXFLAGS = -Wall -std=c++1y  $(DEBUG_CXXFLAGS) $(TEE_CXXFLAGS) $(DTT_CXXFLAGS) $(NETWORKMGR_CFLAGS) -I${PKG_CONFIG_SYSROOT_DIR}$(includedir)/systimerifc
 ACLOCAL_AMFLAGS = -I m4
 
 

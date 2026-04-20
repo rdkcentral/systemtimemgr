@@ -30,6 +30,11 @@
 #include "iarmpowersubscriber.h"
 #endif //PWRMGRPLUGIN_ENABLED
 #endif//ENABLE_IARM
+
+#ifdef NETWORKMGR_ENABLED
+#include "networkmgrsubscriber.h"
+#endif //NETWORKMGR_ENABLED
+
 #include "irdklog.h"
 
 #
@@ -77,5 +82,17 @@ ISubscribe* createSubscriber(string type, string args, string subtype)
 		}	
 	}
 #endif//ENABLE_IARM
+#ifdef NETWORKMGR_ENABLED
+	else if (type == "networkmgr")
+	{
+		if (INTERNET_STATUS_MSG == subtype)
+		{
+			RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+			        "[%s:%d]:createSubscriber for NetworkMgrSubscriber\n",
+			        __FUNCTION__, __LINE__);
+			ret = new NetworkMgrSubscriber(std::move(args));
+		}
+	}
+#endif//NETWORKMGR_ENABLED
 	return ret;
 }

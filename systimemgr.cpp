@@ -37,6 +37,10 @@
 #include "rdk_logger_milestone.h"
 #endif
 
+#ifdef NETWORKMGR_ENABLED
+#include "networkmgrsubscriber.h"
+#endif
+
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
 #endif
@@ -69,6 +73,9 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
                           m_publish(NULL),
 			  m_subscriber(NULL),
 			  m_tmrsubscriber(NULL),
+#ifdef NETWORKMGR_ENABLED
+			  m_netmgrSubscriber(NULL),
+#endif
 			  m_timersrc("Last Known"),
 			  m_cfgfile(std::move(cfgfile))
 
@@ -134,6 +141,32 @@ void SysTimeMgr::initialize()
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IpowerControllerSubscriber or IarmPowerSubscriber Invoke \n",__FUNCTION__,__LINE__);
     m_subscriber->subscribe(POWER_CHANGE_MSG,SysTimeMgr::powerhandler);
 #endif
+
+#ifdef NETWORKMGR_ENABLED
+    /* Subscribe to onInternetStatusChange from org.rdk.NetworkManager plugin.
+     * The subscriber opens a WebSocket to the Thunder endpoint and registers
+     * for the event; it auto-reconnects if Thunder is not yet running. */
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
+            "[%s:%d]:createSubscriber networkmgr INTERNET_STATUS_MSG Invoke\n",
+            __FUNCTION__,__LINE__);
+    m_netmgrSubscriber = createSubscriber("networkmgr",
+                                          IARM_BUS_SYSTIME_MGR_NAME,
+                                          INTERNET_STATUS_MSG);
+    if (m_netmgrSubscriber)
+    {
+        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
+                "[%s:%d]:NetworkMgrSubscriber subscribe INTERNET_STATUS_MSG\n",
+                __FUNCTION__,__LINE__);
+        m_netmgrSubscriber->subscribe(INTERNET_STATUS_MSG,
+                                      SysTimeMgr::internetStatusHandler);
+    }
+    else
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,
+                "[%s:%d]:Failed to create NetworkMgrSubscriber\n",
+                __FUNCTION__,__LINE__);
+    }
+#endif //NETWORKMGR_ENABLED
     
     //Initialize Path Event Map
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("ntp",eSYSMGR_EVENT_NTP_AVAILABLE));
@@ -588,6 +621,127 @@ int SysTimeMgr::powerhandler(void* args)
 
 	return 1;
 }
+
+#ifdef NETWORKMGR_ENABLED
+/*
+ * Static funcPtr callback invoked by NetworkMgrSubscriber whenever the
+ * NetworkManager Thunder plugin fires an onInternetStatusChange notification.
+ *
+ * args – pointer to an InternetStatusData struct held on the event thread
+ *         stack inside NetworkMgrSubscriber::invokeInternetStatusHandler().
+ *         It is valid only for the duration of this call.
+ *
+ * Returns 1 on success, 0 if the SysTimeMgr singleton is unavailable.
+ */
+int SysTimeMgr::internetStatusHandler(void* args)
+{
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+	        "[%s:%d]: Entering internet status change handler\n",
+	        __FUNCTION__, __LINE__);
+
+	if (!args)
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+		        "[%s:%d]: args is NULL\n", __FUNCTION__, __LINE__);
+		return 0;
+	}
+
+	InternetStatusData* data = reinterpret_cast<InternetStatusData*>(args);
+	SysTimeMgr* pInstance    = get_instance();
+
+	if (!pInstance)
+	{
+		RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+		        "[%s:%d]: SysTimeMgr instance is NULL\n",
+		        __FUNCTION__, __LINE__);
+		return 0;
+	}
+
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+	        "[%s:%d]: Internet status: prevState=%d prevStatus=\"%s\" "
+	        "state=%d status=\"%s\" interface=\"%s\"\n",
+	        __FUNCTION__, __LINE__,
+	        data->prevState, data->prevStatus,
+	        data->state,     data->status,
+	        data->interface);
+
+	/* When internet becomes fully connected, trigger NTP re-synchronisation
+	 * if systimemgr has not yet acquired accurate time. */
+	if (data->state == INTERNET_STATUS_FULLY_CONNECTED)
+	{
+		pInstance->onInternetConnected();
+	}
+
+	return 1;
+}
+
+/*
+ * Called on the NetworkMgr subscriber thread when internet connectivity
+ * transitions to FULLY_CONNECTED.
+ *
+ * Behaviour mirrors deepsleepoff(): if systimemgr is still waiting for NTP
+ * (NTP_WAIT or NTP_FAIL states) it kicks the NTP service so that time sync
+ * is attempted immediately now that a network route exists.
+ * The inotify-based path monitor (/tmp/systimemgr/ntp) will detect the file
+ * created by ntpd/chronyd and advance the state machine via the normal
+ * eSYSMGR_EVENT_NTP_AVAILABLE path.
+ */
+void SysTimeMgr::onInternetConnected()
+{
+	std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
+
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+	        "[%s:%d]: Internet fully connected – current state=%d\n",
+	        __FUNCTION__, __LINE__, m_state);
+
+	if (m_state != eSYSMGR_STATE_NTP_WAIT && m_state != eSYSMGR_STATE_NTP_FAIL)
+	{
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+		        "[%s:%d]: Time already acquired (state=%d), no NTP kick needed\n",
+		        __FUNCTION__, __LINE__, m_state);
+		return;
+	}
+
+	RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+	        "[%s:%d]: Internet available – kicking NTP service for time sync\n",
+	        __FUNCTION__, __LINE__);
+
+	int ret = v_secure_system(
+	    "/bin/systemctl is-active --quiet systemd-timesyncd.service");
+	if (ret == 0)
+	{
+		RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+		        "[%s:%d]: systemd-timesyncd active – restarting for NTP sync\n",
+		        __FUNCTION__, __LINE__);
+		v_secure_system("/bin/systemctl reset-failed systemd-timesyncd.service");
+		v_secure_system("/bin/systemctl restart systemd-timesyncd.service");
+	}
+	else
+	{
+		ret = v_secure_system("/bin/systemctl is-active --quiet chronyd.service");
+		if (ret == 0)
+		{
+			RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+			        "[%s:%d]: chronyd active – running chronyc burst\n",
+			        __FUNCTION__, __LINE__);
+			ret = v_secure_system("/usr/sbin/chronyc burst 3/4");
+			if (ret != 0)
+			{
+				RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+				        "[%s:%d]: chronyc burst failed (code=%d)\n",
+				        __FUNCTION__, __LINE__, ret);
+			}
+		}
+		else
+		{
+			RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+			        "[%s:%d]: Neither systemd-timesyncd nor chronyd is running\n",
+			        __FUNCTION__, __LINE__);
+		}
+	}
+}
+#endif /* NETWORKMGR_ENABLED */
+
 void SysTimeMgr::deepsleepoff()
 {
 	//Reset State Machine
