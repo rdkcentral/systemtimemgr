@@ -37,10 +37,12 @@ using namespace WPEFramework;
 using namespace std;
 using namespace jsonrpc;
 
+#define NETWORK_RPC_TIMEOUT 1000
 #ifdef WPEVGDRM_ENABLED
 namespace {
 const unsigned int ACTIVATION_RETRY_COUNT = 5;
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
+
 const char* ACTIVATION_METHOD = "Controller.1.activate";
 const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager.1";
 const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
@@ -118,6 +120,39 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    else {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
+   }
+
+      // ... after m_networkeventsubscribed = true;
+   JsonObject inParam, outParamV4, outParamV6;
+
+   /* Check Internet status for IPv4 */
+   inParam.Set(_T("ipversion"), string("IPv4"));
+
+   if (Core::ERROR_NONE == wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4)) {
+       bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
+       bool v4connected = outParamV4.HasLabel("connectedToInternet") ? outParamV4["connectedToInternet"].Boolean() : false;
+       RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+           "[%s:%d]: IPv4 status - success: %d, connectedToInternet: %d\n",
+           __FUNCTION__, __LINE__, v4success, v4connected);
+   } else {
+       RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+           "[%s:%d]: Failed to invoke isConnectedToInternet for IPv4.\n",
+           __FUNCTION__, __LINE__);
+   }
+
+   /* Check Internet status for IPv6 */
+   inParam.Set(_T("ipversion"), string("IPv6"));
+
+   if (Core::ERROR_NONE == wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV6)) {
+       bool v6success = outParamV6.HasLabel("success") ? outParamV6["success"].Boolean() : false;
+       bool v6connected = outParamV6.HasLabel("connectedToInternet") ? outParamV6["connectedToInternet"].Boolean() : false;
+       RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+           "[%s:%d]: IPv6 status - success: %d, connectedToInternet: %d\n",
+           __FUNCTION__, __LINE__, v6success, v6connected);
+   } else {
+       RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+           "[%s:%d]: Failed to invoke isConnectedToInternet for IPv6.\n",
+           __FUNCTION__, __LINE__);
    }
 #else
    m_pluginactivated = true;
