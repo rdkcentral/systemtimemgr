@@ -65,7 +65,7 @@ void internetStatusChanged(const JsonObject& params)
 
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Internet status change notification received. status = %s\n",__FUNCTION__,__LINE__,internetStatus.c_str());
    if (normalizedStatus == "connected") {
-      v_secure_system("/usr/sbin/chronyc burst 3/4");
+     int ret = v_secure_system("/usr/sbin/chronyc burst 3/4");
       if (ret != 0) {
                 RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
       } else {
