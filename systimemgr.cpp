@@ -144,6 +144,7 @@ void SysTimeMgr::initialize()
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("dtt",eSYSMGR_EVENT_DTT_TIME_AVAILABLE));
 
     static NetworkStatusSrc networkStatusMonitor;
+	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: createSubscriber for networkstatusEvent Invoke\n",__FUNCTION__,__LINE__);
     networkStatusMonitor.subscribeInternetStatusEvent();
 
     //Initialize time from the sync.
