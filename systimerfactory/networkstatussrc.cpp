@@ -26,6 +26,7 @@
 
 #include "networkstatussrc.h"
 #include "irdklog.h"
+#include "secure_wrapper.h"
 
 #ifdef WPEVGDRM_ENABLED
 #include "core/SystemInfo.h"
