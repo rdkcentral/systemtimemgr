@@ -33,6 +33,7 @@
 #include "itimermsg.h"
 #include <chrono>
 #include "secure_wrapper.h"
+#include "systimerfactory/networkstatussrc.h"
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
 #endif
@@ -141,6 +142,9 @@ void SysTimeMgr::initialize()
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("stt",eSYSMGR_EVENT_NTP_AVAILABLE));
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("drm",eSYSMGR_EVENT_SECURE_TIME_AVAILABLE));
     m_pathEventMap.insert(pair<string,sysTimeMgrEvent>("dtt",eSYSMGR_EVENT_DTT_TIME_AVAILABLE));
+
+    static NetworkStatusSrc networkStatusSrc;
+    networkStatusSrc.subscribeInternetStatusEvent();
 
     //Initialize time from the sync.
     setInitialTime();
