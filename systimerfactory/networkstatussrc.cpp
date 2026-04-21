@@ -48,7 +48,7 @@ const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager.1";
 const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
 const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
-uint32_t ret = Core::ERROR_NONE;
+int32_t ret = Core::ERROR_NONE;
 
 void internetStatusChanged(const JsonObject& params)
 {
