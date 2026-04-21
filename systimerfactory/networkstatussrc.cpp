@@ -136,10 +136,11 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    
    if ( Core::ERROR_NONE == thunder_ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
-       bool v4connected = outParamV4.HasLabel("connectedToInternet") ? outParamV4["connectedToInternet"].Boolean() : false;
+       bool v4connected = outParamV4.HasLabel("connected") ? outParamV4["connected"].Boolean() : false;
+       string v4status = outParamV4.HasLabel("status") ? outParamV4["status"].String() : "";
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-           "[%s:%d]: IPv4 status - success: %d, connectedToInternet: %d\n",
-           __FUNCTION__, __LINE__, v4success, v4connected);
+           "[%s:%d]: IPv4 status - success: %d, connectedToInternet: %d, Status:%s \n",
+           __FUNCTION__, __LINE__, v4success, v4connected,v4status);
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv4 (%d).\n",
@@ -152,10 +153,11 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV6);
    if (Core::ERROR_NONE == thunder_ret ) {
        bool v6success = outParamV6.HasLabel("success") ? outParamV6["success"].Boolean() : false;
-       bool v6connected = outParamV6.HasLabel("connectedToInternet") ? outParamV6["connectedToInternet"].Boolean() : false;
+      bool v6connected = outParamV4.HasLabel("connected") ? outParamV4["connected"].Boolean() : false;
+    string v6status = outParamV4.HasLabel("status") ? outParamV4["status"].String() : "";
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-           "[%s:%d]: IPv6 status - success: %d, connectedToInternet: %d\n",
-           __FUNCTION__, __LINE__, v6success, v6connected);
+           "[%s:%d]: IPv6 status - success: %d, connectedToInternet: %d, Status : %s\n",
+           __FUNCTION__, __LINE__, v6success, v6connected,v4status);
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv6. (%d) \n",
