@@ -121,8 +121,8 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
       return;
    }
 */
-   WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
+   WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
    thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    
    //WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
