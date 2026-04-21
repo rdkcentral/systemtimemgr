@@ -28,17 +28,17 @@
 #include "irdklog.h"
 #include "secure_wrapper.h"
 
-#ifdef WPEVGDRM_ENABLED
+
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
 using namespace WPEFramework;
-#endif //WPEVGDRM_ENABLED
+
 
 using namespace std;
 using namespace jsonrpc;
 
 #define NETWORK_RPC_TIMEOUT 5000
-#ifdef WPEVGDRM_ENABLED
+
 const unsigned int ACTIVATION_RETRY_COUNT = 5;
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
@@ -76,11 +76,20 @@ void handle_internetStatusChange(const JsonObject& params)
    }
 }
 
-#endif//WPEVGDRM_ENABLED
 
+
+void internetStatusChanged ( const JsonObject& params )
+{
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]- CHRONY: Internet status change notification received.\n",__FUNCTION__,__LINE__);
+   string internetStatus;
+
+   if (params.HasLabel("status")) {
+      internetStatus = params["status"].String();
+   }
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]- CHRONY: Internet status change notification received. status = %s\n",__FUNCTION__,__LINE__,internetStatus.c_str());
+}
 void NetworkStatusSrc::subscribeInternetStatusEvent()
 {
-#ifdef WPEVGDRM_ENABLED
    if (m_networkeventsubscribed) {
       return;
    }
@@ -112,13 +121,23 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
       return;
    }
 */
-   //WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
+   WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
-   //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
-   WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
+   thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    
+   //WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
   //wpeClient.Subscribe<JsonObject>(10,_T("onInternetStatusChange"),std::bind(handle_internetStatusChange,std::placeholders::_1)
-   
+
+   if (thunder_client) {
+      thunder_ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &internetStatusChanged);
+    if (thunder_ret == Core::ERROR_NONE) {
+        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
+      m_networkeventsubscribed = true;
+    }  else {
+        RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,thunder_ret);
+    }
+   }
+   /*
    thunder_ret = wpeClient.Subscribe<JsonObject>(10,_T("onInternetStatusChange"),std::bind(handle_internetStatusChange,std::placeholders::_1));
    if (thunder_ret !=  Core::ERROR_NONE) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,thunder_ret);
@@ -126,14 +145,14 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
    }
-
+*/
       // ... after m_networkeventsubscribed = true;
    JsonObject inParam, outParamV4, outParamV6;
 
    /* Check Internet status for IPv4 */
    inParam.Set(_T("ipversion"), string("IPv4"));
 
-   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV4);
+   thunder_ret = thunder_client->Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV4);
    
    if ( Core::ERROR_NONE == thunder_ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
@@ -164,8 +183,6 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
            "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv6. (%d) \n",
            __FUNCTION__, __LINE__, thunder_ret);
    }
-#else
-   m_pluginactivated = true;
-   m_networkeventsubscribed = true;
+
 #endif //WPEVGDRM_ENABLED
 }
