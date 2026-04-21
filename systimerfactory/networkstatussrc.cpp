@@ -132,7 +132,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv4 */
    inParam.Set(_T("ipversion"), string("IPv4"));
 
-   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4);
+   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("org.rdk.NetworkManager.1.IsConnectedToInternet"), inParam, outParamV4);
    
    if ( Core::ERROR_NONE == thunder_ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
@@ -149,7 +149,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv6 */
    inParam.Set(_T("ipversion"), string("IPv6"));
 
-   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV6);
+   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV6);
    if (Core::ERROR_NONE == thunder_ret ) {
        bool v6success = outParamV6.HasLabel("success") ? outParamV6["success"].Boolean() : false;
        bool v6connected = outParamV6.HasLabel("connectedToInternet") ? outParamV6["connectedToInternet"].Boolean() : false;
