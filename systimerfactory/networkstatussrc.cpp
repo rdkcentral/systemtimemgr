@@ -170,7 +170,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv6 */
    inParam.Set(_T("ipversion"), string("IPv6"));
 
-   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV6);
+   thunder_ret = thunder_client->Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV6);
    if (Core::ERROR_NONE == thunder_ret ) {
        bool v6success = outParamV6.HasLabel("success") ? outParamV6["success"].Boolean() : false;
       bool v6connected = outParamV4.HasLabel("connected") ? outParamV4["connected"].Boolean() : false;
@@ -184,5 +184,4 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
            __FUNCTION__, __LINE__, thunder_ret);
    }
 
-#endif //WPEVGDRM_ENABLED
 }
