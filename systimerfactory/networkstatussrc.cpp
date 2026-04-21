@@ -50,7 +50,7 @@ const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
 int32_t thunder_ret = Core::ERROR_NONE;
 
-void internetStatusChanged(const JsonObject& params)
+void handle_internetStatusChange(const JsonObject& params)
 {
    string internetStatus;
   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]- CHRONY: Internet status change notification received. status = %s\n",__FUNCTION__,__LINE__,internetStatus.c_str());
@@ -117,8 +117,8 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
    //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
-  //wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,_T("onInternetStatusChange"),std::bind(internetStatusChanged,std::placeholders::_1)
-   thunder_ret = wpeClient.Subscribe<JsonObject>(5000,_T("onInternetStatusChange"),&internetStatusChanged);
+  //wpeClient.Subscribe<JsonObject>(10,_T("onInternetStatusChange"),std::bind(handle_internetStatusChange,std::placeholders::_1)
+   thunder_ret = wpeClient.Subscribe<JsonObject>(10,onInternetStatusChange,std::bind(internetStatusChanged,std::placeholders::_1));
    if (thunder_ret !=  Core::ERROR_NONE) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,thunder_ret);
    } else {
