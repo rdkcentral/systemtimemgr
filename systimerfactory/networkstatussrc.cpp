@@ -39,7 +39,6 @@ using namespace jsonrpc;
 
 #define NETWORK_RPC_TIMEOUT 5000
 #ifdef WPEVGDRM_ENABLED
-namespace {
 const unsigned int ACTIVATION_RETRY_COUNT = 5;
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
@@ -76,7 +75,7 @@ void handle_internetStatusChange(const JsonObject& params)
       }
    }
 }
-} // namespace
+
 #endif//WPEVGDRM_ENABLED
 
 void NetworkStatusSrc::subscribeInternetStatusEvent()
