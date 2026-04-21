@@ -132,7 +132,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv4 */
    inParam.Set(_T("ipversion"), string("IPv4"));
 
-   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("org.rdk.NetworkManager.1.IsConnectedToInternet"), inParam, outParamV4);
+   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("IsConnectedToInternet"), inParam, outParamV4);
    
    if ( Core::ERROR_NONE == thunder_ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
@@ -142,7 +142,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
            __FUNCTION__, __LINE__, v4success, v4connected);
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-           "[%s:%d]: Failed to invoke isConnectedToInternet for IPv4 (%d).\n",
+           "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv4 (%d).\n",
            __FUNCTION__, __LINE__, thunder_ret );
    }
 
@@ -158,7 +158,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
            __FUNCTION__, __LINE__, v6success, v6connected);
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-           "[%s:%d]: Failed to invoke isConnectedToInternet for IPv6. (%d) \n",
+           "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv6. (%d) \n",
            __FUNCTION__, __LINE__, thunder_ret);
    }
 #else
