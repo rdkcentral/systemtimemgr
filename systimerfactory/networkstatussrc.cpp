@@ -140,7 +140,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
        string v4status = outParamV4.HasLabel("status") ? outParamV4["status"].String() : "";
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
            "[%s:%d]: IPv4 status - success: %d, connectedToInternet: %d, Status:%s \n",
-           __FUNCTION__, __LINE__, v4success, v4connected,v4status);
+           __FUNCTION__, __LINE__, v4success, v4connected,v4status.c_str());
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv4 (%d).\n",
@@ -157,7 +157,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
     string v6status = outParamV4.HasLabel("status") ? outParamV4["status"].String() : "";
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
            "[%s:%d]: IPv6 status - success: %d, connectedToInternet: %d, Status : %s\n",
-           __FUNCTION__, __LINE__, v6success, v6connected,v4status);
+           __FUNCTION__, __LINE__, v6success, v6connected,v6status.c_str());
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke IsConnectedToInternet for IPv6. (%d) \n",
