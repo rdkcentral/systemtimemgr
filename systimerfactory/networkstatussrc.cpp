@@ -93,7 +93,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
 
    activeParams["id"] = "1";
    activeParams["callsign"] = NETWORK_MANAGER_CALLSIGN;
-
+/*
    unsigned int retryCounter = 0;
    while ((!m_pluginactivated) && (retryCounter < ACTIVATION_RETRY_COUNT)) {
       try {
@@ -112,7 +112,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to activate NetworkManager plugin, skipping subscription.\n",__FUNCTION__,__LINE__);
       return;
    }
-
+*/
    //WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
    //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
