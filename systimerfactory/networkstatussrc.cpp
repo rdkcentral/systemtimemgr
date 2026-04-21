@@ -48,7 +48,7 @@ const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager.1";
 const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
 const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
-int32_t ret = Core::ERROR_NONE;
+int32_t thunder_ret = Core::ERROR_NONE;
 
 void internetStatusChanged(const JsonObject& params)
 {
@@ -118,9 +118,9 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
   //wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,_T("onInternetStatusChange"),std::bind(internetStatusChanged,std::placeholders::_1)
-   ret = wpeClient.Subscribe<JsonObject>(5000,_T("onInternetStatusChange"),&internetStatusChanged);
-   if (ret !=  Core::ERROR_NONE) {
-      RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,ret);
+   thunder_ret = wpeClient.Subscribe<JsonObject>(5000,_T("onInternetStatusChange"),&internetStatusChanged);
+   if (thunder_ret !=  Core::ERROR_NONE) {
+      RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,thunder_ret);
    } else {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
@@ -132,9 +132,9 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv4 */
    inParam.Set(_T("ipversion"), string("IPv4"));
 
-   ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4);
+   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4);
    
-   if ( Core::ERROR_NONE == ret) {
+   if ( Core::ERROR_NONE == thunder_ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
        bool v4connected = outParamV4.HasLabel("connectedToInternet") ? outParamV4["connectedToInternet"].Boolean() : false;
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
@@ -143,14 +143,14 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke isConnectedToInternet for IPv4 (%d).\n",
-           __FUNCTION__, __LINE__, ret );
+           __FUNCTION__, __LINE__, thunder_ret );
    }
 
    /* Check Internet status for IPv6 */
    inParam.Set(_T("ipversion"), string("IPv6"));
 
-   uint32_t ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV6);
-   if (Core::ERROR_NONE == ret ) {
+   thunder_ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV6);
+   if (Core::ERROR_NONE == thunder_ret ) {
        bool v6success = outParamV6.HasLabel("success") ? outParamV6["success"].Boolean() : false;
        bool v6connected = outParamV6.HasLabel("connectedToInternet") ? outParamV6["connectedToInternet"].Boolean() : false;
        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
@@ -159,7 +159,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    } else {
        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
            "[%s:%d]: Failed to invoke isConnectedToInternet for IPv6. (%d) \n",
-           __FUNCTION__, __LINE__, ret);
+           __FUNCTION__, __LINE__, thunder_ret);
    }
 #else
    m_pluginactivated = true;
