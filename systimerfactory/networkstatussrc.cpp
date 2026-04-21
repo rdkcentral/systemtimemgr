@@ -113,16 +113,15 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
       return;
    }
 
-   #WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
+   //WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *thunder_client = nullptr;
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
-   #thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
+   //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
-  # wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,INTERNET_EVENT_NAME,std::bind(internetStatusChanged,std::placeholders::_1)
-   ret = wpeClient.Subscribe<JsonObject>(5000,onInternetStatusChange,&internetStatusChanged)
+  //wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,_T("onConnectionStatusChanged"),std::bind(internetStatusChanged,std::placeholders::_1)
+   ret = wpeClient.Subscribe<JsonObject>(5000,_T("onConnectionStatusChanged"),&internetStatusChanged)
    if (ret !=  Core::ERROR_NONE) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,ret);
-   }
-   else {
+   } else {
       RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
    }
@@ -133,7 +132,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    /* Check Internet status for IPv4 */
    inParam.Set(_T("ipversion"), string("IPv4"));
 
-   uint32_t ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4);
+   ret = wpeClient.Invoke<JsonObject, JsonObject>(NETWORK_RPC_TIMEOUT, _T("isConnectedToInternet"), inParam, outParamV4);
    
    if ( Core::ERROR_NONE == ret) {
        bool v4success = outParamV4.HasLabel("success") ? outParamV4["success"].Boolean() : false;
