@@ -117,8 +117,8 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
    Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
    //thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
    WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeClient(NETWORK_MANAGER_CALLSIGN);
-  //wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,_T("onConnectionStatusChanged"),std::bind(internetStatusChanged,std::placeholders::_1)
-   ret = wpeClient.Subscribe<JsonObject>(5000,_T("onConnectionStatusChanged"),&internetStatusChanged);
+  //wpeClient.Subscribe<JsonObject>(EVENT_SUBSCRIPTION_TIMEOUT_SEC,_T("onInternetStatusChange"),std::bind(internetStatusChanged,std::placeholders::_1)
+   ret = wpeClient.Subscribe<JsonObject>(5000,_T("onInternetStatusChange"),&internetStatusChanged);
    if (ret !=  Core::ERROR_NONE) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onInternetStatusChange (%d) .\n",__FUNCTION__,__LINE__,ret);
    } else {
