@@ -22,10 +22,16 @@ class NetworkStatusSrc
 {
         private:
                bool m_networkeventsubscribed;
+               static WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> *controller;
+               static WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> *thunder_client;
 
         public:
                 NetworkStatusSrc():m_networkeventsubscribed(false){}
-                void subscribeInternetStatusEvent();
+                void subscribeInternetStatusEvent(); 
+               ~NetworkStatusSrc();
+                void subscribeToInternetEvent();
+                void unsubscribeFromInternetEvent();
+                static void plugin_statechange(const JsonObject& parameters);
 };
 
 #endif // _NETWORKSTATUSSRC_H_
