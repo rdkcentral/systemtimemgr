@@ -19,8 +19,8 @@
 #define _NETWORKSTATUSSRC_H_
 
 
-#include <WPEFramework/core/core.h>
-#include <WPEFramework/plugins/Service.h>
+//#include <WPEFramework/core/core.h>
+//#include <WPEFramework/plugins/Service.h>
 
 using namespace WPEFramework;
 
@@ -31,8 +31,8 @@ class NetworkStatusSrc
                    NetworkStatusSrc();
 
     // Declaration, NO initialization
-    static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller;
-    static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client;
+    //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller;
+    //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client;
 
     static bool m_networkeventsubscribed;
                 void subscribeInternetStatusEvent(); 
