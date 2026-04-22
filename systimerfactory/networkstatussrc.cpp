@@ -105,7 +105,7 @@ void NetworkStatusSrc::unsubscribeFromInternetEvent()
     m_networkeventsubscribed = false;
 }
 
-void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
+static void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
 {
     if (!parameters.HasLabel("callsign") || !parameters.HasLabel("state"))
         return;
