@@ -105,7 +105,7 @@ void NetworkStatusSrc::unsubscribeFromInternetEvent()
     m_networkeventsubscribed = false;
 }
 
-static void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
+void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
 {
     if (!parameters.HasLabel("callsign") || !parameters.HasLabel("state"))
         return;
@@ -116,10 +116,10 @@ static void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
     if (callsign == NETWORK_MANAGER_CALLSIGN) {
         if (state == "Activated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Activated\n", __FUNCTION__,__LINE__);
-            subscribeToInternetEvent();
+            NetworkStatusSrc::subscribeToInternetEvent();
         } else if (state == "Deactivated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
-            unsubscribeFromInternetEvent();
+            NetworkStatusSrc::unsubscribeFromInternetEvent();
         }
     }
 }
