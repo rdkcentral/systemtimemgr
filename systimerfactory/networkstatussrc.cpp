@@ -85,7 +85,9 @@ static void subscribeToInternetEvent()
 {
     if (m_networkeventsubscribed) return;
 
-    for (unsigned int attempt = 1; attempt <= ACTIVATION_RETRY_COUNT; attempt++) {
+    unsigned int attempt = 0;
+    while (!m_networkeventsubscribed) {
+        attempt++;
         if (!thunder_client)
             thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
 
@@ -96,12 +98,11 @@ static void subscribeToInternetEvent()
                 m_networkeventsubscribed = true;
                 return;
             }
-            RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribe to onInternetStatusChange failed (%d), attempt %u/%u\n",__FUNCTION__,__LINE__,ret,attempt,ACTIVATION_RETRY_COUNT);
+            RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribe to onInternetStatusChange failed (%d), attempt %u\n",__FUNCTION__,__LINE__,ret,attempt);
             delete thunder_client; thunder_client = nullptr;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS));
     }
-    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: CHRONY: Failed to subscribe to onInternetStatusChange after %u attempts\n",__FUNCTION__,__LINE__,ACTIVATION_RETRY_COUNT);
 }
 
 static void unsubscribeFromInternetEvent()
@@ -124,6 +125,8 @@ static void plugin_statechange(const JsonObject& parameters)
     if (callsign == NETWORK_MANAGER_CALLSIGN) {
         if (state == "Activated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Activated\n", __FUNCTION__,__LINE__);
+            // Force cleanup of any stale subscription before subscribing to fresh plugin instance.
+            unsubscribeFromInternetEvent();
             subscribeToInternetEvent();
         } else if (state == "Deactivated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
@@ -145,10 +148,6 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
         }
     }
-
-    // NetworkManager may already be active when systimemgr starts/restarts.
-    // Try subscribing immediately; if it fails, statechange callback will retry on next activation.
-    subscribeToInternetEvent();
 }
 
 NetworkStatusSrc::~NetworkStatusSrc()
