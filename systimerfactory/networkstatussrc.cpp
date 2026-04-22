@@ -84,9 +84,9 @@ void handle_internetStatusChange(const JsonObject& params)
    lastStatus = normalizedStatus;
 }
 
-void NetworkStatusSrc::subscribeToInternetEvent()
+static void subscribeToInternetEvent()
 {
-    if (m_networkeventsubscribed) return;
+    if (NetworkStatusSrc::m_networkeventsubscribed) return;
     if (!thunder_client)
         thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
 
@@ -94,7 +94,7 @@ void NetworkStatusSrc::subscribeToInternetEvent()
         thunder_ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
         if (thunder_ret == Core::ERROR_NONE) {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Successfully subscribed to onInternetStatusChange\n", __FUNCTION__,__LINE__);
-            m_networkeventsubscribed = true;
+            NetworkStatusSrc::m_networkeventsubscribed = true;
         } else {
             RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: Failed to subscribe to onInternetStatusChange (%d)\n",__FUNCTION__,__LINE__,thunder_ret);
             delete thunder_client; thunder_client = nullptr;
@@ -102,16 +102,16 @@ void NetworkStatusSrc::subscribeToInternetEvent()
     }
 }
 
-void NetworkStatusSrc::unsubscribeFromInternetEvent()
+static void unsubscribeFromInternetEvent()
 {
-    if (!m_networkeventsubscribed || !thunder_client) return;
+    if (!NetworkStatusSrc::m_networkeventsubscribed || !thunder_client) return;
     thunder_client->Unsubscribe(5000, "onInternetStatusChange");
     delete thunder_client;
     thunder_client = nullptr;
-    m_networkeventsubscribed = false;
+    NetworkStatusSrc::m_networkeventsubscribed = false;
 }
 
-void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
+static void plugin_statechange(const JsonObject& parameters)
 {
     if (!parameters.HasLabel("callsign") || !parameters.HasLabel("state"))
         return;
@@ -122,10 +122,10 @@ void NetworkStatusSrc::plugin_statechange(const JsonObject& parameters)
     if (callsign == NETWORK_MANAGER_CALLSIGN) {
         if (state == "Activated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Activated\n", __FUNCTION__,__LINE__);
-            NetworkStatusSrc::subscribeToInternetEvent();
+            subscribeToInternetEvent();
         } else if (state == "Deactivated") {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
-            NetworkStatusSrc::unsubscribeFromInternetEvent();
+            unsubscribeFromInternetEvent();
         }
     }
 }
@@ -139,7 +139,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
     if (!controller) {
         controller = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false);
         if (controller) {
-            controller->Subscribe<JsonObject>(5000, "statechange", &NetworkStatusSrc::plugin_statechange);
+            controller->Subscribe<JsonObject>(5000, "statechange", &plugin_statechange);
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
         }
     }
