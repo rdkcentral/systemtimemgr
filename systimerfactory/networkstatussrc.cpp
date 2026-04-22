@@ -50,9 +50,9 @@ const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
 int32_t thunder_ret = Core::ERROR_NONE;
 
-// Definition & initialization outside class
-WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* NetworkStatusSrc::controller = nullptr;
-WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* NetworkStatusSrc::thunder_client = nullptr;
+
+WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr;
+WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 bool NetworkStatusSrc::m_networkeventsubscribed = false;
 
 
