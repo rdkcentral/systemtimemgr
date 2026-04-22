@@ -86,7 +86,7 @@ static void subscribeToInternetEvent()
 {
     if (m_networkeventsubscribed) return;
     if (!thunder_client)
-        thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
+        thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_PLUGIN, "", false);
 
     if (thunder_client) {
         int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
@@ -141,6 +141,10 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
         }
     }
+
+    // NetworkManager may already be active when systimemgr starts/restarts.
+    // Try subscribing immediately; if it fails, statechange callback will retry on next activation.
+    subscribeToInternetEvent();
 }
 
 NetworkStatusSrc::~NetworkStatusSrc()
