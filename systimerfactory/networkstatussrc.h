@@ -34,8 +34,8 @@ class NetworkStatusSrc
                 NetworkStatusSrc():m_networkeventsubscribed(false){}
                 void subscribeInternetStatusEvent(); 
                ~NetworkStatusSrc();
-                void subscribeToInternetEvent();
-                void unsubscribeFromInternetEvent();
+                static void subscribeToInternetEvent();
+                static void unsubscribeFromInternetEvent();
                 static void plugin_statechange(const JsonObject& parameters);
 };
 
