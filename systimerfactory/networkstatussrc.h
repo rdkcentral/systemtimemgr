@@ -19,7 +19,7 @@
 #define _NETWORKSTATUSSRC_H_
 
 
-#include <WPEFramework/plugins/Service.h>
+//#include <WPEFramework/plugins/Service.h>
 
 using namespace WPEFramework;
 
