@@ -22,7 +22,9 @@
 //#include <WPEFramework/core/core.h>
 //#include <WPEFramework/plugins/Service.h>
 
-using namespace WPEFramework;
+#include "core/SystemInfo.h"
+#include "websocket/JSONRPCLink.h"
+//using namespace WPEFramework;
 
 class NetworkStatusSrc
 {
