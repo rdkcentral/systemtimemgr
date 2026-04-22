@@ -129,7 +129,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
   //wpeClient.Subscribe<JsonObject>(10,_T("onInternetStatusChange"),std::bind(handle_internetStatusChange,std::placeholders::_1)
 
    if (thunder_client) {
-      thunder_ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &internetStatusChanged);
+      thunder_ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
     if (thunder_ret == Core::ERROR_NONE) {
         RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully registered for onInternetStatusChange.\n",__FUNCTION__,__LINE__);
       m_networkeventsubscribed = true;
