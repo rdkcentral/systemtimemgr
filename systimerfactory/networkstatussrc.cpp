@@ -48,12 +48,10 @@ const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
 const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
 const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
-int32_t thunder_ret = Core::ERROR_NONE;
 
-
-WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr;
-WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
-bool NetworkStatusSrc::m_networkeventsubscribed = false;
+static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr;
+static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+static bool m_networkeventsubscribed = false;
 
 
 void handle_internetStatusChange(const JsonObject& params)
@@ -91,12 +89,12 @@ static void subscribeToInternetEvent()
         thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
 
     if (thunder_client) {
-        thunder_ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
-        if (thunder_ret == Core::ERROR_NONE) {
+        int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
+        if (ret == Core::ERROR_NONE) {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Successfully subscribed to onInternetStatusChange\n", __FUNCTION__,__LINE__);
             NetworkStatusSrc::m_networkeventsubscribed = true;
         } else {
-            RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: Failed to subscribe to onInternetStatusChange (%d)\n",__FUNCTION__,__LINE__,thunder_ret);
+            RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: Failed to subscribe to onInternetStatusChange (%d)\n",__FUNCTION__,__LINE__,ret);
             delete thunder_client; thunder_client = nullptr;
         }
     }

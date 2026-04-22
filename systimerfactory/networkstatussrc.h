@@ -19,29 +19,11 @@
 #define _NETWORKSTATUSSRC_H_
 
 
-//#include <WPEFramework/core/core.h>
-//#include <WPEFramework/plugins/Service.h>
-
-//#include "core/SystemInfo.h"
-//#include "websocket/JSONRPCLink.h"
-//using namespace WPEFramework;
-
 class NetworkStatusSrc
 {
-
         public:
-                   NetworkStatusSrc();
-
-    // Declaration, NO initialization
-    //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller;
-    //static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client;
-
-    static bool m_networkeventsubscribed;
-                void subscribeInternetStatusEvent(); 
+                void subscribeInternetStatusEvent();
                ~NetworkStatusSrc();
-               // static void subscribeToInternetEvent();
-               // static void unsubscribeFromInternetEvent();
-              //  static void plugin_statechange(const JsonObject& parameters);
 };
 
 #endif // _NETWORKSTATUSSRC_H_
