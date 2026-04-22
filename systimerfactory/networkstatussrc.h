@@ -18,12 +18,17 @@
 #ifndef _NETWORKSTATUSSRC_H_
 #define _NETWORKSTATUSSRC_H_
 
+#include <WPEFramework/core/core.h>
+#include <WPEFramework/plugins/Service.h>
+
+using namespace WPEFramework;
+
 class NetworkStatusSrc
 {
         private:
                bool m_networkeventsubscribed;
-               static WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> *controller;
-               static WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> *thunder_client;
+         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr; ///< Controller for JSON-RPC communication.
+         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr; ///< Network manager for handling events.
 
         public:
                 NetworkStatusSrc():m_networkeventsubscribed(false){}
