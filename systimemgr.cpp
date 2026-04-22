@@ -188,6 +188,8 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
+   std::thread networkStatusThrd(SysTimeMgr::networkStatusThr,this);
+	
    if (forever)
    {
        ofstream pidfile("/run/systimemgr.pid",ios::out);
@@ -199,12 +201,14 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
+	   networkStatusThrd.join();
    }
    else
    {
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
+	   networkStatusThrd.detach();
    }
 }
 
