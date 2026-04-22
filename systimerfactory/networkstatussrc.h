@@ -36,7 +36,7 @@ class NetworkStatusSrc
                ~NetworkStatusSrc();
                 void subscribeToInternetEvent();
                 void unsubscribeFromInternetEvent();
-                void plugin_statechange(const JsonObject& parameters);
+                static void plugin_statechange(const JsonObject& parameters);
 };
 
 #endif // _NETWORKSTATUSSRC_H_
