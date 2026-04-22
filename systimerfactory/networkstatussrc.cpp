@@ -84,7 +84,7 @@ void handle_internetStatusChange(const JsonObject& params)
 
 static void subscribeToInternetEvent()
 {
-    if (NetworkStatusSrc::m_networkeventsubscribed) return;
+    if (m_networkeventsubscribed) return;
     if (!thunder_client)
         thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
 
@@ -92,7 +92,7 @@ static void subscribeToInternetEvent()
         int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
         if (ret == Core::ERROR_NONE) {
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Successfully subscribed to onInternetStatusChange\n", __FUNCTION__,__LINE__);
-            NetworkStatusSrc::m_networkeventsubscribed = true;
+            m_networkeventsubscribed = true;
         } else {
             RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: Failed to subscribe to onInternetStatusChange (%d)\n",__FUNCTION__,__LINE__,ret);
             delete thunder_client; thunder_client = nullptr;
@@ -102,11 +102,11 @@ static void subscribeToInternetEvent()
 
 static void unsubscribeFromInternetEvent()
 {
-    if (!NetworkStatusSrc::m_networkeventsubscribed || !thunder_client) return;
+    if (!m_networkeventsubscribed || !thunder_client) return;
     thunder_client->Unsubscribe(5000, "onInternetStatusChange");
     delete thunder_client;
     thunder_client = nullptr;
-    NetworkStatusSrc::m_networkeventsubscribed = false;
+    m_networkeventsubscribed = false;
 }
 
 static void plugin_statechange(const JsonObject& parameters)
