@@ -37,6 +37,8 @@
 #include "rdk_logger_milestone.h"
 #endif
 
+#include "systimerfactory/networkstatussrc.h"
+
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
 #endif
