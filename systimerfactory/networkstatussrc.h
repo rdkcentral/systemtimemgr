@@ -26,9 +26,9 @@ using namespace WPEFramework;
 class NetworkStatusSrc
 {
         private:
-               bool m_networkeventsubscribed;
-         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr; ///< Controller for JSON-RPC communication.
-         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr; ///< Network manager for handling events.
+               static bool m_networkeventsubscribed;
+         static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr; ///< Controller for JSON-RPC communication.
+         static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr; ///< Network manager for handling events.
 
         public:
                 NetworkStatusSrc():m_networkeventsubscribed(false){}
