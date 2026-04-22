@@ -57,7 +57,6 @@ static bool m_networkeventsubscribed = false;
 void handle_internetStatusChange(const JsonObject& params)
 {
    string internetStatus;
-  RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]- CHRONY TBR: Internet status change notification received. status = %s\n",__FUNCTION__,__LINE__,internetStatus.c_str());
    if (params.HasLabel("status")) {
       internetStatus = params["status"].String();
    }
@@ -70,13 +69,13 @@ void handle_internetStatusChange(const JsonObject& params)
       return static_cast<char>(std::tolower(ch));
    });
 
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Internet status change notification received. status = %s\n",__FUNCTION__,__LINE__,normalizedStatus.c_str());
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Internet status change notification received. status = %s\n", __FUNCTION__,__LINE__,normalizedStatus.c_str());
    if (normalizedStatus == "fully_connected" && normalizedStatus != lastStatus) {
      int ret = v_secure_system("/usr/sbin/chronyc burst 3/4");
       if (ret != 0) {
-                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
+                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
       } else {
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyc burst triggered for connected internet status.\n",__FUNCTION__,__LINE__);
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: chronyc burst triggered for connected internet status.\n",__FUNCTION__,__LINE__);
       }
    } 
    lastStatus = normalizedStatus;
@@ -85,19 +84,24 @@ void handle_internetStatusChange(const JsonObject& params)
 static void subscribeToInternetEvent()
 {
     if (m_networkeventsubscribed) return;
-    if (!thunder_client)
-        thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_PLUGIN, "", false);
 
-    if (thunder_client) {
-        int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
-        if (ret == Core::ERROR_NONE) {
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Successfully subscribed to onInternetStatusChange\n", __FUNCTION__,__LINE__);
-            m_networkeventsubscribed = true;
-        } else {
-            RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: Failed to subscribe to onInternetStatusChange (%d)\n",__FUNCTION__,__LINE__,ret);
+    for (unsigned int attempt = 1; attempt <= ACTIVATION_RETRY_COUNT; attempt++) {
+        if (!thunder_client)
+            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "", false);
+
+        if (thunder_client) {
+            int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);
+            if (ret == Core::ERROR_NONE) {
+                RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Successfully subscribed to onInternetStatusChange (attempt %u)\n", __FUNCTION__,__LINE__,attempt);
+                m_networkeventsubscribed = true;
+                return;
+            }
+            RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribe to onInternetStatusChange failed (%d), attempt %u/%u\n",__FUNCTION__,__LINE__,ret,attempt,ACTIVATION_RETRY_COUNT);
             delete thunder_client; thunder_client = nullptr;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS));
     }
+    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]: CHRONY: Failed to subscribe to onInternetStatusChange after %u attempts\n",__FUNCTION__,__LINE__,ACTIVATION_RETRY_COUNT);
 }
 
 static void unsubscribeFromInternetEvent()
@@ -119,10 +123,10 @@ static void plugin_statechange(const JsonObject& parameters)
 
     if (callsign == NETWORK_MANAGER_CALLSIGN) {
         if (state == "Activated") {
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Activated\n", __FUNCTION__,__LINE__);
+            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Activated\n", __FUNCTION__,__LINE__);
             subscribeToInternetEvent();
         } else if (state == "Deactivated") {
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
+            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
             unsubscribeFromInternetEvent();
         }
     }
@@ -138,7 +142,7 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
         controller = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false);
         if (controller) {
             controller->Subscribe<JsonObject>(5000, "statechange", &plugin_statechange);
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
+            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
         }
     }
 
