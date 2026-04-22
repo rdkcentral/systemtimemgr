@@ -22,8 +22,8 @@
 //#include <WPEFramework/core/core.h>
 //#include <WPEFramework/plugins/Service.h>
 
-#include "core/SystemInfo.h"
-#include "websocket/JSONRPCLink.h"
+//#include "core/SystemInfo.h"
+//#include "websocket/JSONRPCLink.h"
 //using namespace WPEFramework;
 
 class NetworkStatusSrc
@@ -39,9 +39,9 @@ class NetworkStatusSrc
     static bool m_networkeventsubscribed;
                 void subscribeInternetStatusEvent(); 
                ~NetworkStatusSrc();
-                static void subscribeToInternetEvent();
-                static void unsubscribeFromInternetEvent();
-                static void plugin_statechange(const JsonObject& parameters);
+               // static void subscribeToInternetEvent();
+               // static void unsubscribeFromInternetEvent();
+              //  static void plugin_statechange(const JsonObject& parameters);
 };
 
 #endif // _NETWORKSTATUSSRC_H_
