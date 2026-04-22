@@ -18,7 +18,7 @@
 #ifndef _NETWORKSTATUSSRC_H_
 #define _NETWORKSTATUSSRC_H_
 
-#include <WPEFramework/core/core.h>
+
 #include <WPEFramework/plugins/Service.h>
 
 using namespace WPEFramework;
