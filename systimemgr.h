@@ -116,9 +116,11 @@ private:
         static void processThr(SysTimeMgr* instance);
         static void timerThr(SysTimeMgr* instance);
         static void pathThr(SysTimeMgr* instance);
+        static void networkStatusThr(SysTimeMgr* instance);
+        
 
 
-
+    void runNetworkStatusMonitor();
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
 
