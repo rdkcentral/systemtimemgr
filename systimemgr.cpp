@@ -235,6 +235,13 @@ void SysTimeMgr::pathThr(SysTimeMgr* instance)
 	}
 }
 
+void SysTimeMgr::networkStatusThr(SysTimeMgr* instance)
+{
+    if (instance)
+        instance->runNetworkStatusMonitor();
+}
+
+
 void SysTimeMgr::processMsg()
 {
 	while (1)
@@ -318,6 +325,14 @@ void SysTimeMgr::runPathMonitor()
 		}
 	}
 }
+
+void SysTimeMgr::runNetworkStatusMonitor()
+{
+    static NetworkStatusSrc networkStatusMonitor;
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Starting network status subscription thread\n",__FUNCTION__,__LINE__);
+    networkStatusMonitor.subscribeInternetStatusEvent();
+}
+
 void SysTimeMgr::updateTime(void* args)
 {
 	updateTimeSync(0);
