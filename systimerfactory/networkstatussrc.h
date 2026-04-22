@@ -19,7 +19,6 @@
 #define _NETWORKSTATUSSRC_H_
 
 
-#include "Module.h"
 #include <WPEFramework/core/core.h>
 #include <WPEFramework/plugins/Service.h>
 
