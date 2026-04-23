@@ -19,10 +19,7 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
-#include <cstdlib>
 #include <cctype>
-#include <jsonrpccpp/client.h>
-#include <jsonrpccpp/client/connectors/httpclient.h>
 
 #include "networkstatussrc.h"
 #include "irdklog.h"
@@ -35,21 +32,13 @@ using namespace WPEFramework;
 
 
 using namespace std;
-using namespace jsonrpc;
 static std::string lastStatus;
 
-#define NETWORK_RPC_TIMEOUT 5000
-
-const unsigned int ACTIVATION_RETRY_COUNT = 5;
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
-const char* ACTIVATION_METHOD = "Controller.1.activate";
 const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
-const char* NETWORK_MANAGER_PLUGIN = "org.rdk.NetworkManager.1";
 const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
-const unsigned int EVENT_SUBSCRIPTION_TIMEOUT_SEC = 5000;
 
-static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* controller = nullptr;
 static WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 static bool m_networkeventsubscribed = false;
 
@@ -83,8 +72,6 @@ void handle_internetStatusChange(const JsonObject& params)
 
 static void subscribeToInternetEvent()
 {
-    if (m_networkeventsubscribed) return;
-
     unsigned int attempt = 0;
     while (!m_networkeventsubscribed) {
         attempt++;
@@ -105,58 +92,19 @@ static void subscribeToInternetEvent()
     }
 }
 
-static void unsubscribeFromInternetEvent()
-{
-    if (!m_networkeventsubscribed || !thunder_client) return;
-    thunder_client->Unsubscribe(5000, "onInternetStatusChange");
-    delete thunder_client;
-    thunder_client = nullptr;
-    m_networkeventsubscribed = false;
-}
-
-static void plugin_statechange(const JsonObject& parameters)
-{
-    if (!parameters.HasLabel("callsign") || !parameters.HasLabel("state"))
-        return;
-
-    std::string callsign = parameters["callsign"].String();
-    std::string state = parameters["state"].String();
-
-    if (callsign == NETWORK_MANAGER_CALLSIGN) {
-        if (state == "Activated") {
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Activated\n", __FUNCTION__,__LINE__);
-            // Force cleanup of any stale subscription before subscribing to fresh plugin instance.
-            unsubscribeFromInternetEvent();
-            subscribeToInternetEvent();
-        } else if (state == "Deactivated") {
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: NetworkManager Deactivated\n", __FUNCTION__,__LINE__);
-            unsubscribeFromInternetEvent();
-        }
-    }
-}
-
 void NetworkStatusSrc::subscribeInternetStatusEvent()
 {
-
     Core::SystemInfo::SetEnvironment("THUNDER_ACCESS", "127.0.0.1:9998");
-
-    // Subscribe to plugin statechange once per lifetime
-    if (!controller) {
-        controller = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false);
-        if (controller) {
-            controller->Subscribe<JsonObject>(5000, "statechange", &plugin_statechange);
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribed to plugin statechange event\n", __FUNCTION__,__LINE__);
-        }
-    }
+    // NetworkManager activates once and lives for the process lifetime.
+    // Run the retry loop directly on the calling thread (runNetworkStatusMonitor).
+    subscribeToInternetEvent();
 }
 
 NetworkStatusSrc::~NetworkStatusSrc()
 {
-
-    if (controller) {
-        controller->Unsubscribe(5000, "statechange");
-        delete controller;
-        controller = nullptr;
+    if (thunder_client) {
+        thunder_client->Unsubscribe(5000, "onInternetStatusChange");
+        delete thunder_client;
+        thunder_client = nullptr;
     }
-    unsubscribeFromInternetEvent();
 }
