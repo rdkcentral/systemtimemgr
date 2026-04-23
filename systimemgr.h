@@ -116,11 +116,14 @@ private:
         static void processThr(SysTimeMgr* instance);
         static void timerThr(SysTimeMgr* instance);
         static void pathThr(SysTimeMgr* instance);
+#ifdef CHRONY_ENABLED
         static void networkStatusThr(SysTimeMgr* instance);
-        
+#endif
 
 
+#ifdef CHRONY_ENABLED
     void runNetworkStatusMonitor();
+#endif
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
 
