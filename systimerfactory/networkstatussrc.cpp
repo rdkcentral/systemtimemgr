@@ -60,6 +60,7 @@ void handle_internetStatusChange(const JsonObject& params)
 
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Internet status change notification received. status = %s\n", __FUNCTION__,__LINE__,normalizedStatus.c_str());
    if (normalizedStatus == "fully_connected" && normalizedStatus != lastStatus) {
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Received First Internet status change event. status = %s\n", __FUNCTION__,__LINE__,normalizedStatus.c_str());
      int ret = v_secure_system("/usr/sbin/chronyc burst 3/4");
       if (ret != 0) {
                 RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: chronyc burst failed with code %d\n",__FUNCTION__,__LINE__, ret);
