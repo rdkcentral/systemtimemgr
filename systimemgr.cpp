@@ -37,7 +37,9 @@
 #include "rdk_logger_milestone.h"
 #endif
 
+#ifdef CHRONY_ENABLED
 #include "systimerfactory/networkstatussrc.h"
+#endif
 
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
@@ -190,7 +192,9 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
+#ifdef CHRONY_ENABLED
    std::thread networkStatusThrd(SysTimeMgr::networkStatusThr,this);
+#endif
 	
    if (forever)
    {
@@ -203,14 +207,18 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
+#ifdef CHRONY_ENABLED
 	   networkStatusThrd.join();
+#endif
    }
    else
    {
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
+#ifdef CHRONY_ENABLED
 	   networkStatusThrd.detach();
+#endif
    }
 }
 
@@ -237,11 +245,13 @@ void SysTimeMgr::pathThr(SysTimeMgr* instance)
 	}
 }
 
+#ifdef CHRONY_ENABLED
 void SysTimeMgr::networkStatusThr(SysTimeMgr* instance)
 {
     if (instance)
         instance->runNetworkStatusMonitor();
 }
+#endif
 
 
 void SysTimeMgr::processMsg()
@@ -328,12 +338,14 @@ void SysTimeMgr::runPathMonitor()
 	}
 }
 
+#ifdef CHRONY_ENABLED
 void SysTimeMgr::runNetworkStatusMonitor()
 {
     static NetworkStatusSrc networkStatusMonitor;
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Starting network status subscription thread\n",__FUNCTION__,__LINE__);
     networkStatusMonitor.subscribeInternetStatusEvent();
 }
+#endif
 
 void SysTimeMgr::updateTime(void* args)
 {

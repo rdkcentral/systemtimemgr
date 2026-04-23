@@ -97,10 +97,27 @@ AC_ARG_ENABLE([t2api],
 AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
 AC_SUBST(T2_EVENT_FLAG)
 
+CHRONY_ENABLED=""
+CHRONY_CXXFLAGS=" "
+
+AC_ARG_ENABLE([chrony],
+        AS_HELP_STRING([--enable-chrony],[enable chrony network status monitor]),
+        [
+          case "${enableval}" in
+           yes) CHRONY_CXXFLAGS="-DCHRONY_ENABLED"
+		CHRONY_ENABLED=true;;
+           no) CHRONY_ENABLED=false;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-chrony ]) ;;
+           esac
+           ],
+         [echo "chrony network status monitor is disabled"])
+AM_CONDITIONAL([CHRONY_ENABLED], [test x$CHRONY_ENABLED = xtrue])
+
 AC_CONFIG_FILES(Makefile)
 AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
+AC_SUBST(CHRONY_CXXFLAGS)
 
 
 AC_OUTPUT
