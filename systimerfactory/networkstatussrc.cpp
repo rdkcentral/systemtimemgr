@@ -26,6 +26,10 @@
 #include "irdklog.h"
 #include "secure_wrapper.h"
 
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
 using namespace WPEFramework;
@@ -33,6 +37,53 @@ using namespace WPEFramework;
 
 using namespace std;
 static std::string lastStatus;
+
+/* Offset threshold in seconds above which makestep is triggered even if
+ * chrony already has a selectable source (natural slewing would be too slow). */
+static constexpr double OFFSET_STEP_THRESHOLD_S = 1.0;
+
+/**
+ * Return the absolute system-clock offset (seconds) as reported by
+ * "chronyc tracking".  Positive means the local clock is fast relative to the
+ * NTP reference; negative means it is slow.  Returns 0.0 on any parse error.
+ *
+ * Example line parsed:
+ *   System time     : 2.345678901 seconds slow of NTP time
+ */
+static double getChronyOffset()
+{
+    FILE *fp = v_secure_popen("r", "chronyc tracking");
+    if (!fp) {
+        RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+                "[%s:%d]: CHRONY: Failed to open chronyc tracking pipe\n",
+                __FUNCTION__, __LINE__);
+        return 0.0;
+    }
+
+    double offset = 0.0;
+    char   line[256];
+    while (fgets(line, static_cast<int>(sizeof(line)), fp)) {
+        /* The line starts with "System time" (may have extra spaces before ':'). */
+        if (strstr(line, "System time") == nullptr)
+            continue;
+
+        /* Format: "System time     : <value> seconds slow|fast of NTP time" */
+        const char *colon = strchr(line, ':');
+        if (!colon)
+            break;
+
+        double val = 0.0;
+        char   direction[16] = {};
+        if (sscanf(colon + 1, " %lf seconds %15s", &val, direction) == 2) {
+            /* Positive offset  → clock is fast (ahead of NTP) */
+            offset = (strncmp(direction, "fast", 4) == 0) ? val : -val;
+        }
+        break;
+    }
+
+    v_secure_pclose(fp);
+    return offset;
+}
 
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
@@ -62,10 +113,75 @@ void handle_internetStatusChange(const JsonObject& params)
            __FUNCTION__,__LINE__,normalizedStatus.c_str());
 
    if (normalizedStatus == "fully_connected" && normalizedStatus != lastStatus) {
-      if (access("/tmp/clock-event", F_OK) != 0) {
-         RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                 "[%s:%d]: CHRONY: /tmp/clock-event not present, skipping chronyc actions (NTP sync not yet done)\n",
-                 __FUNCTION__,__LINE__);
+      bool firstSyncDone = (access("/tmp/clock-event", F_OK) == 0);
+
+      if (!firstSyncDone) {
+         /* /tmp/clock-event is absent — NTP has never successfully synced on
+          * this boot.  Two sub-cases:
+          *
+          *  a) Device booted WITH internet: iburst is (or was) running and
+          *     may already have selected a source.  Do nothing and let chronyd
+          *     finish its iburst phase naturally.
+          *
+          *  b) Device booted WITHOUT internet: iburst fired but found no
+          *     reachable server.  Now that connectivity is available we must
+          *     kick off burst+waitsync+makestep ourselves — otherwise the
+          *     device will never get an initial time correction.
+          *
+          * We distinguish (a) from (b) by checking whether chrony already
+          * has a selectable source. */
+         int noSrcCheck = v_secure_system("chronyc sources | grep -qE '^\\^[*+]'");
+         if (noSrcCheck == 0) {
+            /* Sub-case (a): iburst is working fine — leave it alone. */
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                    "[%s:%d]: CHRONY: /tmp/clock-event absent but iburst already"
+                    " selected a source — letting chronyd complete naturally\n",
+                    __FUNCTION__, __LINE__);
+         } else {
+            /* Sub-case (b): no clock-event AND no selectable source.
+             * Device booted without internet; trigger sync now that
+             * connectivity is available. */
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                    "[%s:%d]: CHRONY: /tmp/clock-event absent and no selectable"
+                    " source — device booted without internet, initiating"
+                    " burst+waitsync+makestep\n",
+                    __FUNCTION__, __LINE__);
+
+            int burstRet = v_secure_system("/usr/sbin/chronyc burst 3/4");
+            if (burstRet != 0) {
+               RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: chronyc burst failed with code %d\n",
+                       __FUNCTION__, __LINE__, burstRet);
+            } else {
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: burst triggered (boot-without-internet"
+                       " recovery), waiting for source selection\n",
+                       __FUNCTION__, __LINE__);
+            }
+
+            int waitRet = v_secure_system("/usr/sbin/chronyc waitsync 10 0 0 1");
+            if (waitRet != 0) {
+               RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: waitsync timed out (code %d) during"
+                       " boot-without-internet recovery. Skipping makestep.\n",
+                       __FUNCTION__, __LINE__, waitRet);
+            } else {
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: waitsync completed (boot-without-internet"
+                       " recovery). Proceeding to makestep.\n",
+                       __FUNCTION__, __LINE__);
+               int stepRet = v_secure_system("/usr/sbin/chronyc makestep");
+               if (stepRet != 0) {
+                  RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: makestep failed with code %d\n",
+                          __FUNCTION__, __LINE__, stepRet);
+               } else {
+                  RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: makestep completed (boot-without-internet recovery)\n",
+                          __FUNCTION__, __LINE__);
+               }
+            }
+         }
       } else {
          /* Check whether chrony already has a selectable (selected '*' or combined '+') source.
           * grep -qE '^\^[*+]' matches lines chronyc sources prints for selected/combined peers.
@@ -122,19 +238,36 @@ void handle_internetStatusChange(const JsonObject& params)
                }
             }
          } else {
-            /* Selectable source already present — safe to makestep immediately. */
-            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: Selectable source already available, proceeding to makestep\n",
-                    __FUNCTION__,__LINE__);
-            int stepRet = v_secure_system("/usr/sbin/chronyc makestep");
-            if (stepRet != 0) {
-               RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: chronyc makestep failed with code %d\n",
-                       __FUNCTION__,__LINE__, stepRet);
+            /* Selectable source already present.
+             * Only step the clock if the current offset exceeds the threshold;
+             * smaller offsets are handled faster and safer by chrony's natural
+             * frequency-slewing, so an explicit makestep is unnecessary. */
+            double offset = getChronyOffset();
+            double absOffset = std::fabs(offset);
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                    "[%s:%d]: CHRONY: Selectable source present, current offset = %.6f s"
+                    " (threshold = %.1f s)\n",
+                    __FUNCTION__, __LINE__, offset, OFFSET_STEP_THRESHOLD_S);
+
+            if (absOffset > OFFSET_STEP_THRESHOLD_S) {
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: Offset exceeds threshold, issuing makestep\n",
+                       __FUNCTION__, __LINE__);
+               int stepRet = v_secure_system("/usr/sbin/chronyc makestep");
+               if (stepRet != 0) {
+                  RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: chronyc makestep failed with code %d\n",
+                          __FUNCTION__, __LINE__, stepRet);
+               } else {
+                  RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: chronyc makestep completed successfully\n",
+                          __FUNCTION__, __LINE__);
+               }
             } else {
-               RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: chronyc makestep completed successfully\n",
-                       __FUNCTION__,__LINE__);
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: Offset (%.6f s) within threshold — allowing"
+                       " natural slew, no makestep needed\n",
+                       __FUNCTION__, __LINE__, offset);
             }
          }
       }
