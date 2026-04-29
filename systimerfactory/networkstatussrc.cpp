@@ -116,45 +116,67 @@ void handle_internetStatusChange(const JsonObject& params)
       bool firstSyncDone = (access("/tmp/clock-event", F_OK) == 0);
 
       if (!firstSyncDone) {
-
-          /* /tmp/clock-event is absent — NTP has never successfully synced on
-          * this boot.  Two sub-cases:
+         /* /tmp/clock-event is absent — NTP has never successfully synced on
+          * this boot.  Three sub-cases:
           *
-          *  a) Device booted WITH internet: iburst is (or was) running and
-          *     may already have selected a source.  Do nothing and let chronyd
-          *     finish its iburst phase naturally.
+          *  A) chronyd not yet started: internet is already up; chronyd will
+          *     reach its servers immediately via iburst on startup.  Nothing to do.
           *
-          *  b) Device booted WITHOUT internet: iburst fired but found no
-          *     reachable server.  Now that connectivity is available we must
-          *     kick off burst+waitsync+makestep ourselves — otherwise the
-          *     device will never get an initial time correction.
+          *  B) chronyd running, sources visible in 'chronyc sources' (any state,
+          *     including '^?'): iburst is in progress or DNS resolved and polling
+          *     has started.  Let chronyd finish naturally; 'makestep 1.0 4' in
+          *     chrony.conf handles the initial step correction.
           *
-          * We distinguish (a) from (b) by checking whether chrony already
-          * has a selectable source. */
-          
+          *  C) chronyd running, NO source entries in 'chronyc sources': sources
+          *     are completely offline (device booted without internet and DNS may
+          *     not have resolved yet).  Next natural poll could be many minutes
+          *     away.  Call 'chronyc online' to mark sources reachable and trigger
+          *     iburst immediately.
+          *
+          * Discriminators:
+          *   1. 'systemctl is-active chronyd'  — non-zero → Case A.
+          *   2. 'chronyc sources | grep -qE "^\^"' — matches ANY server line
+          *      ('^?', '^*', '^+', '^-', '^x', '^~') meaning chronyd has at
+          *      least one source entry it is actively polling. Exit 0 → Case B.
+          *      Exit non-zero → Case C. */
          int chronyActive = v_secure_system("/bin/systemctl is-active --quiet chronyd.service");
-         int noSrcCheck = v_secure_system("chronyc sources | grep -qE '^\\^[*+]'");
-         if (noSrcCheck == 0 && chronyActive == 0 ) {
-            /* Sub-case (a): iburst is working fine — leave it alone. */
+         if (chronyActive != 0) {
+            /* Case A */
             RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: /tmp/clock-event absent but iburst already"
-                    " selected a source — letting chronyd complete naturally\n",
+                    "[%s:%d]: CHRONY: First sync pending — chronyd not yet started."
+                    " Internet is up; will sync via iburst on startup.\n",
                     __FUNCTION__, __LINE__);
          } else {
-            /* Sub-case (b): no clock-event AND no selectable source.
-             * Device booted without internet; trigger sync now that
-             * connectivity is available. */
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: /tmp/clock-event absent and no selectable"
-                    " source — device booted without internet, initiating"
-                    " chronyc online \n",
-           int ret = v_secure_system("/usr/sbin/chronyc online");
-          if(ret !=0 ) {
-               RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: chronyc online Failed :%d\n",
-                    __FUNCTION__,__LINE__,ret);
-          }          
-        }
+            /* chronyd is running — check whether any source entry exists */
+            int srcPresent = v_secure_system("chronyc sources | grep -qE '^\\^'");
+            if (srcPresent == 0) {
+               /* Case B: at least one source entry visible (iburst running or
+                * polling started).  Let chronyd complete the sync on its own. */
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: First sync pending — source(s) present in"
+                       " chronyc sources (iburst/polling in progress). No action needed.\n",
+                       __FUNCTION__, __LINE__);
+            } else {
+               /* Case C: no source entries — sources are offline; next poll
+                * could be delayed by many minutes without intervention. */
+               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: First sync pending — no sources in chronyc sources."
+                       " Device likely booted without internet. Calling chronyc online.\n",
+                       __FUNCTION__, __LINE__);
+               int ret = v_secure_system("/usr/sbin/chronyc online");
+               if (ret == 0) {
+                  RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: chronyc online succeeded."
+                          " iburst will fire automatically.\n",
+                          __FUNCTION__, __LINE__);
+               } else {
+                  RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                          "[%s:%d]: CHRONY: chronyc online failed (ret=%d)."
+                          " chronyd will sync on its own schedule.\n",
+                          __FUNCTION__, __LINE__, ret);
+               }
+            }
+         }
       } else {
          /* Check whether chrony already has a selectable (selected '*' or combined '+') source.
           * grep -qE '^\^[*+]' matches lines chronyc sources prints for selected/combined peers.
