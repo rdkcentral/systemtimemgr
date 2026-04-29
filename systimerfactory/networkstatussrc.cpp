@@ -116,72 +116,15 @@ void handle_internetStatusChange(const JsonObject& params)
       bool firstSyncDone = (access("/tmp/clock-event", F_OK) == 0);
 
       if (!firstSyncDone) {
-         /* /tmp/clock-event is absent — NTP has never successfully synced on
-          * this boot.  Two sub-cases:
-          *
-          *  a) Device booted WITH internet: iburst is (or was) running and
-          *     may already have selected a source.  Do nothing and let chronyd
-          *     finish its iburst phase naturally.
-          *
-          *  b) Device booted WITHOUT internet: iburst fired but found no
-          *     reachable server.  Now that connectivity is available we must
-          *     kick off burst+waitsync+makestep ourselves — otherwise the
-          *     device will never get an initial time correction.
-          *
-          * We distinguish (a) from (b) by checking whether chrony already
-          * has a selectable source. */
-         int noSrcCheck = v_secure_system("chronyc sources | grep -qE '^\\^[*+]'");
-         if (noSrcCheck == 0) {
-            /* Sub-case (a): iburst is working fine — leave it alone. */
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: /tmp/clock-event absent but iburst already"
-                    " selected a source — letting chronyd complete naturally\n",
-                    __FUNCTION__, __LINE__);
-         } else {
-            /* Sub-case (b): no clock-event AND no selectable source.
-             * Device booted without internet; trigger sync now that
-             * connectivity is available. */
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: /tmp/clock-event absent and no selectable"
-                    " source — device booted without internet, initiating"
-                    " burst+waitsync+makestep\n",
-                    __FUNCTION__, __LINE__);
-
-            int burstRet = v_secure_system("/usr/sbin/chronyc burst 3/4");
-            if (burstRet != 0) {
-               RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: chronyc burst failed with code %d\n",
-                       __FUNCTION__, __LINE__, burstRet);
-            } else {
-               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: burst triggered (boot-without-internet"
-                       " recovery), waiting for source selection\n",
-                       __FUNCTION__, __LINE__);
-            }
-
-            int waitRet = v_secure_system("/usr/sbin/chronyc waitsync 10 0 0 1");
-            if (waitRet != 0) {
-               RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: waitsync timed out (code %d) during"
-                       " boot-without-internet recovery. Skipping makestep.\n",
-                       __FUNCTION__, __LINE__, waitRet);
-            } else {
-               RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: waitsync completed (boot-without-internet"
-                       " recovery). Proceeding to makestep.\n",
-                       __FUNCTION__, __LINE__);
-               int stepRet = v_secure_system("/usr/sbin/chronyc makestep");
-               if (stepRet != 0) {
-                  RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: makestep failed with code %d\n",
-                          __FUNCTION__, __LINE__, stepRet);
-               } else {
-                  RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: makestep completed (boot-without-internet recovery)\n",
-                          __FUNCTION__, __LINE__);
-               }
-            }
-         }
+         RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
+                    "[%s:%d]: CHRONY: First time sync. do chronyc online\n",
+                    __FUNCTION__,__LINE__);
+           int ret = v_secure_system("/usr/sbin/chronyc online");
+          if(ret !=0 ) {
+               RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
+                    "[%s:%d]: CHRONY: chronyc online Failed\n",
+                    __FUNCTION__,__LINE__);
+          }          
       } else {
          /* Check whether chrony already has a selectable (selected '*' or combined '+') source.
           * grep -qE '^\^[*+]' matches lines chronyc sources prints for selected/combined peers.
