@@ -181,7 +181,7 @@ void handle_internetStatusChange(const JsonObject& params)
           * grep -qE '^\^[*+]' matches lines chronyc sources prints for selected/combined peers.
           * Exit 0  => at least one selectable source exists — safe to makestep immediately.
           * Exit !0 => no selectable source; burst + waitsync required first. */
-         int srcRet = v_secure_system("chronyc sources | grep -qE '^\\^[*+]'");
+         int srcRet = v_secure_system("/usr/sbin/chronyc sources | grep -qE '^\\^[*+]'");
          bool hasSelectableSource = (srcRet == 0);
 
          if (!hasSelectableSource) {
