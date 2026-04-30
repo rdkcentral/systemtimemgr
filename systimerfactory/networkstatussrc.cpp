@@ -88,7 +88,6 @@ static double getChronyOffset()
 const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
 const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
-const char* INTERNET_EVENT_NAME = "onInternetStatusChange";
 
 static WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 static bool m_networkeventsubscribed = false;
@@ -148,7 +147,7 @@ void handle_internetStatusChange(const JsonObject& params)
                     __FUNCTION__, __LINE__);
          } else {
             /* chronyd is running — check whether any source entry exists */
-            int srcPresent = v_secure_system("chronyc sources | grep -qE '^\\^'");
+            int srcPresent = v_secure_system("/usr/sbin/chronyc sources | grep -qE '^\\^'");
             if (srcPresent == 0) {
                /* Case B: at least one source entry visible (iburst running or
                 * polling started).  Let chronyd complete the sync on its own. */
