@@ -52,7 +52,7 @@ static constexpr double OFFSET_STEP_THRESHOLD_S = 1.0;
  */
 static double getChronyOffset()
 {
-    FILE *fp = v_secure_popen("r", "chronyc tracking");
+    FILE *fp = v_secure_popen("r", "/usr/sbin/chronyc tracking");
     if (!fp) {
         RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
                 "[%s:%d]: CHRONY: Failed to open chronyc tracking pipe\n",
