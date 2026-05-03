@@ -30,6 +30,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include <mutex>
+#include <condition_variable>
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
 using namespace WPEFramework;
@@ -92,29 +94,25 @@ const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
 static WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 static bool m_networkeventsubscribed = false;
 
+/* Shared state between the Thunder callback (ResourceMonitor I/O thread) and
+ * the network event processing thread.  All fields guarded by g_mutex. */
+static bool                     g_internetUpPending = false;
+static std::mutex               g_mutex;
+static std::condition_variable  g_cv;
+static bool                     g_stopProcessing = false;
 
-void handle_internetStatusChange(const JsonObject& params)
+
+/* Runs on the systimemgr event processing thread — safe to block here.
+ * Called only when a new fully_connected transition is confirmed by the callback.
+ * Runs all chrony sync commands away from Thunder's I/O thread. */
+static void processInternetOnline()
 {
-   string internetStatus;
-   if (params.HasLabel("status")) {
-      internetStatus = params["status"].String();
-   }
-   else if (params.HasLabel("internetStatus")) {
-      internetStatus = params["internetStatus"].String();
-   }
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Processing internet fully_connected event\n",
+           __FUNCTION__,__LINE__);
 
-   string normalizedStatus(internetStatus);
-   transform(normalizedStatus.begin(), normalizedStatus.end(), normalizedStatus.begin(), [](unsigned char ch) {
-      return static_cast<char>(std::tolower(ch));
-   });
+   bool firstSyncDone = (access("/tmp/clock-event", F_OK) == 0);
 
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: CHRONY: Internet status change notification received. status = %s\n",
-           __FUNCTION__,__LINE__,normalizedStatus.c_str());
-
-   if (normalizedStatus == "fully_connected" && normalizedStatus != lastStatus) {
-      bool firstSyncDone = (access("/tmp/clock-event", F_OK) == 0);
-
-      if (!firstSyncDone) {
+   if (!firstSyncDone) {
          /* /tmp/clock-event is absent — NTP has never successfully synced on
           * this boot.  Three sub-cases:
           *
@@ -125,7 +123,7 @@ void handle_internetStatusChange(const JsonObject& params)
           *     including '^?'): iburst is in progress or DNS resolved and polling
           *     has started.  Let chronyd finish naturally; 'makestep 1.0 4' in
           *     chrony.conf handles the initial step correction.
-          *
+          * 
           *  C) chronyd running, NO source entries in 'chronyc sources': sources
           *     are completely offline (device booted without internet and DNS may
           *     not have resolved yet).  Next natural poll could be many minutes
@@ -175,8 +173,8 @@ void handle_internetStatusChange(const JsonObject& params)
                           __FUNCTION__, __LINE__, ret);
                }
             }
-         }
-      } else {
+      }
+   } else {
          /* Check whether chrony already has a selectable (selected '*' or combined '+') source.
           * grep -qE '^\^[*+]' matches lines chronyc sources prints for selected/combined peers.
           * Exit 0  => at least one selectable source exists — safe to makestep immediately.
@@ -263,11 +261,76 @@ void handle_internetStatusChange(const JsonObject& params)
                        " natural slew, no makestep needed\n",
                        __FUNCTION__, __LINE__, offset);
             }
-         }
-      }
-   }
-   lastStatus = normalizedStatus;
+         }   /* end if (!hasSelectableSource) */
+   }   /* end else (firstSyncDone) */
 }
+
+
+/* Thunder event callback — runs on the ResourceMonitor I/O thread.
+ * MUST return immediately: only updates state and signals the processing thread.
+ *
+ * lastStatus is always updated here so that an up→down→up sequence is never
+ * lost: we track the down event so the next up is not seen as a duplicate. */
+void handle_internetStatusChange(const JsonObject& params)
+{
+    std::string status;
+    if (params.HasLabel("status"))
+        status = params["status"].String();
+    else if (params.HasLabel("internetStatus"))
+        status = params["internetStatus"].String();
+
+    std::string normalizedStatus(status);
+    std::transform(normalizedStatus.begin(), normalizedStatus.end(), normalizedStatus.begin(),
+                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+
+    std::lock_guard<std::mutex> lock(g_mutex);
+    std::string prev = lastStatus;
+    lastStatus = normalizedStatus;  /* always track latest state, even non-connected */
+
+    if (normalizedStatus != "fully_connected" || normalizedStatus == prev) {
+        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                "[%s:%d]: CHRONY: Internet status=%s (prev=%s) — no action needed\n",
+                __FUNCTION__, __LINE__, normalizedStatus.c_str(), prev.c_str());
+        return;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+            "[%s:%d]: CHRONY: Internet status changed to fully_connected — signalling processing thread\n",
+            __FUNCTION__, __LINE__);
+
+    g_internetUpPending = true;
+    g_cv.notify_one();
+}
+
+/* runEventProcessingLoop — runs on systimemgr's dedicated nwEventProcessThrd.
+ * Sleeps waiting for fully_connected signals from handle_internetStatusChange,
+ * then runs all chrony sync commands. Safe to block here.
+ *
+ * Rapid events (multiple up or up→down→up): the g_internetUpPending flag is a
+ * single-slot latch. If the thread is busy in processInternetOnline() when a
+ * new event arrives, the flag is set to true. When the thread returns to wait(),
+ * the predicate is immediately true so it processes again — no events are lost
+ * and no stale intermediate states are queued. */
+void NetworkStatusSrc::runEventProcessingLoop()
+{
+    RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+            "[%s:%d]: CHRONY: Network event processing thread started\n", __FUNCTION__, __LINE__);
+
+    while (true) {
+        {
+            std::unique_lock<std::mutex> lock(g_mutex);
+            g_cv.wait(lock, [] { return g_internetUpPending || g_stopProcessing; });
+            if (g_stopProcessing)
+                break;
+            g_internetUpPending = false;  /* clear — we are about to handle it */
+        }
+        processInternetOnline();
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+            "[%s:%d]: CHRONY: Network event processing thread exiting\n", __FUNCTION__, __LINE__);
+}
+
 
 
 static void subscribeToInternetEvent()
@@ -295,13 +358,21 @@ static void subscribeToInternetEvent()
 void NetworkStatusSrc::subscribeInternetStatusEvent()
 {
     Core::SystemInfo::SetEnvironment("THUNDER_ACCESS", "127.0.0.1:9998");
-    // NetworkManager activates once and lives for the process lifetime.
-    // Run the retry loop directly on the calling thread (runNetworkStatusMonitor).
     subscribeToInternetEvent();
 }
 
 NetworkStatusSrc::~NetworkStatusSrc()
 {
+    /* Set the stop flag and wake the processing thread so it exits its wait()
+     * and returns from runEventProcessingLoop(). Without notify_one() the thread
+     * would sleep forever on g_cv.wait() and nwEventProcessThrd.join() in
+     * systimemgr's run() would never complete. */
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_stopProcessing = true;
+    }
+    g_cv.notify_one();
+
     if (thunder_client) {
         thunder_client->Unsubscribe(5000, "onInternetStatusChange");
         delete thunder_client;

@@ -22,7 +22,13 @@
 class NetworkStatusSrc
 {
         public:
+                /* Called on nwEventSubscribeThrd: retries until subscription succeeds, then returns. */
                 void subscribeInternetStatusEvent();
+
+                /* Called on nwEventProcessThrd: blocks waiting for internet-up events, runs chrony sync.
+                 * Returns only when g_stopProcessing is set (destructor called). */
+                void runEventProcessingLoop();
+
                ~NetworkStatusSrc();
 };
 
