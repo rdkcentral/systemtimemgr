@@ -193,7 +193,10 @@ void SysTimeMgr::run(bool forever)
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
 #ifdef CHRONY_ENABLED
-   std::thread networkStatusThrd(SysTimeMgr::networkStatusThr,this);
+   /* nwEventProcessThrd must start before nwEventSubscribeThrd so the
+    * processing thread is ready before any event can arrive. */
+   std::thread nwEventProcessThrd(SysTimeMgr::nwEventProcessThr,this);
+   std::thread nwEventSubscribeThrd(SysTimeMgr::nwEventSubscribeThr,this);
 #endif
 	
    if (forever)
@@ -208,7 +211,8 @@ void SysTimeMgr::run(bool forever)
        timerThrd.join();
        pathMonitorThrd.join();
 #ifdef CHRONY_ENABLED
-	   networkStatusThrd.join();
+       nwEventProcessThrd.join();
+       nwEventSubscribeThrd.join();
 #endif
    }
    else
@@ -217,7 +221,8 @@ void SysTimeMgr::run(bool forever)
        timerThrd.detach();
        pathMonitorThrd.detach();
 #ifdef CHRONY_ENABLED
-	   networkStatusThrd.detach();
+       nwEventProcessThrd.detach();
+       nwEventSubscribeThrd.detach();
 #endif
    }
 }
@@ -246,10 +251,18 @@ void SysTimeMgr::pathThr(SysTimeMgr* instance)
 }
 
 #ifdef CHRONY_ENABLED
-void SysTimeMgr::networkStatusThr(SysTimeMgr* instance)
+/* nwEventSubscribeThr: subscribes to NetworkManager events (retries until success). */
+void SysTimeMgr::nwEventSubscribeThr(SysTimeMgr* instance)
 {
     if (instance)
         instance->runNetworkStatusMonitor();
+}
+
+/* nwEventProcessThr: waits for internet-up signals and runs chrony sync commands. */
+void SysTimeMgr::nwEventProcessThr(SysTimeMgr* instance)
+{
+    if (instance)
+        instance->runNWEventProcessing();
 }
 #endif
 
@@ -339,11 +352,20 @@ void SysTimeMgr::runPathMonitor()
 }
 
 #ifdef CHRONY_ENABLED
+static NetworkStatusSrc networkStatusMonitor;
+
 void SysTimeMgr::runNetworkStatusMonitor()
 {
-    static NetworkStatusSrc networkStatusMonitor;
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Starting network status subscription thread\n",__FUNCTION__,__LINE__);
     networkStatusMonitor.subscribeInternetStatusEvent();
+}
+
+void SysTimeMgr::runNWEventProcessing()
+{
+    /* This function runs on nwEventProcessThrd — call runEventProcessingLoop()
+     * directly, it blocks until shutdown. No inner thread needed. */
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Network event processing thread running\n",__FUNCTION__,__LINE__);
+    networkStatusMonitor.runEventProcessingLoop();
 }
 #endif
 
