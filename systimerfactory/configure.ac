@@ -79,8 +79,6 @@ TEE_CXXFLAGS=" "
 WPEVGDRM_CXXFLAGS=" "
 DTT_ENABLED=""
 DTT_CXXFLAGS=" "
-CHRONY_ENABLED=""
-CHRONY_CXXFLAGS=" "
 AC_ARG_ENABLE([iarm],
         AS_HELP_STRING([--enable-iarm],[enable iarm ]),
         [
@@ -122,20 +120,6 @@ AC_ARG_ENABLE([dtt],
            esac
            ],
          [echo "dtt build is enable"])
-
-AC_ARG_ENABLE([chrony],
-        AS_HELP_STRING([--enable-chrony],[enable chrony network status monitor]),
-        [
-          case "${enableval}" in
-           yes) CHRONY_CXXFLAGS="-DCHRONY_ENABLED"
-        PKG_CHECK_MODULES([WPEFRAMEWORKCORE],[WPEFrameworkCore >= 1.0.0])
-		PKG_CHECK_MODULES([WPEFRAMEWORKWEBSOCKET],[WPEFrameworkWebSocket >= 1.0.0])
-		CHRONY_ENABLED=true;;
-           no) CHRONY_ENABLED=false;;
-          *) AC_MSG_ERROR([bad value ${enableval} for --enable-chrony ]) ;;
-           esac
-           ],
-         [echo "chrony network status monitor is disabled"])
 
 AC_ARG_ENABLE([tee],
         AS_HELP_STRING([--enable-tee],[enable tee ]),
@@ -181,8 +165,9 @@ AC_SUBST(T2_EVENT_FLAG)
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
 AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
-AM_CONDITIONAL([CHRONY_ENABLED], [test x$CHRONY_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
+PKG_CHECK_MODULES([WPEFRAMEWORKCORE],[WPEFrameworkCore >= 1.0.0])
+PKG_CHECK_MODULES([WPEFRAMEWORKWEBSOCKET],[WPEFrameworkWebSocket >= 1.0.0])
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])
 
 AC_CONFIG_FILES(Makefile)
@@ -194,7 +179,6 @@ AC_SUBST(PWRMGR_CFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(WPEVGDRM_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
-AC_SUBST(CHRONY_CXXFLAGS)
 
 
 AC_OUTPUT
