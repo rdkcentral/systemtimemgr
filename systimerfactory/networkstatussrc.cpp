@@ -45,7 +45,7 @@ static std::string lastStatus;
 static constexpr double OFFSET_STEP_THRESHOLD_S = 1.0;
 
 /**
- * Return the absolute system-clock offset (seconds) as reported by
+ * Return the signed  system-clock offset (seconds) as reported by
  * "chronyc tracking".  Positive means the local clock is fast relative to the
  * NTP reference; negative means it is slow.  Returns 0.0 on any parse error.
  *
