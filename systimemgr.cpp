@@ -718,6 +718,7 @@ void SysTimeMgr::deepsleepoff()
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
         }
+	}
 }
 
 void SysTimeMgr::deepsleepon()
