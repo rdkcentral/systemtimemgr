@@ -24,7 +24,11 @@ apt-get install -y libjsonrpccpp-dev
 
 cd $WORKDIR/systimerfactory
 autoreconf -i
-export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_"
+# rbus (installed to /usr/local) ships WPEFramework Core/WebSocket headers and
+# pkg-config files that networkstatussrc.cpp depends on.  Ensure pkg-config and
+# the compiler can find them before running configure.
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}
+export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_ -I/usr/local/include"
 ./configure --prefix=${RDKLOGGER_INSTALL_DIR}
 make clean && make && make install
 
