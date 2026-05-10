@@ -22,6 +22,23 @@ WORKDIR=`pwd`
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 
+if ! pkg-config --exists WPEFrameworkCore 2>/dev/null; then
+    cd /tmp
+    git clone --depth=1 -b R4.4.0 https://github.com/rdkcentral/Thunder.git
+    cmake \
+        -HThunder \
+        -BThunder/build \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DEXCEPTIONS_ENABLE=ON \
+        -DCOMPILE_WARNINGS_AS_ERROR=OFF \
+        -DBUILD_TESTS=OFF
+    make -j$(nproc) -C Thunder/build && make -C Thunder/build install
+    ldconfig
+    cd $WORKDIR
+fi
+
+
 cd $WORKDIR/systimerfactory
 autoreconf -i
 # rbus (installed to /usr/local) ships WPEFramework Core/WebSocket headers and
