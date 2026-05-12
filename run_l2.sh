@@ -87,7 +87,9 @@ rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.subscribed
 # uses printf-based RDK_LOG stubs (no real rdklogger), so all CHRONY log lines
 # go to stdout.  Appending to the existing log file lets grep_sysTimeMgrlogs
 # find them alongside the real logger output from other modules.
-sysTimeMgr >> /opt/logs/systimemgr.log.0 2>&1 &
+# stdbuf -oL forces line-buffered stdout so printf output from the
+# __LOCAL_TEST_ RDK_LOG stub reaches the log file immediately.
+stdbuf -oL sysTimeMgr >> /opt/logs/systimemgr.log.0 2>&1 &
 sleep 2
 
 pytest --json-report --json-report-summary \

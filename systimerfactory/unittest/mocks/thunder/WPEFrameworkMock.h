@@ -59,7 +59,7 @@
  * macros are the only RDK_LOG definitions in test builds.  Unconditional
  * defines ensure nothing else can leave them undefined. */
 #undef  RDK_LOG
-#define RDK_LOG(level, module, format, ...) printf("[" module "] " format, ##__VA_ARGS__)
+#define RDK_LOG(level, module, format, ...) do { printf("[" module "] " format, ##__VA_ARGS__); fflush(stdout); } while (0)
 #undef  RDK_LOG_INFO
 #define RDK_LOG_INFO  4
 #undef  RDK_LOG_WARN
