@@ -356,6 +356,8 @@ void SysTimeMgr::runPathMonitor()
 
 static NetworkStatusSrc& networkStatusMonitor()
 {
+    /* Keep the monitor alive until process exit so its destructor never races
+     * against condition-variable teardown in another translation unit. */
     static NetworkStatusSrc* monitor = new NetworkStatusSrc();
     return *monitor;
 }
