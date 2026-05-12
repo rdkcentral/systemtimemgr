@@ -291,7 +291,7 @@ void handle_internetStatusChange(const JsonObject& params)
     else if (params.HasLabel("internetStatus"))
         status = params["internetStatus"].String();
 
-    std::string normalizedStatus(status);
+    std::string normalizedStatus(std::move(status));
     std::transform(normalizedStatus.begin(), normalizedStatus.end(), normalizedStatus.begin(),
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
 
@@ -329,13 +329,13 @@ void NetworkStatusSrc::runEventProcessingLoop()
             "[%s:%d]: CHRONY: Network event processing thread started\n", __FUNCTION__, __LINE__);
 
     while (true) {
-        {
-            std::unique_lock<std::mutex> lock(g_mutex);
-            g_cv.wait(lock, [] { return g_internetUpPending || g_stopProcessing; });
-            if (g_stopProcessing)
-                break;
-            g_internetUpPending = false;  /* clear — we are about to handle it */
-        }
+        std::unique_lock<std::mutex> lock(g_mutex);
+        while (!g_internetUpPending && !g_stopProcessing)
+            g_cv.wait(lock);
+        if (g_stopProcessing)
+            break;
+        g_internetUpPending = false;  /* clear — we are about to handle it */
+        lock.unlock();
         processInternetOnline();
     }
 

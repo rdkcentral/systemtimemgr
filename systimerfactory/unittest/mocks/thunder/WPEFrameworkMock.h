@@ -50,6 +50,8 @@
 #include <atomic>
 #include <fstream>
 #include <sstream>
+#include <utility>
+#include <cerrno>
 #include <unistd.h>   /* usleep */
 #include <sys/stat.h> /* stat   */
 #include <cstdio>     /* remove, printf */
@@ -229,7 +231,7 @@ public:
         for (auto& kv : entries_) {
             if (kv.second->thread.joinable())
                 kv.second->thread.join();
-            ::remove(subscribedPath(kv.first).c_str());
+            removeFile(subscribedPath(kv.first));
         }
     }
 
@@ -257,7 +259,9 @@ public:
 
         const std::string injectPath = injectFilePath(eventName);
 
-        raw->thread = std::thread([raw, injectPath, handler]() {
+        raw->thread = std::thread([raw,
+                                   injectPath = std::move(injectPath),
+                                   handler = std::move(handler)]() {
             while (!raw->stop.load(std::memory_order_relaxed)) {
                 struct stat st{};
                 if (::stat(injectPath.c_str(), &st) == 0 && st.st_size > 0) {
@@ -265,7 +269,7 @@ public:
                     std::string   line;
                     if (std::getline(f, line) && !line.empty()) {
                         f.close();
-                        ::remove(injectPath.c_str()); /* consume the event */
+                        removeFile(injectPath); /* consume the event */
                         INBOUND params;
                         params.FromJSON(line);
                         handler(params);
@@ -284,7 +288,7 @@ public:
             it->second->stop.store(true, std::memory_order_relaxed);
             if (it->second->thread.joinable())
                 it->second->thread.join();
-            ::remove(subscribedPath(eventName).c_str());
+            removeFile(subscribedPath(eventName));
             entries_.erase(it);
         }
         return Core::ERROR_NONE;
@@ -307,6 +311,14 @@ private:
 
     std::string injectFilePath(const std::string& event) const {
         return "/tmp/thunder_mock_" + callsign_ + "_" + event + ".inject";
+    }
+
+    static void removeFile(const std::string& path) {
+        if (::remove(path.c_str()) != 0 && errno != ENOENT) {
+            RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+                    "[%s]: Failed to remove %s (errno=%d)\n",
+                    __FUNCTION__, path.c_str(), errno);
+        }
     }
 
     struct EventEntry {
