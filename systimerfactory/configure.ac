@@ -173,10 +173,10 @@ AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
 # and WPEFRAMEWORKWEBSOCKET_CFLAGS/LIBS are empty strings so Makefile.am simply
 # adds nothing.  networkstatussrc.cpp then uses WPEFrameworkMock.h via the
 # GTEST_ENABLE or __LOCAL_TEST_ guard, requiring no Thunder installation.
-WPEFRAMEWORKCORE_CFLAGS=""
-WPEFRAMEWORKCORE_LIBS=""
-WPEFRAMEWORKWEBSOCKET_CFLAGS=""
-WPEFRAMEWORKWEBSOCKET_LIBS=""
+test -n "$WPEFRAMEWORKCORE_CFLAGS" || WPEFRAMEWORKCORE_CFLAGS=""
+test -n "$WPEFRAMEWORKCORE_LIBS" || WPEFRAMEWORKCORE_LIBS=""
+test -n "$WPEFRAMEWORKWEBSOCKET_CFLAGS" || WPEFRAMEWORKWEBSOCKET_CFLAGS=""
+test -n "$WPEFRAMEWORKWEBSOCKET_LIBS" || WPEFRAMEWORKWEBSOCKET_LIBS=""
 AC_ARG_ENABLE([chrony],
         AS_HELP_STRING([--enable-chrony],[enable NWStatus with real WPEFramework Thunder]),
         [
