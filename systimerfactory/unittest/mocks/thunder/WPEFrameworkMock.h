@@ -56,20 +56,36 @@
 #include <sys/stat.h> /* stat   */
 #include <cstdio>     /* remove, printf */
 
-/* RDK logging stubs — irdklog.h is excluded from test builds (see the
- * #if GTEST_ENABLE / __LOCAL_TEST_ guard in networkstatussrc.cpp) so these
- * macros are the only RDK_LOG definitions in test builds.  Unconditional
- * defines ensure nothing else can leave them undefined. */
-#undef  RDK_LOG
-#define RDK_LOG(level, module, format, ...) do { printf("[" module "] " format, ##__VA_ARGS__); fflush(stdout); } while (0)
-#undef  RDK_LOG_INFO
-#define RDK_LOG_INFO  4
-#undef  RDK_LOG_WARN
-#define RDK_LOG_WARN  3
-#undef  RDK_LOG_ERROR
-#define RDK_LOG_ERROR 2
-#undef  LOG_SYSTIME
-#define LOG_SYSTIME "LOG.RDK.SYSTIME"
+/* RDK logging strategy:
+ *
+ * L1 unit tests (GTEST_ENABLE): rdkloggers is not installed; irdklog.h is not
+ * in the include path.  Use printf-based stubs so every RDK_LOG call compiles
+ * and produces output on stdout.
+ *
+ * L2 functional tests (__LOCAL_TEST_ without GTEST_ENABLE): the full
+ * rdkloggers library IS installed in the Docker container
+ * (/usr/local/lib/librdkloggers.so, /usr/local/include/irdklog.h or similar).
+ * Include irdklog.h so the real rdk_logger_msg_printf() is used — this writes
+ * through rdkloggers to /opt/logs/systimemgr.log.0, exactly as every other
+ * module in sysTimeMgr does.  Relying on printf + stdout-redirect fails
+ * because rdkloggers recreates the log file inode on startup, making the
+ * shell's >> fd point to an orphaned inode. */
+#if defined(GTEST_ENABLE)
+/* ── L1: printf stubs ─────────────────────────────────────────────────── */
+#  undef  RDK_LOG
+#  define RDK_LOG(level, module, format, ...) do { printf("[" module "] " format, ##__VA_ARGS__); fflush(stdout); } while (0)
+#  undef  RDK_LOG_INFO
+#  define RDK_LOG_INFO  4
+#  undef  RDK_LOG_WARN
+#  define RDK_LOG_WARN  3
+#  undef  RDK_LOG_ERROR
+#  define RDK_LOG_ERROR 2
+#  undef  LOG_SYSTIME
+#  define LOG_SYSTIME "LOG.RDK.SYSTIME"
+#else
+/* ── L2: real rdkloggers ──────────────────────────────────────────────── */
+#  include "irdklog.h"
+#endif
 
 namespace WPEFramework {
 
