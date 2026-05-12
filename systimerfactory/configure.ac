@@ -166,8 +166,33 @@ AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
 AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
-PKG_CHECK_MODULES([WPEFRAMEWORKCORE],[WPEFrameworkCore >= 1.0.0])
-PKG_CHECK_MODULES([WPEFRAMEWORKWEBSOCKET],[WPEFrameworkWebSocket >= 1.0.0])
+
+# --enable-chrony: build networkstatussrc.cpp against the real WPEFramework
+# Thunder API (production builds).
+# When NOT enabled (default for L1/L2 test builds), WPEFRAMEWORKCORE_CFLAGS/LIBS
+# and WPEFRAMEWORKWEBSOCKET_CFLAGS/LIBS are empty strings so Makefile.am simply
+# adds nothing.  networkstatussrc.cpp then uses WPEFrameworkMock.h via the
+# GTEST_ENABLE or __LOCAL_TEST_ guard, requiring no Thunder installation.
+WPEFRAMEWORKCORE_CFLAGS=""
+WPEFRAMEWORKCORE_LIBS=""
+WPEFRAMEWORKWEBSOCKET_CFLAGS=""
+WPEFRAMEWORKWEBSOCKET_LIBS=""
+AC_ARG_ENABLE([chrony],
+        AS_HELP_STRING([--enable-chrony],[enable NWStatus with real WPEFramework Thunder]),
+        [
+          case "${enableval}" in
+           yes) PKG_CHECK_MODULES([WPEFRAMEWORKCORE],[WPEFrameworkCore >= 1.0.0])
+                PKG_CHECK_MODULES([WPEFRAMEWORKWEBSOCKET],[WPEFrameworkWebSocket >= 1.0.0]);;
+           no) ;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-chrony]) ;;
+          esac
+        ],
+        [echo "chrony: WPEFramework disabled (using mocks for GTEST_ENABLE/__LOCAL_TEST_)"])
+AC_SUBST(WPEFRAMEWORKCORE_CFLAGS)
+AC_SUBST(WPEFRAMEWORKCORE_LIBS)
+AC_SUBST(WPEFRAMEWORKWEBSOCKET_CFLAGS)
+AC_SUBST(WPEFRAMEWORKWEBSOCKET_LIBS)
+
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])
 
 AC_CONFIG_FILES(Makefile)

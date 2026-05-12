@@ -24,9 +24,75 @@ import time
 import re
 import signal
 import shutil
+import json
 from time import sleep
 
 LOG_FILE = "/opt/logs/systimemgr.log.0"
+
+# ---------------------------------------------------------------------------
+# Network-status event injection helpers
+#
+# When sysTimeMgr is compiled with __LOCAL_TEST_ it uses WPEFrameworkMock.h
+# instead of the real Thunder library.  The mock SmartLinkType polls a file:
+#
+#   /tmp/thunder_mock_<callsign>_<event>.inject
+#
+# Writing JSON to that file injects an event into sysTimeMgr — no Thunder
+# daemon or WebSocket server required.  This mirrors the enservice
+# entservices-testframework thunder mock approach.
+# ---------------------------------------------------------------------------
+
+# Callsign from networkstatussrc.cpp (sanitised: '.' → '_')
+_NM_CALLSIGN_SANITISED = "org_rdk_NetworkManager"
+_NM_EVENT              = "onInternetStatusChange"
+
+INJECT_FILE    = f"/tmp/thunder_mock_{_NM_CALLSIGN_SANITISED}_{_NM_EVENT}.inject"
+SUBSCRIBED_FILE = f"/tmp/thunder_mock_{_NM_CALLSIGN_SANITISED}_{_NM_EVENT}.subscribed"
+
+
+def inject_internet_status(status, interface="eth0"):
+    """Inject an onInternetStatusChange event into the running sysTimeMgr.
+
+    Writes the JSON payload to the file that the mock SmartLinkType polls.
+    Uses an atomic rename to avoid the mock reading a partial file.
+
+    Args:
+        status (str):    e.g. "FULLY_CONNECTED" or "NO_INTERNET"
+        interface (str): network interface name (default "eth0")
+    """
+    payload = json.dumps({"status": status, "interface": interface})
+    tmp = INJECT_FILE + ".tmp"
+    try:
+        with open(tmp, "w") as f:
+            f.write(payload + "\n")
+        os.rename(tmp, INJECT_FILE)
+        return True
+    except Exception as exc:
+        print(f"[inject_internet_status] {exc}")
+        return False
+
+
+def wait_for_nw_subscription(timeout_s=15):
+    """Wait until sysTimeMgr has subscribed to onInternetStatusChange.
+
+    The mock SmartLinkType creates the .subscribed marker file when
+    Subscribe() is called.  Returns True once the file exists.
+    """
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        if os.path.exists(SUBSCRIBED_FILE):
+            return True
+        sleep(0.2)
+    return False
+
+
+def clear_inject_file():
+    """Remove any leftover inject file from a previous test run."""
+    try:
+        if os.path.exists(INJECT_FILE):
+            os.remove(INJECT_FILE)
+    except OSError:
+        pass
 
 def remove_logfile():
     try:

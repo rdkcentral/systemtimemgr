@@ -32,9 +32,19 @@
 
 #include <mutex>
 #include <condition_variable>
-#include "core/SystemInfo.h"
-#include "websocket/JSONRPCLink.h"
+
+/* When building for tests (GTEST_ENABLE for L1 unit tests, __LOCAL_TEST_ for
+ * L2 functional tests) use the lightweight header stubs from
+ * unittest/mocks/thunder/WPEFrameworkMock.h so no real Thunder/WPEFramework
+ * installation is required.
+ * In production builds the real Thunder headers and libraries are used. */
+#if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
+#  include "unittest/mocks/thunder/WPEFrameworkMock.h"
+#else
+#  include "core/SystemInfo.h"
+#  include "websocket/JSONRPCLink.h"
 using namespace WPEFramework;
+#endif
 
 
 using namespace std;

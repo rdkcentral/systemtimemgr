@@ -22,30 +22,13 @@ WORKDIR=`pwd`
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 
-if ! pkg-config --exists WPEFrameworkCore 2>/dev/null; then
-    cd /tmp
-    git clone --depth=1 -b R4.4.0 https://github.com/rdkcentral/Thunder.git
-    cmake \
-        -HThunder \
-        -BThunder/build \
-        -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DCMAKE_BUILD_TYPE=MinSizeRel \
-        -DEXCEPTIONS_ENABLE=ON \
-        -DCOMPILE_WARNINGS_AS_ERROR=OFF \
-        -DBUILD_TESTS=OFF
-    make -j$(nproc) -C Thunder/build && make -C Thunder/build install
-    ldconfig
-    cd $WORKDIR
-fi
-
 
 cd $WORKDIR/systimerfactory
 autoreconf -i
-# rbus (installed to /usr/local) ships WPEFramework Core/WebSocket headers and
-# pkg-config files that networkstatussrc.cpp depends on.  Ensure pkg-config and
-# the compiler can find them before running configure.
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}
-export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_ -I/usr/local/include"
+# -D__LOCAL_TEST_ makes networkstatussrc.cpp use WPEFrameworkMock.h instead of
+# real Thunder headers (--enable-chrony is not passed so WPEFramework is not
+# required at configure time either).
+export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_"
 ./configure --prefix=${RDKLOGGER_INSTALL_DIR}
 make clean && make && make install
 
