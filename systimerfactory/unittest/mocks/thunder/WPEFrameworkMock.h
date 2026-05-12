@@ -54,24 +54,20 @@
 #include <sys/stat.h> /* stat   */
 #include <cstdio>     /* remove, printf */
 
-/* RDK logging stubs — networkstatussrc.cpp is compiled as its own translation
- * unit in test builds so the RDK_LOG macros from SysTimeMgrUnitTest.cpp are
- * not visible here.  Define minimal stubs that forward to printf. */
-#ifndef RDK_LOG
-#  define RDK_LOG(level, module, format, ...) printf("[" #level "] " format, ##__VA_ARGS__)
-#endif
-#ifndef RDK_LOG_INFO
-#  define RDK_LOG_INFO  4
-#endif
-#ifndef RDK_LOG_WARN
-#  define RDK_LOG_WARN  3
-#endif
-#ifndef RDK_LOG_ERROR
-#  define RDK_LOG_ERROR 2
-#endif
-#ifndef LOG_SYSTIME
-#  define LOG_SYSTIME "LOG.RDK.SYSTIME"
-#endif
+/* RDK logging stubs — irdklog.h is excluded from test builds (see the
+ * #if GTEST_ENABLE / __LOCAL_TEST_ guard in networkstatussrc.cpp) so these
+ * macros are the only RDK_LOG definitions in test builds.  Unconditional
+ * defines ensure nothing else can leave them undefined. */
+#undef  RDK_LOG
+#define RDK_LOG(level, module, format, ...) printf("[" module "] " format, ##__VA_ARGS__)
+#undef  RDK_LOG_INFO
+#define RDK_LOG_INFO  4
+#undef  RDK_LOG_WARN
+#define RDK_LOG_WARN  3
+#undef  RDK_LOG_ERROR
+#define RDK_LOG_ERROR 2
+#undef  LOG_SYSTIME
+#define LOG_SYSTIME "LOG.RDK.SYSTIME"
 
 namespace WPEFramework {
 
