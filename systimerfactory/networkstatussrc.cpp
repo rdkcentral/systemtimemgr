@@ -40,6 +40,7 @@
  * In production builds the real Thunder headers and libraries are used. */
 #if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
 #  include "unittest/mocks/thunder/WPEFrameworkMock.h"
+using namespace WPEFramework;
 #else
 #  include "core/SystemInfo.h"
 #  include "websocket/JSONRPCLink.h"
