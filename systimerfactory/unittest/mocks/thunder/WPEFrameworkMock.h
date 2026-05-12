@@ -314,10 +314,12 @@ private:
     }
 
     static void removeFile(const std::string& path) {
-        if (::remove(path.c_str()) != 0 && errno != ENOENT) {
+        const int removeResult = ::remove(path.c_str());
+        const int removeErrno = errno;
+        if (removeResult != 0 && removeErrno != ENOENT) {
             RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
                     "[%s]: Failed to remove %s (errno=%d)\n",
-                    __FUNCTION__, path.c_str(), errno);
+                    __FUNCTION__, path.c_str(), removeErrno);
         }
     }
 
