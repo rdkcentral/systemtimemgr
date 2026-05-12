@@ -37,6 +37,8 @@
 #include "rdk_logger_milestone.h"
 #endif
 
+#include "systimerfactory/networkstatussrc.h"
+
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
 #endif
@@ -188,6 +190,20 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
+   bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
+           __FUNCTION__,__LINE__,
+           chronyRfcEnabled ? "found, starting network event threads"
+                            : "not found, skipping network event threads");
+   std::thread nwEventProcessThrd;
+   std::thread nwEventSubscribeThrd;
+   if (chronyRfcEnabled) {
+       /* nwEventProcessThrd must start before nwEventSubscribeThrd so the
+        * processing thread is ready before any event can arrive. */
+       nwEventProcessThrd = std::thread(SysTimeMgr::nwEventProcessThr, this);
+       nwEventSubscribeThrd = std::thread(SysTimeMgr::nwEventSubscribeThr, this);
+   }
+	
    if (forever)
    {
        ofstream pidfile("/run/systimemgr.pid",ios::out);
@@ -199,12 +215,20 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
+       if (nwEventProcessThrd.joinable())
+           nwEventProcessThrd.join();
+       if (nwEventSubscribeThrd.joinable())
+           nwEventSubscribeThrd.join();
    }
    else
    {
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
+       if (nwEventProcessThrd.joinable())
+           nwEventProcessThrd.detach();
+       if (nwEventSubscribeThrd.joinable())
+           nwEventSubscribeThrd.detach();
    }
 }
 
@@ -230,6 +254,21 @@ void SysTimeMgr::pathThr(SysTimeMgr* instance)
 		instance->runPathMonitor();
 	}
 }
+
+/* nwEventSubscribeThr: subscribes to NetworkManager events (retries until success). */
+void SysTimeMgr::nwEventSubscribeThr(SysTimeMgr* instance)
+{
+    if (instance)
+        instance->runNetworkStatusMonitor();
+}
+
+/* nwEventProcessThr: waits for internet-up signals and runs chrony sync commands. */
+void SysTimeMgr::nwEventProcessThr(SysTimeMgr* instance)
+{
+    if (instance)
+        instance->runNWEventProcessing();
+}
+
 
 void SysTimeMgr::processMsg()
 {
@@ -314,6 +353,23 @@ void SysTimeMgr::runPathMonitor()
 		}
 	}
 }
+
+static NetworkStatusSrc networkStatusMonitor;
+
+void SysTimeMgr::runNetworkStatusMonitor()
+{
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Starting network status subscription thread\n",__FUNCTION__,__LINE__);
+    networkStatusMonitor.subscribeInternetStatusEvent();
+}
+
+void SysTimeMgr::runNWEventProcessing()
+{
+    /* This function runs on nwEventProcessThrd — call runEventProcessingLoop()
+     * directly, it blocks until shutdown. No inner thread needed. */
+    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Network event processing thread running\n",__FUNCTION__,__LINE__);
+    networkStatusMonitor.runEventProcessingLoop();
+}
+
 void SysTimeMgr::updateTime(void* args)
 {
 	updateTimeSync(0);
@@ -653,7 +709,7 @@ void SysTimeMgr::deepsleepoff()
             if (ret != 0) {
                 RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyc waitsync failed with code %d\n",__FUNCTION__,__LINE__, ret);
             }
-			
+
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
             ret = v_secure_system("/usr/sbin/chronyc makestep");
             if (ret != 0) {
@@ -662,8 +718,7 @@ void SysTimeMgr::deepsleepoff()
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
         }
-    }
-    
+	}
 }
 
 void SysTimeMgr::deepsleepon()
