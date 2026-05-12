@@ -74,11 +74,20 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systim
 pkill -f sysTimeMgr 2>/dev/null || true
 sleep 1
 
+# Create the RFC marker file that SysTimeMgr::run() checks before starting
+# the NW-event threads (chronyRfcEnabled guard in systimemgr.cpp).
+mkdir -p /opt/secure/RFC/chrony
+touch /opt/secure/RFC/chrony/chronyd_enabled
+
 # Clean up any leftover inject / subscribed files from a previous run
 rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.inject
 rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.subscribed
 
-sysTimeMgr &
+# Redirect stdout to the log file: in __LOCAL_TEST_ builds networkstatussrc.cpp
+# uses printf-based RDK_LOG stubs (no real rdklogger), so all CHRONY log lines
+# go to stdout.  Appending to the existing log file lets grep_sysTimeMgrlogs
+# find them alongside the real logger output from other modules.
+sysTimeMgr >> /opt/logs/systimemgr.log.0 2>&1 &
 sleep 2
 
 pytest --json-report --json-report-summary \
