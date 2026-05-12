@@ -179,10 +179,10 @@ def test_no_internet_event_is_not_processed():
 def test_duplicate_fully_connected_not_reprocessed():
     """A second consecutive FULLY_CONNECTED event must not trigger a second chrony run.
 
-    networkstatussrc.cpp guards against duplicates: if lastStatus is already
-    'fully_connected', a new fully_connected event sets g_internetUpPending again
-    but the processing thread will only run processInternetOnline once per
-    unique transition (duplicates are coalesced by the single-slot flag).
+    networkstatussrc.cpp guards against duplicates by returning early when
+    handle_internetStatusChange receives the same normalized status as the
+    previous one. If lastStatus is already 'fully_connected', a duplicate
+    fully_connected event is ignored before g_internetUpPending is set.
 
     This test verifies no *extra* processing log line appears for the duplicate.
     """
