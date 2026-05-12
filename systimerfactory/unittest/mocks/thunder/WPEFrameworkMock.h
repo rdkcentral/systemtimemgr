@@ -315,7 +315,7 @@ private:
 
     static void removeFile(const std::string& path) {
         const int removeResult = ::remove(path.c_str());
-        const int removeErrno = errno;
+        const int removeErrno = (removeResult != 0) ? errno : 0;
         if (removeResult != 0 && removeErrno != ENOENT) {
             RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
                     "[%s]: Failed to remove %s (errno=%d)\n",

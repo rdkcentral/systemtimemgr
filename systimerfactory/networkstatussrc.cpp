@@ -113,6 +113,14 @@ static std::mutex               g_mutex;
 static std::condition_variable  g_cv;
 static bool                     g_stopProcessing = false;
 
+NetworkStatusSrc& getNetworkStatusMonitor()
+{
+    /* Keep the accessor in this translation unit so the monitor is destroyed
+     * before the synchronization primitives it uses during teardown. */
+    static NetworkStatusSrc monitor;
+    return monitor;
+}
+
 
 /* Runs on the systimemgr event processing thread — safe to block here.
  * Called only when a new fully_connected transition is confirmed by the callback.

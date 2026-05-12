@@ -32,4 +32,6 @@ class NetworkStatusSrc
                ~NetworkStatusSrc();
 };
 
+NetworkStatusSrc& getNetworkStatusMonitor();
+
 #endif // _NETWORKSTATUSSRC_H_

@@ -354,20 +354,10 @@ void SysTimeMgr::runPathMonitor()
 	}
 }
 
-static NetworkStatusSrc& networkStatusMonitor()
-{
-    /* Keep the monitor alive until process exit so its destructor never races
-     * against condition-variable teardown in another translation unit. */
-    static const std::unique_ptr<NetworkStatusSrc, void (*)(NetworkStatusSrc*)> monitor(
-        new NetworkStatusSrc(),
-        [](NetworkStatusSrc*) {});
-    return *monitor;
-}
-
 void SysTimeMgr::runNetworkStatusMonitor()
 {
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Starting network status subscription thread\n",__FUNCTION__,__LINE__);
-    networkStatusMonitor().subscribeInternetStatusEvent();
+    getNetworkStatusMonitor().subscribeInternetStatusEvent();
 }
 
 void SysTimeMgr::runNWEventProcessing()
@@ -375,7 +365,7 @@ void SysTimeMgr::runNWEventProcessing()
     /* This function runs on nwEventProcessThrd — call runEventProcessingLoop()
      * directly, it blocks until shutdown. No inner thread needed. */
     RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:CHRONY: Network event processing thread running\n",__FUNCTION__,__LINE__);
-    networkStatusMonitor().runEventProcessingLoop();
+    getNetworkStatusMonitor().runEventProcessingLoop();
 }
 
 void SysTimeMgr::updateTime(void* args)
