@@ -83,13 +83,11 @@ touch /opt/secure/RFC/chrony/chronyd_enabled
 rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.inject
 rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.subscribed
 
-# Redirect stdout to the log file: in __LOCAL_TEST_ builds networkstatussrc.cpp
-# uses printf-based RDK_LOG stubs (no real rdklogger), so all CHRONY log lines
-# go to stdout.  Appending to the existing log file lets grep_sysTimeMgrlogs
-# find them alongside the real logger output from other modules.
-# sysTimeMgr uses the real rdkloggers library (irdklog.h is included in
-# __LOCAL_TEST_ builds — see WPEFrameworkMock.h) so all CHRONY log lines go
-# through rdkloggers to /opt/logs/systimemgr.log.0 without any stdout trick.
+# Truncate the log so NWStatus tests only scan fresh output from this
+# sysTimeMgr instance — prevents stale lines from earlier test suites
+# causing false-passes in the offset-based log checks.
+rm -f /opt/logs/systimemgr.log.0
+
 sysTimeMgr &
 sleep 2
 
