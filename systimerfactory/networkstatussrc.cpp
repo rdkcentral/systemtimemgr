@@ -291,7 +291,7 @@ void handle_internetStatusChange(const JsonObject& params)
     else if (params.HasLabel("internetStatus"))
         status = params["internetStatus"].String();
 
-    std::string normalizedStatus(status);
+    std::string normalizedStatus(std::move(status));
     std::transform(normalizedStatus.begin(), normalizedStatus.end(), normalizedStatus.begin(),
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
 
