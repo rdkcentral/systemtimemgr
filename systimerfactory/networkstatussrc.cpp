@@ -32,9 +32,23 @@
 
 #include <mutex>
 #include <condition_variable>
+
+/* When building for tests (GTEST_ENABLE for L1 unit tests, __LOCAL_TEST_ for
+#include "websocket/JSONRPCLink.h"
+ * L2 functional tests) use the lightweight header stubs from
+ * unittest/mocks/thunder/WPEFrameworkMock.h so no real Thunder/WPEFramework
+ * installation is required.  irdklog.h is NOT included in test builds;
+ * WPEFrameworkMock.h provides its own RDK_LOG stubs.
+ * In production builds the real Thunder headers and libraries are used. */
+#if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
+#  include "unittest/mocks/thunder/WPEFrameworkMock.h"
+using namespace WPEFramework;
+#else 
+#  include "irdklog.h"
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
 using namespace WPEFramework;
+#endif
 
 
 using namespace std;
