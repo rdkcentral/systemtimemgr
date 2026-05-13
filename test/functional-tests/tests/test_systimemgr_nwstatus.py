@@ -329,6 +329,4 @@ def test_duplicate_fully_connected_not_reprocessed():
     assert _wait_for_log(expected_log, timeout_s=10), (
         f"Expected log line not found in {LOG_FILE}: '{expected_log}'"
     )
-
-
-Privacy
+  
