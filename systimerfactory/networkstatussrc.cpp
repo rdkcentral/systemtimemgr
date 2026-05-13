@@ -331,7 +331,15 @@ void NetworkStatusSrc::runEventProcessingLoop()
     while (true) {
         {
             std::unique_lock<std::mutex> lock(g_mutex);
-            g_cv.wait(lock, [] { return g_internetUpPending || g_stopProcessing; });
+            /* Expand the predicate lambda into an explicit while-loop so that
+             * every read of g_internetUpPending and g_stopProcessing is visibly
+             * performed while lock is held (fixes Coverity MISSING_LOCK). The
+             * behaviour is identical to the two-argument wait(lock, pred) form:
+             * spurious wake-ups are handled by re-checking the condition, and
+             * the mutex is always held when the shared flags are read. */
+            while (!g_internetUpPending && !g_stopProcessing) {
+                g_cv.wait(lock);
+            }
             if (g_stopProcessing)
                 break;
             g_internetUpPending = false;  /* clear — we are about to handle it */
