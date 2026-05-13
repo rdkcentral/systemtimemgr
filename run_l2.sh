@@ -92,6 +92,16 @@ rm -f /opt/logs/systimemgr.log.0
 sysTimeMgr &
 sleep 2
 
+NWSTATUS_TEST="test/functional-tests/tests/test_systimemgr_nwstatus.py"
+if [ ! -f "$NWSTATUS_TEST" ]; then
+    NWSTATUS_TEST="$(find . -type f -name 'test_systimemgr_nwstatus.py' | head -n 1)"
+fi
+
+if [ -z "$NWSTATUS_TEST" ] || [ ! -f "$NWSTATUS_TEST" ]; then
+    echo "ERROR: Unable to find test_systimemgr_nwstatus.py in the repository." >&2
+    exit 1
+fi
+
 pytest --json-report --json-report-summary \
     --json-report-file $RESULT_DIR/systimemgr_nwstatus.json \
-    test/functional-tests/tests/test_systimemgr_nwstatus.py
+    "$NWSTATUS_TEST"
