@@ -22,6 +22,11 @@
 class NetworkStatusSrc
 {
         public:
+                /* Constructor ensures the shared state (mutex/cv/flags) is initialised
+                 * before this object, so that the destructor is always called first
+                 * and the shared state is destroyed last (fixes Coverity GLOBAL_INIT_ORDER). */
+                NetworkStatusSrc();
+
                 /* Called on nwEventSubscribeThrd: retries until subscription succeeds, then returns. */
                 void subscribeInternetStatusEvent();
 

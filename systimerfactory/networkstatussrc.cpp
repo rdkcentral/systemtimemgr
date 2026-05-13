@@ -107,11 +107,37 @@ static WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>*
 static bool m_networkeventsubscribed = false;
 
 /* Shared state between the Thunder callback (ResourceMonitor I/O thread) and
- * the network event processing thread.  All fields guarded by g_mutex. */
-static bool                     g_internetUpPending = false;
-static std::mutex               g_mutex;
-static std::condition_variable  g_cv;
-static bool                     g_stopProcessing = false;
+ * the network event processing thread.  All fields guarded by state.mutex.
+ *
+ * Using the "construct on first use" idiom (function-local static) instead of
+ * plain file-scope globals eliminates the Coverity GLOBAL_INIT_ORDER (CWE-908)
+ * defect.  The static 'NetworkSharedState' object is initialised the first time
+ * sharedState() is called — which happens inside the NetworkStatusSrc
+ * constructor below.  Because C++ destroys all static-duration objects in
+ * reverse initialisation order, sharedState() is guaranteed to outlive every
+ * NetworkStatusSrc instance and the destructor can safely use the mutex and
+ * condition variable regardless of how many translation units are linked. */
+struct NetworkSharedState {
+    bool                   internetUpPending = false;
+    std::mutex             mutex;
+    std::condition_variable cv;
+    bool                   stopProcessing = false;
+};
+
+static NetworkSharedState& sharedState()
+{
+    static NetworkSharedState s;
+    return s;
+}
+
+/* Calling sharedState() here ensures the NetworkSharedState singleton is
+ * initialised before any NetworkStatusSrc object (including the file-scope
+ * 'networkStatusMonitor' in systimemgr.cpp).  It will therefore be destroyed
+ * after the last NetworkStatusSrc destructor runs. */
+NetworkStatusSrc::NetworkStatusSrc()
+{
+    sharedState(); /* force initialisation — return value intentionally unused */
+}
 
 
 /* Runs on the systimemgr event processing thread — safe to block here.
@@ -295,7 +321,7 @@ void handle_internetStatusChange(const JsonObject& params)
     std::transform(normalizedStatus.begin(), normalizedStatus.end(), normalizedStatus.begin(),
                    [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
 
-    std::lock_guard<std::mutex> lock(g_mutex);
+    std::lock_guard<std::mutex> lock(sharedState().mutex);
     std::string prev = lastStatus;
     lastStatus = normalizedStatus;  /* always track latest state, even non-connected */
 
@@ -310,8 +336,8 @@ void handle_internetStatusChange(const JsonObject& params)
             "[%s:%d]: CHRONY: Internet status changed to fully_connected — signalling processing thread\n",
             __FUNCTION__, __LINE__);
 
-    g_internetUpPending = true;
-    g_cv.notify_one();
+    sharedState().internetUpPending = true;
+    sharedState().cv.notify_one();
 }
 
 /* runEventProcessingLoop — runs on systimemgr's dedicated nwEventProcessThrd.
@@ -330,19 +356,19 @@ void NetworkStatusSrc::runEventProcessingLoop()
 
     while (true) {
         {
-            std::unique_lock<std::mutex> lock(g_mutex);
+            std::unique_lock<std::mutex> lock(sharedState().mutex);
             /* Expand the predicate lambda into an explicit while-loop so that
-             * every read of g_internetUpPending and g_stopProcessing is visibly
+             * every read of internetUpPending and stopProcessing is visibly
              * performed while lock is held (fixes Coverity MISSING_LOCK). The
              * behaviour is identical to the two-argument wait(lock, pred) form:
              * spurious wake-ups are handled by re-checking the condition, and
              * the mutex is always held when the shared flags are read. */
-            while (!g_internetUpPending && !g_stopProcessing) {
-                g_cv.wait(lock);
+            while (!sharedState().internetUpPending && !sharedState().stopProcessing) {
+                sharedState().cv.wait(lock);
             }
-            if (g_stopProcessing)
+            if (sharedState().stopProcessing)
                 break;
-            g_internetUpPending = false;  /* clear — we are about to handle it */
+            sharedState().internetUpPending = false;  /* clear — we are about to handle it */
         }
         processInternetOnline();
     }
@@ -385,13 +411,13 @@ NetworkStatusSrc::~NetworkStatusSrc()
 {
     /* Set the stop flag and wake the processing thread so it exits its wait()
      * and returns from runEventProcessingLoop(). Without notify_one() the thread
-     * would sleep forever on g_cv.wait() and nwEventProcessThrd.join() in
+     * would sleep forever on cv.wait() and nwEventProcessThrd.join() in
      * systimemgr's run() would never complete. */
     {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        g_stopProcessing = true;
+        std::lock_guard<std::mutex> lock(sharedState().mutex);
+        sharedState().stopProcessing = true;
     }
-    g_cv.notify_one();
+    sharedState().cv.notify_one();
 
     if (thunder_client) {
         thunder_client->Unsubscribe(5000, "onInternetStatusChange");
