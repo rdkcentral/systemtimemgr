@@ -33,7 +33,6 @@
 #include <condition_variable>
 
 /* When building for tests (GTEST_ENABLE for L1 unit tests, __LOCAL_TEST_ for
-#include "websocket/JSONRPCLink.h"
  * L2 functional tests) use the lightweight header stubs from
  * unittest/mocks/thunder/WPEFrameworkMock.h so no real Thunder/WPEFramework
  * installation is required.  irdklog.h is NOT included in test builds;
