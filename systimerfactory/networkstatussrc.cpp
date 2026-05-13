@@ -23,7 +23,6 @@
 #include <unistd.h>
 
 #include "networkstatussrc.h"
-#include "irdklog.h"
 #include "secure_wrapper.h"
 
 #include <cmath>
