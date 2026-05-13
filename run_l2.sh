@@ -63,3 +63,35 @@ pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systim
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_securetime_Initialisation.json test/functional-tests/tests/test_secureTime_initialisation.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_secureTime_checkEvent.json test/functional-tests/tests/test_secureTime_checkEvent.py
 pytest --json-report --json-report-summary --json-report-file $RESULT_DIR/systimemgr_secureTime_Quality.json test/functional-tests/tests/test_secureTime_quality.py
+
+
+# ── NWStatusMonitor L2 tests ────────────────────────────────────────────────
+# When sysTimeMgr is compiled with -D__LOCAL_TEST_ (set by cov_build.sh via
+# --enable-unittest) it uses WPEFrameworkMock.h instead of the real Thunder
+# library.  Events are injected by writing JSON to a file that the mock
+# SmartLinkType polls — no Thunder daemon or WebSocket server is needed.
+#
+# Restart sysTimeMgr so it subscribes afresh for the NWStatus test suite.
+pkill -f sysTimeMgr 2>/dev/null || true
+sleep 1
+
+# Create the RFC marker file that SysTimeMgr::run() checks before starting
+# the NW-event threads (chronyRfcEnabled guard in systimemgr.cpp).
+mkdir -p /opt/secure/RFC/chrony
+touch /opt/secure/RFC/chrony/chronyd_enabled
+
+# Clean up any leftover inject / subscribed files from a previous run
+rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.inject
+rm -f /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.subscribed
+
+# Truncate the log so NWStatus tests only scan fresh output from this
+# sysTimeMgr instance — prevents stale lines from earlier test suites
+# causing false-passes in the offset-based log checks.
+rm -f /opt/logs/systimemgr.log.0
+
+sysTimeMgr &
+sleep 2
+
+pytest --json-report --json-report-summary \
+    --json-report-file $RESULT_DIR/systimemgr_nwstatus.json \
+    test/functional-tests/tests/test_systimemgr_nwstatus.py
