@@ -22,8 +22,12 @@ WORKDIR=`pwd`
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 
+
 cd $WORKDIR/systimerfactory
 autoreconf -i
+# -D__LOCAL_TEST_ makes networkstatussrc.cpp use WPEFrameworkMock.h instead of
+# real Thunder headers (--enable-chrony is not passed so WPEFramework is not
+# required at configure time either).
 export CXXFLAGS="-I../interface/ -D__LOCAL_TEST_"
 ./configure --prefix=${RDKLOGGER_INSTALL_DIR}
 make clean && make && make install
