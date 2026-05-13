@@ -15,8 +15,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef _NETWORKSTATUSSRC_H_
-#define _NETWORKSTATUSSRC_H_
+#ifndef NETWORKSTATUSSRC_H_
+#define NETWORKSTATUSSRC_H_
 
 
 class NetworkStatusSrc
@@ -32,4 +32,4 @@ class NetworkStatusSrc
                ~NetworkStatusSrc();
 };
 
-#endif // _NETWORKSTATUSSRC_H_
+#endif // NETWORKSTATUSSRC_H_
