@@ -161,17 +161,6 @@ AC_ARG_ENABLE([t2api],
 AM_CONDITIONAL([IS_TELEMETRY2_ENABLED], [test x$IS_TELEMETRY2_ENABLED = xtrue])
 AC_SUBST(T2_EVENT_FLAG)
 
-# --enable-chrony: build networkstatussrc.cpp against the real WPEFramework
-# Thunder API (production builds).
-# When NOT enabled (default for L1/L2 test builds), WPEFRAMEWORKCORE_CFLAGS/LIBS
-# and WPEFRAMEWORKWEBSOCKET_CFLAGS/LIBS are empty strings so Makefile.am simply
-# adds nothing.  networkstatussrc.cpp then uses WPEFrameworkMock.h via the
-# GTEST_ENABLE or __LOCAL_TEST_ guard, requiring no Thunder installation.
-#test -n "$WPEFRAMEWORKCORE_CFLAGS" || WPEFRAMEWORKCORE_CFLAGS=""
-#test -n "$WPEFRAMEWORKCORE_LIBS" || WPEFRAMEWORKCORE_LIBS=""
-#test -n "$WPEFRAMEWORKWEBSOCKET_CFLAGS" || WPEFRAMEWORKWEBSOCKET_CFLAGS=""
-#test -n "$WPEFRAMEWORKWEBSOCKET_LIBS" || WPEFRAMEWORKWEBSOCKET_LIBS=""
-
 
 AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
 AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
