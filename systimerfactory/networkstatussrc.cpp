@@ -383,6 +383,18 @@ static void subscribeToInternetEvent()
 {
     unsigned int attempt = 0;
     while (!m_networkeventsubscribed) {
+        /* Check stop flag before each attempt so that a shutdown request issued
+         * while a Subscribe() call was in flight is honoured at the top of the
+         * next iteration without waiting a full retry interval. */
+        {
+            std::unique_lock<std::mutex> lock(sharedState().mutex);
+            if (sharedState().stopProcessing) {
+                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                        "[%s:%d]: CHRONY: Subscription retry loop exiting — shutdown requested\n",
+                        __FUNCTION__, __LINE__);
+                return;
+            }
+        }
         attempt++;
         if (!thunder_client)
             thunder_client = new WPEFramework::JSONRPC::SmartLinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "");
@@ -397,7 +409,20 @@ static void subscribeToInternetEvent()
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]: CHRONY: Subscribe to onInternetStatusChange failed (%d), attempt %u\n",__FUNCTION__,__LINE__,ret,attempt);
             delete thunder_client; thunder_client = nullptr;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS));
+        /* Sleep interruptibly: the destructor sets stopProcessing and calls
+         * cv.notify_all(), which wakes this wait early at shutdown instead of
+         * always blocking for the full ACTIVATION_RETRY_INTERVAL_MS. */
+        {
+            std::unique_lock<std::mutex> lock(sharedState().mutex);
+            sharedState().cv.wait_for(lock,
+                                      std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS));
+            if (sharedState().stopProcessing) {
+                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                        "[%s:%d]: CHRONY: Subscription retry loop interrupted by shutdown"
+                        " after attempt %u\n", __FUNCTION__, __LINE__, attempt);
+                return;
+            }
+        }
     }
 }
 
@@ -409,15 +434,21 @@ void NetworkStatusSrc::subscribeInternetStatusEvent()
 
 NetworkStatusSrc::~NetworkStatusSrc()
 {
-    /* Set the stop flag and wake the processing thread so it exits its wait()
-     * and returns from runEventProcessingLoop(). Without notify_one() the thread
-     * would sleep forever on cv.wait() and nwEventProcessThrd.join() in
-     * systimemgr's run() would never complete. */
+    /* Set the stop flag and wake both the event processing thread and the
+     * subscription retry thread:
+     *  - runEventProcessingLoop() sleeps on cv.wait() — notify_all() makes it
+     *    check stopProcessing and exit cleanly.
+     *  - subscribeToInternetEvent() sleeps on cv.wait_for() between retries —
+     *    notify_all() wakes it early so nwEventSubscribeThrd.join() does not
+     *    hang for up to ACTIVATION_RETRY_INTERVAL_MS when shutting down while
+     *    Thunder/NetworkManager is unavailable.
+     * notify_all() is used (not notify_one()) because both threads may be
+     * sleeping concurrently and all waiters must be unblocked. */
     {
         std::lock_guard<std::mutex> lock(sharedState().mutex);
         sharedState().stopProcessing = true;
     }
-    sharedState().cv.notify_one();
+     sharedState().cv.notify_all();
 
     if (thunder_client) {
         thunder_client->Unsubscribe(5000, "onInternetStatusChange");
