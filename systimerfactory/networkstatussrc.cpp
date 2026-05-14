@@ -136,7 +136,7 @@ static NetworkSharedState& sharedState()
  * after the last NetworkStatusSrc destructor runs. */
 NetworkStatusSrc::NetworkStatusSrc()
 {
-    sharedState(); /* force initialisation — return value intentionally unused */
+    (void)sharedState(); /* force initialisation — return value intentionally unused */
 }
 
 
@@ -414,8 +414,12 @@ static void subscribeToInternetEvent()
          * always blocking for the full ACTIVATION_RETRY_INTERVAL_MS. */
         {
             std::unique_lock<std::mutex> lock(sharedState().mutex);
-            sharedState().cv.wait_for(lock,
-                                      std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS));
+            const auto deadline = std::chrono::steady_clock::now() +
+                                  std::chrono::milliseconds(ACTIVATION_RETRY_INTERVAL_MS);
+            while (!sharedState().stopProcessing) {
+                if (sharedState().cv.wait_until(lock, deadline) == std::cv_status::timeout)
+                    break; /* interval elapsed — proceed to next attempt */
+            }
             if (sharedState().stopProcessing) {
                 RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
                         "[%s:%d]: CHRONY: Subscription retry loop interrupted by shutdown"
