@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <cstdarg>
+#include <stdio.h>
 
 class VSecureSystemMock {
 public:
@@ -50,6 +51,17 @@ extern "C" int v_secure_system(const char* format, ...) {
     }
     return ret;
 }
+
+// v_secure_popen / v_secure_pclose — forward to the standard popen/pclose;
+// no security policy enforcement needed in test builds.
+extern "C" FILE* v_secure_popen(const char* direction, const char* command, ...) {
+    return popen(command, direction);
+}
+
+extern "C" int v_secure_pclose(FILE* fp) {
+    return pclose(fp);
+}
+
 class TestMock{
     public:
         MOCK_METHOD((Json::Value), getReturnValue,() );
