@@ -32,14 +32,13 @@
 #include <mutex>
 #include <condition_variable>
 
-/* When building for tests (GTEST_ENABLE for L1 unit tests, __LOCAL_TEST_ for
- * L2 functional tests) use the lightweight header stubs from
- * unittest/mocks/thunder/WPEFrameworkMock.h so no real Thunder/WPEFramework
- * installation is required. For the GTEST_ENABLE path, irdklog.h is not used
- * and WPEFrameworkMock.h provides the RDK_LOG stubs. For the __LOCAL_TEST_
- * path, WPEFrameworkMock.h may still pull in irdklog.h and use the real
- * rdklogger implementation. In production builds the real Thunder headers and
- * libraries are used. */
+/* Test builds include unittest/mocks/thunder/WPEFrameworkMock.h to avoid a
+ * full Thunder/WPEFramework installation. For GTEST_ENABLE (L1 unit tests),
+ * WPEFrameworkMock.h provides printf-based RDK_LOG stubs and does not include
+ * irdklog.h. For __LOCAL_TEST_ (L2 functional tests), WPEFrameworkMock.h
+ * includes the real irdklog.h, so logging uses the real rdklogger backend and
+ * writes to /opt/logs. In production builds, the real Thunder headers and
+ * libraries are used directly. */
 #if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
 #  include "unittest/mocks/thunder/WPEFrameworkMock.h"
 using namespace WPEFramework;
