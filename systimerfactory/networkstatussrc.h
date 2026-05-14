@@ -1,0 +1,40 @@
+/*
+ * Copyright 2023 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#ifndef NETWORKSTATUSSRC_H_
+#define NETWORKSTATUSSRC_H_
+
+
+class NetworkStatusSrc
+{
+        public:
+                /* Constructor ensures the shared state (mutex/cv/flags) is initialised
+                 * before this object, so that the destructor is always called first
+                 * and the shared state is destroyed last (fixes Coverity GLOBAL_INIT_ORDER). */
+                NetworkStatusSrc();
+
+                /* Called on nwEventSubscribeThrd: retries until subscription succeeds, then returns. */
+                void subscribeInternetStatusEvent();
+
+                /* Called on nwEventProcessThrd: blocks waiting for internet-up events, runs chrony sync.
+                 * Returns only when g_stopProcessing is set (destructor called). */
+                void runEventProcessingLoop();
+
+               ~NetworkStatusSrc();
+};
+
+#endif // NETWORKSTATUSSRC_H_

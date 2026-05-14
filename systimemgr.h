@@ -116,8 +116,12 @@ private:
         static void processThr(SysTimeMgr* instance);
         static void timerThr(SysTimeMgr* instance);
         static void pathThr(SysTimeMgr* instance);
+        static void nwEventSubscribeThr(SysTimeMgr* instance);
+        static void nwEventProcessThr(SysTimeMgr* instance);
 
 
+    void runNetworkStatusMonitor();
+    void runNWEventProcessing();
 
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
