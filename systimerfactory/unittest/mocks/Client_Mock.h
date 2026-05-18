@@ -114,3 +114,72 @@ class Client
 
 
 }
+
+/* -----------------------------------------------------------------------
+ * ChronyCtl mock stubs — mirrors the v_secure_system pattern above.
+ *
+ * globalChronyCtlMock is nullptr by default; stub functions return
+ * CHRONYCTL_SUCCESS and set safe output values.  Tests that need to control
+ * chronyctl behaviour should instantiate a ChronyCtlMock and point
+ * globalChronyCtlMock at it.
+ * ----------------------------------------------------------------------- */
+#include "libchronyctl.h"
+
+ChronyCtlMock *globalChronyCtlMock = nullptr;
+
+extern "C" int chronyctl_init(void) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_init();
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_cleanup(void) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_cleanup();
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_get_offset(double *offset_sec) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_get_offset(offset_sec);
+    if (offset_sec) *offset_sec = 0.0;
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_makestep(void) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_makestep();
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_online(const IPAddr *addr, const IPAddr *mask) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_online(addr, mask);
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_burst(const IPAddr *addr, const IPAddr *mask,
+                               int n_good_samples, int n_total_samples) {
+    if (globalChronyCtlMock)
+        return globalChronyCtlMock->chronyctl_burst(addr, mask, n_good_samples, n_total_samples);
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_has_selectable_source(int *has_selectable) {
+    if (globalChronyCtlMock)
+        return globalChronyCtlMock->chronyctl_has_selectable_source(has_selectable);
+    if (has_selectable) *has_selectable = 0;
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_get_source_count(int *count) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_get_source_count(count);
+    if (count) *count = 0;
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" int chronyctl_waitsync(int max_tries, int interval_sec) {
+    if (globalChronyCtlMock)
+        return globalChronyCtlMock->chronyctl_waitsync(max_tries, interval_sec);
+    return CHRONYCTL_SUCCESS;
+}
+
+extern "C" const char *chronyctl_strerror(int err) {
+    if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_strerror(err);
+    return "mock error";
+}
