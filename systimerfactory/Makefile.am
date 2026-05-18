@@ -22,7 +22,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libsystimerfactory.la
 
-libsystimerfactory_la_SOURCES = timerfactory.cpp pubsubfactory.cpp rdkdefaulttimesync.cpp drmtimersrc.cpp
+libsystimerfactory_la_SOURCES = timerfactory.cpp pubsubfactory.cpp rdkdefaulttimesync.cpp drmtimersrc.cpp networkstatussrc.cpp
 libsystimerfactory_la_LDFLAGS = -lchronyctl
 
 if IARM_ENABLED
