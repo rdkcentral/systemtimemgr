@@ -868,7 +868,7 @@ void SysTimeMgr::deepsleepoff()
 		if (ret == 0) {
             // chronyd is running
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc burst\n",__FUNCTION__,__LINE__);
-			ret = chronyctl_burst(NULL, NULL, 3, 4);
+			ret = chronyctl_burst(NULL, NULL, 4, 6);
 			if (ret == CHRONYCTL_SUCCESS) {
                   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyctl_burst succeeded\n",__FUNCTION__,__LINE__);
             } else {
