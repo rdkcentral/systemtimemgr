@@ -480,7 +480,7 @@ void SysTimeMgr::runPathMonitor()
 		if (pevent->mask & IN_ATTRIB)
 		{
 			//This is file changed or created.
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name)
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
 			string fName(pevent->name);
 			auto iter = m_pathEventMap.find(fName);
 			if (iter != m_pathEventMap.end())
