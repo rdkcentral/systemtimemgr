@@ -480,17 +480,7 @@ void SysTimeMgr::runPathMonitor()
 		if (pevent->mask & IN_ATTRIB)
 		{
 			//This is file changed or created.
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
-			 double offset = 0.0;
-			int ret = chronyctl_get_offset(&offset);
-        if (ret == CHRONYCTL_SUCCESS) {
-            // You can later send this to telemetry
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] [runPathMonitor] Offset: %f seconds\n", offset);
-        } else {
-            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] [runPathMonitor] Error fetching offset: %s\n", chronyctl_strerror(ret));
-        }
-
-        sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY, NULL);
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name)
 			string fName(pevent->name);
 			auto iter = m_pathEventMap.find(fName);
 			if (iter != m_pathEventMap.end())
@@ -627,15 +617,6 @@ void SysTimeMgr::setInitialTime()
 	{
 		locTime = i->getTime();
 	}
-
-	sleep(10);
-	const char* ntp_server = "devicetime1.sky.com";
-    int add_result = chronyctl_add_server(ntp_server, 5, 10); // 6 and 10 are example min/max poll intervals
-    if (add_result == CHRONYCTL_SUCCESS) {
-	   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] NTP server %s added successfully\n", ntp_server);
-    } else {
-	   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Failed to add NTP server %s: %s\n", ntp_server, chronyctl_strerror(add_result));
-    }
 
 	ofstream ofs(filepath);
         if (!ofs) 
@@ -783,15 +764,7 @@ void SysTimeMgr::getTimeStatus(TimerMsg* pMsg)
 	char monotimeStr[100] = {0};
 	strftime(timeStr, sizeof(timeStr), "%A %c", localtime(&timeinSec));
 	strftime(monotimeStr, sizeof(monotimeStr), "%A %c", localtime(&monotimeinSec));
-	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:TIME Returning for Query = %ld, Converted Real Time(included in TimeMsg): %s, Converted Monotonic Time = %s \n",__FUNCTION__,__LINE__,timeinSec,timeStr,monotimeStr);
-    		 double offset = 0.0;
-			int ret = chronyctl_get_offset(&offset);
-        if (ret == CHRONYCTL_SUCCESS) {
-            // You can later send this to telemetry
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
-        } else {
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
-        }   
+	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:TIME Returning for Query = %ld, Converted Real Time(included in TimeMsg): %s, Converted Monotonic Time = %s \n",__FUNCTION__,__LINE__,timeinSec,timeStr,monotimeStr); 
 	snprintf(pMsg->currentTime, cTIMER_STATUS_MESSAGE_LENGTH, "%s", std::to_string(timeinSec).c_str());   //CID:277708 Buffer not null terminated
 }
 int SysTimeMgr::powerhandler(void* args)
