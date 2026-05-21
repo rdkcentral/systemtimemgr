@@ -121,7 +121,7 @@ void SysTimeMgr::initialize()
     {
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to open Config file: %s , will run in degraded mode.\n",__FUNCTION__,__LINE__,m_cfgfile.c_str());
     }
-
+#TBD: Add RFC CHECK
     int chronyctl_ret = chronyctl_init();
 	if (chronyctl_ret != CHRONYCTL_SUCCESS) {
         RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Initialization failed: rc=%d, error=%s\n",
