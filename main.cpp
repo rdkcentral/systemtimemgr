@@ -22,11 +22,6 @@
 #include <cstdlib>
 #include "irdklog.h"
 #include <iostream>
-#if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
-#include "systimerfactory/unittest/mocks/libchronyctl.h"
-#else 
-#include "libchronyctl.h"
-#endif
 
 int main()
 {
@@ -60,6 +55,5 @@ int main()
     t2_uninit();
     #endif
 
-    chronyctl_cleanup();
     return EXIT_SUCCESS;
 }
