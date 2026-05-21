@@ -31,7 +31,7 @@
 #include <limits.h>
 #include "irdklog.h"
 #include "itimermsg.h"
-#include <chrono>
+#include <chron
 #include "secure_wrapper.h"
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
@@ -192,7 +192,6 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
-   std::thread ntpSyncMonitorThrd(SysTimeMgr::ntpSyncMonitorThr,this);
    bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
            __FUNCTION__,__LINE__,
@@ -200,11 +199,13 @@ void SysTimeMgr::run(bool forever)
                             : "not found, skipping network event threads");
    std::thread nwEventProcessThrd;
    std::thread nwEventSubscribeThrd;
+   std::thread ntpSyncMonitorThrd;
    if (chronyRfcEnabled) {
        /* nwEventProcessThrd must start before nwEventSubscribeThrd so the
         * processing thread is ready before any event can arrive. */
        nwEventProcessThrd = std::thread(SysTimeMgr::nwEventProcessThr, this);
        nwEventSubscribeThrd = std::thread(SysTimeMgr::nwEventSubscribeThr, this);
+	   ntpSyncMonitorThrd = std::thread(SysTimeMgr::ntpSyncMonitorThr,this);
    }
 	
    if (forever)
@@ -223,6 +224,9 @@ void SysTimeMgr::run(bool forever)
            nwEventProcessThrd.join();
        if (nwEventSubscribeThrd.joinable())
            nwEventSubscribeThrd.join();
+	   if (ntpSyncMonitorThrd.joinable())
+		   ntpSyncMonitorThrd.join();
+	   
    }
    else
    {
@@ -234,6 +238,8 @@ void SysTimeMgr::run(bool forever)
            nwEventProcessThrd.detach();
        if (nwEventSubscribeThrd.joinable())
            nwEventSubscribeThrd.detach();
+	    if (ntpSyncMonitorThrd.joinable())
+		   ntpSyncMonitorThrd.detach();
    }
 }
 
