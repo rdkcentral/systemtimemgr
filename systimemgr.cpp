@@ -219,12 +219,15 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
-       if (nwEventProcessThrd.joinable())
+       if (nwEventProcessThrd.joinable()) {
            nwEventProcessThrd.join();
-       if (nwEventSubscribeThrd.joinable())
+	   }
+       if (nwEventSubscribeThrd.joinable()) {
            nwEventSubscribeThrd.join();
-	   if (ntpSyncMonitorThrd.joinable())
+	   }
+	   if (ntpSyncMonitorThrd.joinable()) {
 		   ntpSyncMonitorThrd.join();
+	   }
 	   
    }
    else
@@ -232,12 +235,15 @@ void SysTimeMgr::run(bool forever)
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
-       if (nwEventProcessThrd.joinable())
+       if (nwEventProcessThrd.joinable()) {
            nwEventProcessThrd.detach();
-       if (nwEventSubscribeThrd.joinable())
+	   }
+       if (nwEventSubscribeThrd.joinable()) {
            nwEventSubscribeThrd.detach();
-	   if (ntpSyncMonitorThrd.joinable())
+	   }
+	   if (ntpSyncMonitorThrd.joinable()) {
 		   ntpSyncMonitorThrd.detach();
+	   }
    }
 }
 
