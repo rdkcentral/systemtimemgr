@@ -306,7 +306,10 @@ void SysTimeMgr::runNTPSyncMonitor()
         struct timex tx;
         memset(&tx, 0, sizeof(tx));
 
-        if (adjtimex(&tx) < 0)
+        /* Capture adjtimex() return value: TIME_ERROR means the kernel clock
+         * is not disciplined, which is treated the same as STA_UNSYNC. */
+        int adjtimex_state = adjtimex(&tx);
+        if (adjtimex_state < 0)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
                     "[%s:%d]: CHRONY: adjtimex() failed, retrying\n", __FUNCTION__, __LINE__);
@@ -314,7 +317,7 @@ void SysTimeMgr::runNTPSyncMonitor()
             continue;
         }
 
-        if (tx.status & STA_UNSYNC)
+        if (adjtimex_state == TIME_ERROR || (tx.status & STA_UNSYNC))
         {
             /* Clock not yet synchronised — keep polling. */
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -325,20 +328,35 @@ void SysTimeMgr::runNTPSyncMonitor()
         RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
                 "[%s:%d]: CHRONY: NTP synchronised\n", __FUNCTION__, __LINE__);
 
-        /* Create /tmp/systimemgr/ntp */
+        /* Create /tmp/systimemgr/ntp and update its timestamps via futimens()
+         * so that the inotify IN_ATTRIB event fires and the path monitor thread
+         * reliably dispatches eSYSMGR_EVENT_NTP_AVAILABLE into the state machine.
+         * O_NOFOLLOW|O_CLOEXEC guard against symlink attacks. */
         {
-            int fd = open((m_directory + "/ntp").c_str(), O_CREAT | O_WRONLY, 0644);
+            int fd = open((m_directory + "/ntp").c_str(),
+                          O_CREAT | O_WRONLY | O_NOFOLLOW | O_CLOEXEC | O_NOCTTY, 0644);
             if (fd >= 0)
+            {
+                struct timespec ts[2];
+                timespec_get(&ts[0], TIME_UTC);
+                ts[1] = ts[0];
+                if (futimens(fd, ts) != 0)
+                    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                            "[%s:%d]: futimens() failed for %s/ntp\n",
+                            __FUNCTION__, __LINE__, m_directory.c_str());
                 close(fd);
+            }
             else
                 RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
                         "[%s:%d]: Failed to create %s/ntp\n",
                         __FUNCTION__, __LINE__, m_directory.c_str());
         }
 
-        /* Create /tmp/clock-event */
+        /* Create /tmp/clock-event — O_NOFOLLOW|O_CLOEXEC guard against
+         * symlink/hardlink attacks when running with elevated privileges. */
         {
-            int fd = open("/tmp/clock-event", O_CREAT | O_WRONLY, 0644);
+            int fd = open("/tmp/clock-event",
+                          O_CREAT | O_WRONLY | O_NOFOLLOW | O_CLOEXEC, 0644);
             if (fd >= 0)
                 close(fd);
             else
@@ -347,17 +365,29 @@ void SysTimeMgr::runNTPSyncMonitor()
                         __FUNCTION__, __LINE__);
         }
 
-	int fd = open("/tmp/ntp_status", O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (fd >= 0)
-    {
-    const char* status = "Synchronized\n";
-    write(fd, status, strlen(status));
-    close(fd);
-   } else {
-    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-            "[%s:%d]: Failed to create /tmp/ntp_status\n",
-            __FUNCTION__, __LINE__);
-    }
+        /* Write NTP sync status to /tmp/ntp_status — O_NOFOLLOW|O_CLOEXEC
+         * guards against symlink attacks; write() return value is checked. */
+        {
+            int fd = open("/tmp/ntp_status",
+                          O_CREAT | O_WRONLY | O_TRUNC | O_NOFOLLOW | O_CLOEXEC, 0644);
+            if (fd >= 0)
+            {
+                const char* status = "Synchronized\n";
+                ssize_t written = write(fd, status, strlen(status));
+                if (written < 0)
+                    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                            "[%s:%d]: Failed to write to /tmp/ntp_status\n",
+                            __FUNCTION__, __LINE__);
+                close(fd);
+            }
+            else
+            {
+                RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                        "[%s:%d]: Failed to create /tmp/ntp_status\n",
+                        __FUNCTION__, __LINE__);
+            }
+        }
+
         /* Synchronisation captured — stop polling. */
         break;
     }
