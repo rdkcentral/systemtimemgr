@@ -239,8 +239,13 @@ static void processInternetOnline()
              * frequency-slewing, so an explicit makestep is unnecessary. */
             double offset = 0.0;
             int offRet = chronyctl_get_system_time_offset(&offset);
-            if (offRet != CHRONYCTL_SUCCESS)
+            if (offRet != CHRONYCTL_SUCCESS) {
+               RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: chronyctl_get_system_time_offset failed: %s. "
+                       "Falling back to offset = 0.0 and allowing natural slew\n",
+                       __FUNCTION__, __LINE__, chronyctl_strerror(offRet));
                offset = 0.0;  /* safe default — allow natural slew on error */
+            }
             double absOffset = std::fabs(offset);
             RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
                     "[%s:%d]: CHRONY: Selectable source present, current offset = %.6f s"
