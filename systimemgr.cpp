@@ -299,7 +299,7 @@ void SysTimeMgr::ntpSyncMonitorThr(SysTimeMgr* instance)
 void SysTimeMgr::runNTPSyncMonitor()
 {
     RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-            "[%s:%d]: NTP sync monitor thread started\n", __FUNCTION__, __LINE__);
+            "[%s:%d]: CHRONY: NTP sync monitor thread started\n", __FUNCTION__, __LINE__);
 
     while (1)
     {
@@ -309,7 +309,7 @@ void SysTimeMgr::runNTPSyncMonitor()
         if (adjtimex(&tx) < 0)
         {
             RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                    "[%s:%d]: adjtimex() failed, retrying\n", __FUNCTION__, __LINE__);
+                    "[%s:%d]: CHRONY: adjtimex() failed, retrying\n", __FUNCTION__, __LINE__);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             continue;
         }
@@ -323,7 +323,7 @@ void SysTimeMgr::runNTPSyncMonitor()
 
         /* NTP synchronisation achieved. */
         RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                "[%s:%d]: NTP synchronised\n", __FUNCTION__, __LINE__);
+                "[%s:%d]: CHRONY: NTP synchronised\n", __FUNCTION__, __LINE__);
 
         /* Create /tmp/systimemgr/ntp */
         {
@@ -363,7 +363,7 @@ void SysTimeMgr::runNTPSyncMonitor()
     }
 
     RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-            "[%s:%d]: NTP sync monitor thread exiting\n", __FUNCTION__, __LINE__);
+            "[%s:%d]: CHRONY: NTP sync monitor thread exiting\n", __FUNCTION__, __LINE__);
 }
 
 
