@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include "irdklog.h"
 #include <iostream>
+#include "libchronyctl.h"
 
 int main()
 {
