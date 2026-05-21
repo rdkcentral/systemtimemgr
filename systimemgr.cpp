@@ -429,8 +429,10 @@ void SysTimeMgr::runTimer()
 		double offset = 0.0;
         int ret = chronyctl_get_offset(&offset);
         if (ret == CHRONYCTL_SUCCESS) {
+			 char offset_str[16];
             RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL][TimerThread] Offset: %f seconds\n", offset);
-            // [Optionally send to telemetry or handle as needed]
+			snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
+            t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
         } else {
             RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL][TimerThread] Error fetching offset: %s\n", chronyctl_strerror(ret));
         }
