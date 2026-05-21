@@ -859,7 +859,7 @@ void SysTimeMgr::deepsleepoff()
             if (ret == CHRONYCTL_SUCCESS) {
 		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep success");
             } else {
-		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Makestep Failed");
+		        RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME, "[ChronyCTL] Makestep failed: ret=%d, error=%s", ret, chronyctl_strerror(ret));
             }
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
