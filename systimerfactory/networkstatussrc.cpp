@@ -101,7 +101,6 @@ static NetworkSharedState& sharedState()
 NetworkStatusSrc::NetworkStatusSrc()
 {
     (void)sharedState(); /* force initialisation — return value intentionally unused */
-    chronyctl_init();
 }
 
 
@@ -428,5 +427,5 @@ NetworkStatusSrc::~NetworkStatusSrc()
         delete thunder_client;
         thunder_client = nullptr;
     }
-    chronyctl_cleanup();
+  
 }
