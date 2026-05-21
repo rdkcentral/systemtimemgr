@@ -337,6 +337,17 @@ void SysTimeMgr::runNTPSyncMonitor()
                         __FUNCTION__, __LINE__);
         }
 
+	int fd = open("/tmp/ntp_status", O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd >= 0)
+    {
+    const char* status = "Synchronized\n";
+    write(fd, status, strlen(status));
+    close(fd);
+   } else {
+    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+            "[%s:%d]: Failed to create /tmp/ntp_status\n",
+            __FUNCTION__, __LINE__);
+    }
         /* Synchronisation captured — stop polling. */
         break;
     }
