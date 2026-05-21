@@ -25,10 +25,10 @@
 #include "networkstatussrc.h"
 #include "secure_wrapper.h"
 
-#if defined(GTEST_ENABLE)
-#  include "unittest/mocks/libchronyctl.h"
-#else
-#  include "libchronyctl.h"
+#if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
+#include "unittest/mocks/libchronyctl.h"
+#else 
+#include "libchronyctl.h"
 #endif
 
 #include <cmath>
