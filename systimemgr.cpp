@@ -38,6 +38,8 @@
 #endif
 
 #include "systimerfactory/networkstatussrc.h"
+#include <sys/timex.h>
+#include <fcntl.h>
 
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
@@ -190,6 +192,7 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
+   std::thread ntpSyncMonitorThrd(SysTimeMgr::ntpSyncMonitorThr,this);
    bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
            __FUNCTION__,__LINE__,
@@ -215,6 +218,7 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
+       ntpSyncMonitorThrd.join();
        if (nwEventProcessThrd.joinable())
            nwEventProcessThrd.join();
        if (nwEventSubscribeThrd.joinable())
@@ -225,6 +229,7 @@ void SysTimeMgr::run(bool forever)
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
+       ntpSyncMonitorThrd.detach();
        if (nwEventProcessThrd.joinable())
            nwEventProcessThrd.detach();
        if (nwEventSubscribeThrd.joinable())
@@ -267,6 +272,77 @@ void SysTimeMgr::nwEventProcessThr(SysTimeMgr* instance)
 {
     if (instance)
         instance->runNWEventProcessing();
+}
+
+void SysTimeMgr::ntpSyncMonitorThr(SysTimeMgr* instance)
+{
+    if (instance)
+        instance->runNTPSyncMonitor();
+}
+
+/*
+ * runNTPSyncMonitor: polls adjtimex() once per second until the kernel clock is
+ * synchronised with NTP (STA_UNSYNC flag cleared).  On success it logs the
+ * event, creates /tmp/clock-event and /tmp/systimemgr/ntp, then returns.
+ * The primary purpose is to capture the NTP convergence time.
+ */
+void SysTimeMgr::runNTPSyncMonitor()
+{
+    RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+            "[%s:%d]: NTP sync monitor thread started\n", __FUNCTION__, __LINE__);
+
+    while (1)
+    {
+        struct timex tx;
+        memset(&tx, 0, sizeof(tx));
+
+        if (adjtimex(&tx) < 0)
+        {
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                    "[%s:%d]: adjtimex() failed, retrying\n", __FUNCTION__, __LINE__);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
+        }
+
+        if (tx.status & STA_UNSYNC)
+        {
+            /* Clock not yet synchronised — keep polling. */
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
+        }
+
+        /* NTP synchronisation achieved. */
+        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+                "[%s:%d]: NTP synchronised\n", __FUNCTION__, __LINE__);
+
+        /* Create /tmp/systimemgr/ntp */
+        {
+            int fd = open((m_directory + "/ntp").c_str(), O_CREAT | O_WRONLY, 0644);
+            if (fd >= 0)
+                close(fd);
+            else
+                RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                        "[%s:%d]: Failed to create %s/ntp\n",
+                        __FUNCTION__, __LINE__, m_directory.c_str());
+        }
+
+        /* Create /tmp/clock-event */
+        {
+            int fd = open("/tmp/clock-event", O_CREAT | O_WRONLY, 0644);
+            if (fd >= 0)
+                close(fd);
+            else
+                RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                        "[%s:%d]: Failed to create /tmp/clock-event\n",
+                        __FUNCTION__, __LINE__);
+        }
+
+        /* Synchronisation captured — stop polling. */
+        break;
+    }
+
+    RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
+            "[%s:%d]: NTP sync monitor thread exiting\n", __FUNCTION__, __LINE__);
 }
 
 
