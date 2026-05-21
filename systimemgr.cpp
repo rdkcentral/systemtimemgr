@@ -219,7 +219,6 @@ void SysTimeMgr::run(bool forever)
        processThrd.join();
        timerThrd.join();
        pathMonitorThrd.join();
-       ntpSyncMonitorThrd.join();
        if (nwEventProcessThrd.joinable())
            nwEventProcessThrd.join();
        if (nwEventSubscribeThrd.joinable())
@@ -233,12 +232,11 @@ void SysTimeMgr::run(bool forever)
        processThrd.detach();
        timerThrd.detach();
        pathMonitorThrd.detach();
-       ntpSyncMonitorThrd.detach();
        if (nwEventProcessThrd.joinable())
            nwEventProcessThrd.detach();
        if (nwEventSubscribeThrd.joinable())
            nwEventSubscribeThrd.detach();
-	    if (ntpSyncMonitorThrd.joinable())
+	   if (ntpSyncMonitorThrd.joinable())
 		   ntpSyncMonitorThrd.detach();
    }
 }
