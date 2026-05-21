@@ -143,6 +143,11 @@ extern "C" int chronyctl_get_offset(double *offset_sec) {
     return CHRONYCTL_SUCCESS;
 }
 
+extern "C" int chronyctl_get_system_time_offset(double *offset_sec) {
+    if (offset_sec) *offset_sec = 0.0;
+    return CHRONYCTL_SUCCESS;
+}
+
 extern "C" int chronyctl_makestep(void) {
     if (globalChronyCtlMock) return globalChronyCtlMock->chronyctl_makestep();
     return CHRONYCTL_SUCCESS;
