@@ -68,6 +68,7 @@ typedef struct {
 int         chronyctl_init(void);
 int         chronyctl_cleanup(void);
 int         chronyctl_get_offset(double *offset_sec);
+int         chronyctl_get_system_time_offset(double *offset_sec);
 int         chronyctl_makestep(void);
 int         chronyctl_online(const IPAddr *addr, const IPAddr *mask);
 int         chronyctl_burst(const IPAddr *addr, const IPAddr *mask,
