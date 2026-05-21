@@ -234,7 +234,7 @@ static void processInternetOnline()
              * smaller offsets are handled faster and safer by chrony's natural
              * frequency-slewing, so an explicit makestep is unnecessary. */
             double offset = 0.0;
-            int offRet = chronyctl_get_offset(&offset);
+            int offRet = chronyctl_get_system_time_offset(&offset);
             if (offRet != CHRONYCTL_SUCCESS)
                offset = 0.0;  /* safe default — allow natural slew on error */
             double absOffset = std::fabs(offset);
