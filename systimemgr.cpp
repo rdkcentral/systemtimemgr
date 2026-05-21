@@ -36,7 +36,12 @@
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
 #endif
+
+#if defined(GTEST_ENABLE)
+#include "unittest/mocks/thunder/libchronyctl.h"
+#else 
 #include "libchronyctl.h"
+#endif
 
 #include "systimerfactory/networkstatussrc.h"
 #include <sys/timex.h>
