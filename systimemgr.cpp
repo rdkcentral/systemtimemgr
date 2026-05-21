@@ -849,7 +849,7 @@ void SysTimeMgr::deepsleepoff()
             }
             // Wait for chronyd to synchronize with at least 1 source, for up to 20 tries.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
-            ret = v_secure_system("/usr/sbin/chronyc waitsync 20 0 0 1");
+            ret = chronyctl_waitsync(20,1);
             if (ret != 0) {
                 RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyc waitsync failed with code %d\n",__FUNCTION__,__LINE__, ret);
             }
