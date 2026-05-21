@@ -41,6 +41,8 @@
 #include <sys/timex.h>
 #include <fcntl.h>
 
+#include "libchronyctl.h"
+
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
 #endif
