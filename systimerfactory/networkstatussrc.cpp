@@ -147,9 +147,14 @@ static void processInternetOnline()
          } else {
             /* chronyd is running — check how many sources it has */
             int srcCount = 0;
-            chronyctl_get_source_count(&srcCount);
+            int srcCountRet = chronyctl_get_source_count(&srcCount);
 
-            if (srcCount > 0) {
+            if (srcCountRet != CHRONYCTL_SUCCESS) {
+               RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+                       "[%s:%d]: CHRONY: Failed to get source count (%s)."
+                       " Falling back safely and not calling chronyctl_online.\n",
+                       __FUNCTION__, __LINE__, chronyctl_strerror(srcCountRet));
+            } else if (srcCount > 0) {
                /* Case B: at least one source entry visible (iburst running or
                 * polling started).  Let chronyd complete the sync on its own. */
                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
