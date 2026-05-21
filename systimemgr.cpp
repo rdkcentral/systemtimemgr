@@ -121,11 +121,13 @@ void SysTimeMgr::initialize()
     {
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to open Config file: %s , will run in degraded mode.\n",__FUNCTION__,__LINE__,m_cfgfile.c_str());
     }
-#TBD: Add RFC CHECK
-    int chronyctl_ret = chronyctl_init();
-	if (chronyctl_ret != CHRONYCTL_SUCCESS) {
-        RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Initialization failed: rc=%d, error=%s\n",
+    if(chronyRfcEnabled) {
+	    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initialize ChronyCTL library\n",__FUNCTION__,__LINE__);
+       int chronyctl_ret = chronyctl_init();
+	   if (chronyctl_ret != CHRONYCTL_SUCCESS) {
+           RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Initialization failed: rc=%d, error=%s\n",
                 chronyctl_ret, chronyctl_strerror(chronyctl_ret));
+       }
     }
     //m_timerSrc.push_back(createTimeSrc("regular","/tmp/clock.txt"));
     //m_timerSync.push_back(createTimeSync("test","/tmp/clock1.txt"));
