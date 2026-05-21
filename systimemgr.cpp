@@ -31,7 +31,7 @@
 #include <limits.h>
 #include "irdklog.h"
 #include "itimermsg.h"
-#include <chron
+#include <chrono>
 #include "secure_wrapper.h"
 #if !defined(MILESTONE_SUPPORT_DISABLED)
 #include "rdk_logger_milestone.h"
