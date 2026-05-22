@@ -82,7 +82,8 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 			  m_subscriber(NULL),
 			  m_tmrsubscriber(NULL),
 			  m_timersrc("Last Known"),
-			  m_cfgfile(std::move(cfgfile))
+			  m_cfgfile(std::move(cfgfile)),
+              m_chronyRfcEnabled(access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0)
 
 {
 }
@@ -122,7 +123,7 @@ void SysTimeMgr::initialize()
     {
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to open Config file: %s , will run in degraded mode.\n",__FUNCTION__,__LINE__,m_cfgfile.c_str());
     }
-    if(chronyRfcEnabled) {
+    if(m_chronyRfcEnabled) {
 	    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initialize ChronyCTL library\n",__FUNCTION__,__LINE__);
        int chronyctl_ret = chronyctl_init();
 	   if (chronyctl_ret != CHRONYCTL_SUCCESS) {
@@ -207,15 +208,15 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
-   bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
+  // bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
            __FUNCTION__,__LINE__,
-           chronyRfcEnabled ? "found, starting network event threads"
+           m_chronyRfcEnabled ? "found, starting network event threads"
                             : "not found, skipping network event threads");
    std::thread nwEventProcessThrd;
    std::thread nwEventSubscribeThrd;
    std::thread ntpSyncMonitorThrd;
-   if (chronyRfcEnabled) {
+   if (m_chronyRfcEnabled) {
        /* nwEventProcessThrd must start before nwEventSubscribeThrd so the
         * processing thread is ready before any event can arrive. */
        nwEventProcessThrd = std::thread(SysTimeMgr::nwEventProcessThr, this);
