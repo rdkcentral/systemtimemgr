@@ -36,6 +36,15 @@ export INSTALL_DIR='/usr/local'
 export top_srcdir=`pwd`
 export top_builddir=`pwd`
 
+git clone https://github.com/rdkcentral/time-utils.git
+cd time-utils/
+cd libchronyctl/
+autoreconf -i
+./configure --prefix=/usr/local
+make
+make install
+cd ../..
+
 autoreconf --install
 export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED -D__LOCAL_TEST_"
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
