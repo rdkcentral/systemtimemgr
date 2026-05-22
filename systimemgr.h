@@ -118,10 +118,12 @@ private:
         static void pathThr(SysTimeMgr* instance);
         static void nwEventSubscribeThr(SysTimeMgr* instance);
         static void nwEventProcessThr(SysTimeMgr* instance);
+        static void ntpSyncMonitorThr(SysTimeMgr* instance);
 
 
     void runNetworkStatusMonitor();
     void runNWEventProcessing();
+    void runNTPSyncMonitor();
 
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
