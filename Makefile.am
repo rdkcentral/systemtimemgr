@@ -26,7 +26,7 @@ bin_PROGRAMS = sysTimeMgr
 lib_LTLIBRARIES = libsysTimeMgr.la
 
 libsysTimeMgr_la_SOURCES = systimemgr.cpp 
-libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper 
+libsysTimeMgr_la_LDFLAGS = -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper  -lchronyctl
 
 
 sysTimeMgr_SOURCES = main.cpp
@@ -35,7 +35,7 @@ sysTimeMgr_LDADD = libsysTimeMgr.la
 
 if IS_TELEMETRY2_ENABLED
 libsysTimeMgr_la_CPPFLAGS = $(T2_EVENT_FLAG)
-libsysTimeMgr_la_LDFLAGS += -ltelemetry_msgsender -lt2utils -lchronyctl
+libsysTimeMgr_la_LDFLAGS += -ltelemetry_msgsender -lt2utils 
 endif
 
 #libsysTimeMgr_la_includedir = ${includedir}
