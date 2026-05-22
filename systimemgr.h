@@ -94,6 +94,7 @@ private:
 
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
+    bool m_chronyRfcEnabled;
 
         const string m_directory = "/tmp/systimemgr";
 	
