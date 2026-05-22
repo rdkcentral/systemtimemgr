@@ -30,11 +30,6 @@ int main()
         rdk_logger_init(debugcfg.c_str());
         SysTimeMgr* sysTimeMgr = SysTimeMgr::get_instance();
 
-        bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
-        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
-           __FUNCTION__,__LINE__,
-           chronyRfcEnabled ? "found, starting network event threads"
-                            : "not found, skipping chronyCTL init and NetworkEvent Handling threads");
         sysTimeMgr->initialize();
         sysTimeMgr->run();
     }
