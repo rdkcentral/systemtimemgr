@@ -46,7 +46,7 @@ make install
 cd ../..
 
 autoreconf --install
-export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED -D__LOCAL_TEST_"
+export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED"
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 export LDFLAGS="-L/usr/local/lib -lpthread  -lsystimerfactory -lrdkloggers -lsecure_wrapper"
 
