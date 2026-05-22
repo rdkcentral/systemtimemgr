@@ -41,7 +41,6 @@
 #include <sys/timex.h>
 #include <fcntl.h>
 
-#include "libchronyctl.h"
 
 #ifdef T2_EVENT_ENABLED
 #include <telemetry_busmessage_sender.h>
@@ -394,18 +393,6 @@ void SysTimeMgr::runNTPSyncMonitor()
         break;
     }
 
-	    double offset = 0.0;
-        int ret = chronyctl_get_offset(&offset);
-        if (ret == CHRONYCTL_SUCCESS) {
-			 char offset_str[16];
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "CHRONY: Offset: %f seconds\n", offset);
-			snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
-			#ifdef T2_EVENT_ENABLED
-            t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
-			#endif
-		}  else {
-            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "CHRONY: Error fetching offset: %s\n", chronyctl_strerror(ret));
-        }
 	
     RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
             "[%s:%d]: CHRONY: NTP sync monitor thread exiting\n", __FUNCTION__, __LINE__);
