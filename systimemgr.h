@@ -94,7 +94,6 @@ private:
 
 	unsigned long m_timerInterval;
 	qualityOfTime m_timequality;
-    bool m_chronyRfcEnabled;
 
         const string m_directory = "/tmp/systimemgr";
 	
@@ -109,7 +108,7 @@ private:
 
 	//Config file to load plugins.
 	string m_cfgfile;
-
+    bool m_chronyRfcEnabled;
 
         SysTimeMgr (string cfgfile = "/etc/systimemgr.conf");
         void setInitialTime();
