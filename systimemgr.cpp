@@ -39,8 +39,7 @@
 
 #if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
 #include "systimerfactory/unittest/mocks/libchronyctl.h"
-#endif
-#if !defined(__LOCAL_TEST_)
+#else
 #include "libchronyctl.h"
 #endif
 
