@@ -89,6 +89,7 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 
 SysTimeMgr::~SysTimeMgr()
 {
+	chronyctl_cleanup();
 }
 void SysTimeMgr::initialize()
 {
@@ -403,6 +404,18 @@ void SysTimeMgr::runNTPSyncMonitor()
             }
         }
 
+		double offset = 0.0;
+        int ret = chronyctl_get_offset(&offset);
+        if (ret == CHRONYCTL_SUCCESS) {
+			 char offset_str[16];
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "CHRONY: Offset: %f seconds\n", offset);
+			snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
+			#ifdef T2_EVENT_ENABLED
+            t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
+			#endif
+		}  else {
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "CHRONY: Error fetching offset: %s\n", chronyctl_strerror(ret));
+        }
         /* Synchronisation captured — stop polling. */
         break;
     }
