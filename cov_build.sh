@@ -22,6 +22,15 @@ WORKDIR=`pwd`
 apt-get update
 apt-get install -y libjsonrpccpp-dev
 
+git clone https://github.com/rdkcentral/time-utils.git
+cd time-utils/
+cd libchronyctl/
+autoreconf -i
+./configure --prefix=/usr/local
+make
+make install
+cd ../..
+
 cd $WORKDIR/systimerfactory
 autoreconf -i
 # -D__LOCAL_TEST_ makes networkstatussrc.cpp use WPEFrameworkMock.h instead of
@@ -35,6 +44,7 @@ cd $WORKDIR
 export INSTALL_DIR='/usr/local'
 export top_srcdir=`pwd`
 export top_builddir=`pwd`
+
 
 autoreconf --install
 export CXXFLAGS="-I./interface/ -I./systimerfactory/ -DIARM_SUPPORT_DISABLED"

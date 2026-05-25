@@ -108,7 +108,7 @@ private:
 
 	//Config file to load plugins.
 	string m_cfgfile;
-
+    bool m_chronyRfcEnabled;
 
         SysTimeMgr (string cfgfile = "/etc/systimemgr.conf");
         void setInitialTime();
@@ -118,10 +118,12 @@ private:
         static void pathThr(SysTimeMgr* instance);
         static void nwEventSubscribeThr(SysTimeMgr* instance);
         static void nwEventProcessThr(SysTimeMgr* instance);
+        static void ntpSyncMonitorThr(SysTimeMgr* instance);
 
 
     void runNetworkStatusMonitor();
     void runNWEventProcessing();
+    void runNTPSyncMonitor();
 
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
