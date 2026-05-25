@@ -89,7 +89,9 @@ SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 
 SysTimeMgr::~SysTimeMgr()
 {
-	chronyctl_cleanup();
+	if (m_chronyRfcEnabled) {
+	    chronyctl_cleanup();
+	}
 }
 void SysTimeMgr::initialize()
 {
