@@ -16,6 +16,7 @@
 #include "ipublish.h"
 #include "isubscribe.h"
 #include "itimermsg.h"
+#include "libchronyctl.h"
 
 class MockTimeSrc : public ITimeSrc {
 public:

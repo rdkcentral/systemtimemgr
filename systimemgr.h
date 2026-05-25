@@ -108,7 +108,7 @@ private:
 
 	//Config file to load plugins.
 	string m_cfgfile;
-
+    bool m_chronyRfcEnabled;
 
         SysTimeMgr (string cfgfile = "/etc/systimemgr.conf");
         void setInitialTime();
