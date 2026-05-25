@@ -126,7 +126,7 @@ void SysTimeMgr::initialize()
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to open Config file: %s , will run in degraded mode.\n",__FUNCTION__,__LINE__,m_cfgfile.c_str());
     }
     if(m_chronyRfcEnabled) {
-	    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initialize ChronyCTL library\n",__FUNCTION__,__LINE__);
+	    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:[ChronyCTL] Initialize ChronyCTL library\n",__FUNCTION__,__LINE__);
        int chronyctl_ret = chronyctl_init();
 	   if (chronyctl_ret != CHRONYCTL_SUCCESS) {
            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Initialization failed: rc=%d, error=%s\n",
@@ -210,7 +210,6 @@ void SysTimeMgr::run(bool forever)
    std::thread processThrd(SysTimeMgr::processThr,this);
    std::thread timerThrd(SysTimeMgr::timerThr,this);
    std::thread pathMonitorThrd(SysTimeMgr::pathThr,this);
-  // bool chronyRfcEnabled = (access("/opt/secure/RFC/chrony/chronyd_enabled", F_OK) == 0);
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:RFC chronyd_enabled file %s\n",
            __FUNCTION__,__LINE__,
            m_chronyRfcEnabled ? "found, starting network event threads"
@@ -410,13 +409,13 @@ void SysTimeMgr::runNTPSyncMonitor()
         int ret = chronyctl_get_offset(&offset);
         if (ret == CHRONYCTL_SUCCESS) {
 			 char offset_str[16];
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "CHRONY: Offset: %f seconds\n", offset);
+            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
 			snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
 			#ifdef T2_EVENT_ENABLED
             t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
 			#endif
 		}  else {
-            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "CHRONY: Error fetching offset: %s\n", chronyctl_strerror(ret));
+            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
         }
         /* Synchronisation captured — stop polling. */
         break;
@@ -455,13 +454,13 @@ void SysTimeMgr::runTimer()
 			int ret = chronyctl_get_offset(&offset);
 			if (ret == CHRONYCTL_SUCCESS) {
 				char offset_str[16];
-				RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL][TimerThread] Offset: %f seconds\n", offset);
+				RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL] Offset: %f seconds\n", offset);
 				snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
 				#ifdef T2_EVENT_ENABLED
 				t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
 				#endif
 			} else {
-				RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL][TimerThread] Error fetching offset: %s\n", chronyctl_strerror(ret));
+				RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL] Error fetching offset: %s\n", chronyctl_strerror(ret));
 			}
 		}
 		sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY,NULL);
@@ -872,26 +871,26 @@ void SysTimeMgr::deepsleepoff()
         ret = v_secure_system("/bin/systemctl is-active --quiet chronyd.service");
 		if (ret == 0) {
             // chronyd is running
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc burst\n",__FUNCTION__,__LINE__);
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyctl_burst\n",__FUNCTION__,__LINE__);
 			ret = chronyctl_burst(NULL, NULL, 4, 6);
 			if (ret == CHRONYCTL_SUCCESS) {
-                  RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyctl_burst succeeded\n",__FUNCTION__,__LINE__);
+                  RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]: [ChronyCTL] burst succeeded\n",__FUNCTION__,__LINE__);
             } else {
-                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:chronyctl_burst failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(ret));
+                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:[ChronyCTL] burst failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(ret));
             }
             // Wait for chronyd to synchronize with at least 1 source, for up to 20 tries.
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, waiting for source selection\n",__FUNCTION__,__LINE__);
             ret = chronyctl_waitsync(20,1);
             if (ret != CHRONYCTL_SUCCESS) {
-                RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:chronyctl_waitsync failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(ret));
+                RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:[ChronyCTL] waitsync failed: %s\n",__FUNCTION__,__LINE__, chronyctl_strerror(ret));
             }
 
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyc makestep\n",__FUNCTION__,__LINE__);
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:chronyd is active, performing chronyctl_makestep\n",__FUNCTION__,__LINE__);
             ret = chronyctl_makestep();
             if (ret == CHRONYCTL_SUCCESS) {
-		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]:chronyctl_makestep succeeded\n", __FUNCTION__, __LINE__);
+		        RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[%s:%d]: [ChronyCTL] makestep succeeded\n", __FUNCTION__, __LINE__);
             } else {
-		        RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME, "[%s:%d]:chronyctl_makestep failed: ret=%d, error=%s\n", __FUNCTION__, __LINE__, ret, chronyctl_strerror(ret));
+		        RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME, "[%s:%d]: [ChronyCTL] makestep failed: ret=%d, error=%s\n", __FUNCTION__, __LINE__, ret, chronyctl_strerror(ret));
             }
         } else {
             RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,"[%s:%d]:Neither systemd-timesyncd nor chronyd is running, skipping time sync actions.\n",__FUNCTION__,__LINE__);
