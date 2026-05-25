@@ -150,32 +150,32 @@ static void processInternetOnline()
 
             if (srcCountRet != CHRONYCTL_SUCCESS) {
                RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: Failed to get source count (%s)."
+                       "[%s:%d]: [ChronyCTL] Failed to get source count (%s)."
                        " Falling back safely and not calling chronyctl_online.\n",
                        __FUNCTION__, __LINE__, chronyctl_strerror(srcCountRet));
             } else if (srcCount > 0) {
                /* Case B: at least one source entry visible (iburst running or
                 * polling started).  Let chronyd complete the sync on its own. */
                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: First sync pending — %d source(s) present"
+                       "[%s:%d]: [ChronyCTL] First sync pending — %d source(s) present"
                        " (iburst/polling in progress). No action needed.\n",
                        __FUNCTION__, __LINE__, srcCount);
             } else {
                /* Case C: no source entries — sources are offline; next poll
                 * could be delayed by many minutes without intervention. */
                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: First sync pending — no sources found."
+                       "[%s:%d]: [ChronyCTL] First sync pending — no sources found."
                        " Device likely booted without internet. Calling chronyctl_online.\n",
                        __FUNCTION__, __LINE__);
                int ret = chronyctl_online(NULL, NULL);
                if (ret == CHRONYCTL_SUCCESS) {
                   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: chronyctl_online succeeded."
+                          "[%s:%d]: [ChronyCTL] chronyctl_online succeeded."
                           " iburst will fire automatically.\n",
                           __FUNCTION__, __LINE__);
                } else {
                   RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: chronyctl_online failed (%s)."
+                          "[%s:%d]: [ChronyCTL] chronyctl_online failed (%s)."
                           " chronyd will sync on its own schedule.\n",
                           __FUNCTION__, __LINE__, chronyctl_strerror(ret));
                }
@@ -194,41 +194,41 @@ static void processInternetOnline()
              * makestep MUST NOT run if waitsync times out — chrony has no synced
              * reference at that point and makestep will fail/produce garbage. */
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: No selectable source found, issuing burst 3/4\n",
+                    "[%s:%d]: [ChronyCTL] No selectable source found, issuing burst 3/4\n",
                     __FUNCTION__,__LINE__);
-            int burstRet = chronyctl_burst(NULL, NULL, 3, 4);
+            int burstRet = chronyctl_burst(NULL, NULL, 4, 6);
             if (burstRet != CHRONYCTL_SUCCESS) {
                RDK_LOG(RDK_LOG_WARN,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: chronyctl_burst failed: %s\n",
+                       "[%s:%d]: [ChronyCTL] chronyctl_burst failed: %s\n",
                        __FUNCTION__,__LINE__, chronyctl_strerror(burstRet));
             } else {
                RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: burst triggered, waiting for source selection\n",
+                       "[%s:%d]: [ChronyCTL] burst triggered, waiting for source selection\n",
                        __FUNCTION__,__LINE__);
             }
 
-            /* Poll every 1 s, up to 10 tries (~10 s). */
+            /* Poll every 1 s, up to 20 tries (~20 s). */
             RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: Waiting for source selection (max 10s)\n",
+                    "[%s:%d]: [ChronyCTL] Waiting for source selection (max 10s)\n",
                     __FUNCTION__,__LINE__);
-            int waitRet = chronyctl_waitsync(10, 1);
+            int waitRet = chronyctl_waitsync(20, 1);
             if (waitRet != CHRONYCTL_SUCCESS) {
                RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: waitsync timed out (%s), no synced source available."
+                       "[%s:%d]: [ChronyCTL] waitsync timed out (%s), no synced source available."
                        " Skipping makestep.\n",
                        __FUNCTION__,__LINE__, chronyctl_strerror(waitRet));
             } else {
                RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: waitsync completed, source selected. Proceeding to makestep.\n",
+                       "[%s:%d]: [ChronyCTL] waitsync completed, source selected. Proceeding to Makestep.\n",
                        __FUNCTION__,__LINE__);
                int stepRet = chronyctl_makestep();
                if (stepRet != CHRONYCTL_SUCCESS) {
                   RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: chronyctl_makestep failed: %s\n",
+                              "[%s:%d]: [ChronyCTL] Makestep failed: %s\n",
                           __FUNCTION__,__LINE__, chronyctl_strerror(stepRet));
                } else {
                   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: makestep completed successfully\n",
+                          "[%s:%d]: [ChronyCTL] Makestep completed successfully\n",
                           __FUNCTION__,__LINE__);
                }
             }
@@ -241,34 +241,34 @@ static void processInternetOnline()
             int offRet = chronyctl_get_system_time_offset(&offset);
             if (offRet != CHRONYCTL_SUCCESS) {
                RDK_LOG(RDK_LOG_WARN, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: chronyctl_get_system_time_offset failed: %s. "
+                       "[%s:%d]: [ChronyCTL] chronyctl_get_system_time_offset failed: %s. "
                        "Falling back to offset = 0.0 and allowing natural slew\n",
                        __FUNCTION__, __LINE__, chronyctl_strerror(offRet));
                offset = 0.0;  /* safe default — allow natural slew on error */
             }
             double absOffset = std::fabs(offset);
             RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                    "[%s:%d]: CHRONY: Selectable source present, current offset = %.6f s"
+                    "[%s:%d]: [ChronyCTL] Selectable source present, current offset = %.6f s"
                     " (threshold = %.1f s)\n",
                     __FUNCTION__, __LINE__, offset, OFFSET_STEP_THRESHOLD_S);
 
             if (absOffset > OFFSET_STEP_THRESHOLD_S) {
                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: Offset exceeds threshold, issuing makestep\n",
+                       "[%s:%d]: [ChronyCTL] Offset exceeds threshold, issuing makestep\n",
                        __FUNCTION__, __LINE__);
                int stepRet = chronyctl_makestep();
                if (stepRet != CHRONYCTL_SUCCESS) {
                   RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: chronyctl_makestep failed: %s\n",
+                          "[%s:%d]: [ChronyCTL] Makestep failed: %s\n",
                           __FUNCTION__, __LINE__, chronyctl_strerror(stepRet));
                } else {
                   RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                          "[%s:%d]: CHRONY: makestep completed successfully\n",
+                          "[%s:%d]: [ChronyCTL] Makestep completed successfully\n",
                           __FUNCTION__, __LINE__);
                }
             } else {
                RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME,
-                       "[%s:%d]: CHRONY: Offset (%.6f s) within threshold — allowing"
+                           "[%s:%d]: [ChronyCTL] Offset (%.6f s) within threshold — allowing"
                        " natural slew, no makestep needed\n",
                        __FUNCTION__, __LINE__, offset);
             }
