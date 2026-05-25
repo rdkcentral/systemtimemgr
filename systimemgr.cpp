@@ -447,18 +447,21 @@ void SysTimeMgr::runTimer()
 	while (1)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(m_timerInterval));
-		double offset = 0.0;
-        int ret = chronyctl_get_offset(&offset);
-        if (ret == CHRONYCTL_SUCCESS) {
-			 char offset_str[16];
-            RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL][TimerThread] Offset: %f seconds\n", offset);
-			snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
-			#ifdef T2_EVENT_ENABLED
-            t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
-			#endif
-        } else {
-            RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL][TimerThread] Error fetching offset: %s\n", chronyctl_strerror(ret));
-        }
+		if (m_chronyRfcEnabled)
+		{
+			double offset = 0.0;
+			int ret = chronyctl_get_offset(&offset);
+			if (ret == CHRONYCTL_SUCCESS) {
+				char offset_str[16];
+				RDK_LOG(RDK_LOG_INFO, LOG_SYSTIME, "[ChronyCTL][TimerThread] Offset: %f seconds\n", offset);
+				snprintf(offset_str, sizeof(offset_str), "%.3f", offset);
+				#ifdef T2_EVENT_ENABLED
+				t2ValNotify((char *) "SYST_INFO_NTP_DELTA_split",offset_str);
+				#endif
+			} else {
+				RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME, "[ChronyCTL][TimerThread] Error fetching offset: %s\n", chronyctl_strerror(ret));
+			}
+		}
 		sendMessage(eSYSMGR_EVENT_TIMER_EXPIRY,NULL);
 	}
 }
