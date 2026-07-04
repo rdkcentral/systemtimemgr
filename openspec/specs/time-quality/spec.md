@@ -6,103 +6,17 @@ Defines the time quality state machine transitions — from Poor (initial/NTP fa
 
 ## State Machine Diagram
 
-```mermaid
-stateDiagram-v2
-    [*] --> Initializing
+→ [View diagram](../../diagrams/04-ntp-state-machine.md)
 
-    Initializing --> NTPWait : On Init\n(initialize() complete)
-
-    NTPWait --> NTPFailed      : On TimerExpiry\n(ntpFailed → Poor broadcast)
-    NTPWait --> NTPAcquired    : On NTPAcquired\n(ntpAquired → Good broadcast)
-    NTPWait --> SecureTimeAcquired : On SecureTimeAcquired\n(secureTimeAcquired → quality=Good)
-
-    NTPAcquired --> Running    : On SecureTimeAcquired\n(updateSecureTime → Secure broadcast)
-    NTPAcquired --> NTPAcquired : On TimerExpiry\n(updateTime — clock file updated)
-
-    NTPFailed --> NTPAcquired  : On NTPAcquired\n(ntpAquired → Good broadcast)
-    NTPFailed --> DTTAcquired  : On DTTAcquired\n(dttAquired → Good broadcast)
-    NTPFailed --> SecureTimeAcquired : On SecureTimeAcquired\n(secureTimeAcquired → quality=Good)
-    NTPFailed --> NTPFailed    : On TimerExpiry\n(updateTime — clock file updated)
-
-    DTTAcquired --> NTPAcquired    : On NTPAcquired\n(ntpAquired → Good broadcast)
-    DTTAcquired --> SecureTimeAcquired : On SecureTimeAcquired\n(secureTimeAcquired → quality=Good)
-    DTTAcquired --> DTTAcquired    : On TimerExpiry\n(updateClockRealTime)
-
-    SecureTimeAcquired --> Running      : On NTPAcquired\n(updateSecureTime → Secure broadcast)
-    SecureTimeAcquired --> SecureTimeAcquired : On TimerExpiry\n(updateTime — clock file updated)
-
-    Running --> Running : On TimerExpiry\n(timerExpiry — clock file updated)
-
-    note right of NTPWait
-      Timer interval = 10 minutes (600 000 ms)
-      In all states except Initializing,
-      TimerExpiry is handled.
-    end note
-
-    note right of Running
-      RUNNING is the terminal steady state.
-      Quality = Secure.
-      No further state transitions
-      from the state machine map.
-    end note
-```
-
-> **Wiki vs. code discrepancy**: The official Confluence state diagram shows a `Running → SecureTimeAcquired` transition on `SecureTimeAcquired` event. That transition does **not** exist in the code's `stateMachine` map and is a documentation artifact. The diagram above reflects the actual code.
+> **Wiki vs. code discrepancy**: The official Confluence state diagram shows a `Running → SecureTimeAcquired` transition on `SecureTimeAcquired` event. That transition does **not** exist in the code's `stateMachine` map and is a documentation artifact. The diagram linked above reflects the actual code.
 
 ---
 
-## Sequence Diagram
+## Sequence Diagram — Architecture and Thread Model
 
-The sequence diagram below shows the full thread model. Threads in parentheses are only started when `m_chronyRfcEnabled` is `true`.
+The diagram below shows the full thread model. Threads in parentheses are only started when `m_chronyRfcEnabled` is `true`.
 
-```mermaid
-sequenceDiagram
-    participant main
-    participant SysTimeMgr
-    participant MsgProcessingThread
-    participant TimerThread
-    participant PathThread
-    participant NwEventProcessThread as nwEventProcessThrd (RFC only)
-    participant NwEventSubscribeThread as nwEventSubscribeThrd (RFC only)
-    participant NtpSyncMonitorThread as ntpSyncMonitorThrd (RFC only)
-    participant ITimeSrc as NtpTimeSrc / RegularTimeSrc
-    participant ITimeSync as RdkDefaultTimeSync
-
-    main->>SysTimeMgr: get_instance()
-    main->>SysTimeMgr: initialize()
-    Note over SysTimeMgr: Reads /etc/systimemgr.conf,<br/>creates ITimeSrc + ITimeSync plugins,<br/>chronyctl_init() if RFC enabled,<br/>creates IARM publish/subscribe,<br/>setInitialTime() → Poor broadcast,<br/>builds stateMachine map,<br/>m_state = NTP_WAIT
-    SysTimeMgr-->>main: Initialization Done
-
-    main->>SysTimeMgr: run()
-    SysTimeMgr->>MsgProcessingThread: Start Thread (processThr)
-    SysTimeMgr->>TimerThread: Start Thread (timerThr)
-    SysTimeMgr->>PathThread: Start Thread (pathThr)
-    SysTimeMgr->>NwEventProcessThread: Start Thread (RFC only)
-    SysTimeMgr->>NwEventSubscribeThread: Start Thread (RFC only)
-    SysTimeMgr->>NtpSyncMonitorThread: Start Thread (RFC only)
-
-    loop Every 10 minutes
-        TimerThread->>MsgProcessingThread: sendMessage(TIMER_EXPIRY)
-    end
-
-    Note over PathThread: inotify watches /tmp/systimemgr/<br/>On IN_ATTRIB: ntp / stt / drm / dtt
-    PathThread->>MsgProcessingThread: sendMessage(NTP_AVAILABLE)
-    PathThread->>MsgProcessingThread: sendMessage(SECURE_TIME_AVAILABLE)
-    PathThread->>MsgProcessingThread: sendMessage(DTT_TIME_AVAILABLE)
-
-    Note over NtpSyncMonitorThread: Polls adjtimex() every 1 s.<br/>On kernel NTP sync: touches /tmp/systimemgr/ntp<br/>(inotify fires NTP_AVAILABLE),<br/>creates /tmp/clock-event,<br/>writes /tmp/ntp_status = "Synchronized"
-    NtpSyncMonitorThread->>PathThread: (inotify IN_ATTRIB on /tmp/systimemgr/ntp)
-
-    Note over NwEventSubscribeThread: Subscribes to org.rdk.NetworkManager<br/>onInternetStatusChange via Thunder JSONRPC.<br/>Retries every 1 s until success.
-    NwEventSubscribeThread->>NwEventProcessThread: (signals cv on fully_connected)
-
-    Note over NwEventProcessThread: Runs processInternetOnline():<br/>chronyctl_online/burst/waitsync/makestep<br/>based on /tmp/clock-event sentinel<br/>and chrony source state.
-
-    MsgProcessingThread->>SysTimeMgr: runStateMachine(event, args)
-    SysTimeMgr->>ITimeSrc: getTimeSec() [on timerExpiry]
-    SysTimeMgr->>ITimeSync: updateTime(reftime) [on timerExpiry]
-    SysTimeMgr-->>MsgProcessingThread: IARM broadcast (Poor / Good / Secure)
-```
+→ [View diagram](../../diagrams/03-systimemgr-architecture.md)
 
 ---
 

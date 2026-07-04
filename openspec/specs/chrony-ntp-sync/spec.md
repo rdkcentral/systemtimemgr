@@ -6,65 +6,21 @@ When the RFC flag is absent, NTP synchronization is handled entirely by `systemd
 
 ---
 
-## Flow Diagram
+## Diagram 1: Chrony RFC Thread Startup and NTP Sync Monitor
 
-```mermaid
-flowchart TD
-    subgraph INIT["Startup: initialize() + run()"]
-        A["SysTimeMgr constructed\naccess('/opt/secure/RFC/chrony/chronyd_enabled')"] --> B{RFC file\npresent?}
-        B -- "No — Legacy mode" --> LEG["timesyncd handles NTP\nNo chronyctl calls\nNo extra threads\nOnly: processThr / timerThr / pathThr"]
-        B -- "Yes — Chrony mode" --> CI["chronyctl_init()"]
-        CI --> TH["run() spawns 3 extra threads"]
-    end
+Shows the RFC gate decision, which threads are started, and what `ntpSyncMonitorThrd` does once the kernel clock becomes NTP-synchronized.
 
-    subgraph NTPM["ntpSyncMonitorThrd  (runNTPSyncMonitor)"]
-        N1["poll adjtimex() every 1 s"] --> N2{"TIME_ERROR or\nSTA_UNSYNC set?"}
-        N2 -- "Yes — not synced yet" --> N1
-        N2 -- "No — kernel NTP synced" --> N3["touch /tmp/systimemgr/ntp\nvia futimens()\n→ inotify IN_ATTRIB\n→ NTP_AVAILABLE → state machine"]
-        N3 --> N4["create /tmp/clock-event\n(first-boot-sync sentinel)"]
-        N4 --> N5["write 'Synchronized' to /tmp/ntp_status"]
-        N5 --> N6["chronyctl_get_offset()\n→ T2: SYST_INFO_NTP_DELTA_split"]
-        N6 --> N7["thread exits (one-shot)"]
-    end
+→ [View diagram](../../diagrams/01-chrony-rfc-startup.md)
 
-    subgraph SUB["nwEventSubscribeThrd  (subscribeInternetStatusEvent)"]
-        S1["Thunder Subscribe:\nonInternetStatusChange\norg.rdk.NetworkManager"] --> S2{Core::ERROR_NONE?}
-        S2 -- "No — retry after 1 s\n(interruptible by shutdown)" --> S1
-        S2 -- "Yes" --> S3["m_networkeventsubscribed = true\nthread returns"]
-    end
+---
 
-    subgraph PROC["nwEventProcessThrd  (runEventProcessingLoop / processInternetOnline)"]
-        P0["wait on cv for internetUpPending"] --> P1{"/tmp/clock-event\nexists?"}
+## Diagram 2: Network Event-Driven Chrony Sync
 
-        P1 -- "No — first sync pending" --> PA{chronyd\nrunning?}
-        PA -- "No" --> A1["Case A: no-op\niburst fires when chronyd starts"]
-        PA -- "Yes" --> PB{source count\n> 0?}
-        PB -- "Yes" --> B1["Case B: no-op\niburst/polling already in progress"]
-        PB -- "No" --> C1["Case C: chronyctl_online()\nmark sources reachable → iburst fires"]
+Shows the Thunder subscription retry loop, how `fully_connected` events are handed off between threads, and the 6 strategies `processInternetOnline()` uses to decide what chrony action to take. Also covers the deep sleep wake path.
 
-        P1 -- "Yes — post first-sync" --> PD{chronyctl_has_selectable_source?}
-        PD -- "No" --> D1["chronyctl_burst(NULL,NULL,4,6)\nchronyctl_waitsync(20,1s)"]
-        D1 --> D2{waitsync\nsucceeded?}
-        D2 -- "Yes" --> D3["chronyctl_makestep()"]
-        D2 -- "No — timeout\nno valid reference" --> D4["skip makestep"]
+→ [View diagram](../../diagrams/02-network-event-handling.md)
 
-        PD -- "Yes" --> PE{"abs offset >\n1.0 s?\nchronyctl_get_system_time_offset()"}
-        PE -- "Yes — large offset" --> E1["chronyctl_makestep()"]
-        PE -- "No — small offset" --> F1["natural slew\nno action"]
-
-        A1 & B1 & C1 & D3 & D4 & E1 & F1 --> P0
-    end
-
-    subgraph SLEEP["deepsleepoff() — Chrony wake path"]
-        DS1{chronyd\nrunning?} -- "No" --> DS2["skip\n(neither timesyncd nor chronyd active)"]
-        DS1 -- "Yes" --> DS3["chronyctl_burst(NULL,NULL,4,6)\nchronyctl_waitsync(20,1s)\nchronyctl_makestep()\n(best-effort — called regardless of waitsync result)"]
-    end
-
-    TH --> NTPM
-    TH --> SUB
-    TH --> PROC
-    SUB -.->|"fully_connected event\nsignals cv"| PROC
-```
+> **Key difference — makestep guard**: In `processInternetOnline()` (Scenario D) `makestep` is **skipped** when `waitsync` times out (no valid reference). In `deepsleepoff()` `makestep` is **always attempted** after `waitsync` (best-effort on wake).
 
 ---
 
