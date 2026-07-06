@@ -42,6 +42,7 @@ AC_CHECK_HEADERS([stdlib.h string.h unistd.h])
 DEBUG_CXXFLAGS=" "
 TEE_CXXFLAGS=" "
 DTT_CXXFLAGS=" "
+CHRONY_CXXFLAGS=" "
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -83,6 +84,17 @@ AC_ARG_ENABLE([dtt],
            ],
          [echo "Tee build is enable"])
 
+AC_ARG_ENABLE([chrony],
+        AS_HELP_STRING([--enable-chrony],[enable chrony build]),
+        [
+          case "${enableval}" in
+           yes) CHRONY_CXXFLAGS="-DCHRONY_ENABLED";;
+           no) CHRONY_CXXFLAGS=" ";;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-chrony ]) ;;
+           esac
+           ],
+         [echo "Chrony build is disabled"])
+
 AC_ARG_ENABLE([t2api],
         AS_HELP_STRING([--enable-t2api],[enables telemetry]),
         [
@@ -101,6 +113,7 @@ AC_CONFIG_FILES(Makefile)
 AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
+AC_SUBST(CHRONY_CXXFLAGS)
 
 
 AC_OUTPUT
