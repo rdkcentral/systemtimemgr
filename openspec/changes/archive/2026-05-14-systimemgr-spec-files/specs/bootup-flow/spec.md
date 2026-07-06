@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-### Requirement: Last Known Good Time Recovery
+### Requirement: Last Known Good Time Recovery 
 
 On startup, SystemTimeManager MUST restore time from the last known good time stored in the TimeSync layer before waiting for any time source.
 
