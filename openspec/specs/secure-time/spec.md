@@ -4,12 +4,12 @@ Defines how SystemTimeManager detects DRM secure time availability via inotify o
 ## Requirements
 ### Requirement: Secure Time Detection via Path Monitor
 
-SystemTimeManager MUST monitor `/tmp/systimemgr/drm` using inotify. When the file is created or modified, it MUST trigger the secure time acquisition flow.
+SystemTimeManager MUST monitor `/tmp/systimemgr/drm` using inotify. When the file's attributes/timestamps change (e.g., via `touch`), it MUST trigger the secure time acquisition flow.
 
-#### Scenario: DRM file created or modified at runtime
+#### Scenario: DRM file attributes/timestamps updated at runtime
 
 - **WHEN** the path monitor detects an `IN_ATTRIB` event on `/tmp/systimemgr/drm`
-- **THEN** a `eSYSMGR_EVENT_SECURE_TIME_AVAILABLE` message is sent to the processing queue
+- **THEN** an `eSYSMGR_EVENT_SECURE_TIME_AVAILABLE` message is sent to the processing queue
 - **AND** the state machine processes the event in the current state
 
 #### Scenario: DRM file already exists on startup
