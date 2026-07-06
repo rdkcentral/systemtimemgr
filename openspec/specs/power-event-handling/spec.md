@@ -75,12 +75,14 @@ When the system wakes from deep sleep, SystemTimeManager MUST reset its state, r
 - **AND** `systemd-timesyncd.service` is active
 - **THEN** `systemctl reset-failed systemd-timesyncd.service` and `systemctl restart systemd-timesyncd.service` are invoked via `v_secure_system`
 
-#### Scenario: Chronyd burst triggered on wake if chronyd is active
+#### Scenario: Chronyd re-sync triggered on wake if chronyd is active
 
 - **WHEN** `deepsleepoff()` executes
 - **AND** `systemd-timesyncd.service` is not active
 - **AND** `chronyd.service` is active
-- **THEN** `chronyc burst 3/4` is executed via `v_secure_system`
+- **THEN** `chronyctl_burst(NULL, NULL, 4, 6)` is called
+- **AND** `chronyctl_waitsync(20, 1)` is called (best-effort)
+- **AND** `chronyctl_makestep()` is called (best-effort)
 
 ---
 
