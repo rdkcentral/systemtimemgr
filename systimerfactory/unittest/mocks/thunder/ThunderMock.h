@@ -15,11 +15,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
- * WPEFramework Thunder API stubs for __LOCAL_TEST__ builds.
+ * Thunder Thunder API stubs for __LOCAL_TEST__ builds.
  *
- * Provides the minimal WPEFramework namespace surface used by
+ * Provides the minimal Thunder namespace surface used by
  * networkstatussrc.cpp so the file can be compiled without a real
- * Thunder/WPEFramework installation.  Follows the same pattern as the
+ * Thunder/Thunder installation.  Follows the same pattern as the
  * entservices-testframework Tests/mocks/thunder/ directory.
  *
  * ── Event injection for L2 tests ──────────────────────────────────────────
@@ -87,7 +87,7 @@
 #  include "irdklog.h"
 #endif
 
-namespace WPEFramework {
+namespace Thunder {
 
 // ── Core namespace ──────────────────────────────────────────────────────────
 
@@ -210,8 +210,8 @@ using JsonObject = VariantContainer; /* convenience alias matching Thunder */
 
 } // namespace Core
 
-/* JsonObject in the WPEFramework namespace — reachable after
- * "using namespace WPEFramework;" in networkstatussrc.cpp */
+/* JsonObject in the Thunder namespace — reachable after
+ * "using namespace Thunder;" in networkstatussrc.cpp */
 using JsonObject = Core::JSON::VariantContainer;
 
 // ── JSONRPC namespace ───────────────────────────────────────────────────────
@@ -351,7 +351,7 @@ private:
 
 } // namespace JSONRPC
 
-} // namespace WPEFramework
+} // namespace Thunder
 
-/* Global alias — accessible even without "using namespace WPEFramework" */
-using JsonObject = WPEFramework::Core::JSON::VariantContainer;
+/* Global alias — accessible even without "using namespace Thunder" */
+using JsonObject = Thunder::Core::JSON::VariantContainer;

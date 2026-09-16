@@ -138,8 +138,8 @@ AC_ARG_ENABLE([wpevgdrm],
         [
           case "${enableval}" in
            yes) WPEVGDRM_CXXFLAGS="-DWPEVGDRM_ENABLED"
-		PKG_CHECK_MODULES([WPEFRAMEWORKCORE],[WPEFrameworkCore >= 1.0.0])
-		PKG_CHECK_MODULES([WPEFRAMEWORKWEBSOCKET],[WPEFrameworkWebSocket >= 1.0.0])
+		PKG_CHECK_MODULES([THUNDERCORE],[ThunderCore >= 1.0.0])
+		PKG_CHECK_MODULES([THUNDERWEBSOCKET],[ThunderWebSocket >= 1.0.0])
                 WPEVGDRM_ENABLED=true;;
            no) WPEVGDRM_ENABLED=false;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-wpevgdrm ]) ;;

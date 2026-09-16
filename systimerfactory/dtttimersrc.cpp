@@ -30,7 +30,7 @@
 #ifdef WPEVGDRM_ENABLED
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
-using namespace WPEFramework;
+using namespace Thunder;
 #endif //WPEVGDRM_ENABLED
 
 using namespace jsonrpc;
@@ -70,7 +70,7 @@ long long DttTimeSrc::getTimeSec()
 	  if ((m_pluginactivated) && (!m_dtteventsubscribed)) {
 #ifdef WPEVGDRM_ENABLED
              Core::SystemInfo::SetEnvironment("THUNDER_ACCESS","127.0.0.1:9998");
-	     WPEFramework::JSONRPC::LinkType<Core::JSON::IElement> wpeclient("org.rdk.MediaSystem.1");
+	     Thunder::JSONRPC::LinkType<Core::JSON::IElement> wpeclient("org.rdk.MediaSystem.1");
 	     if (wpeclient.Subscribe<JsonObject>(10,"onBroadcastTimeAvailable",std::bind(dttTimeavailable,std::placeholders::_1)) != 0) {
 		     RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to register for onBroadcastTimeAvailable. \n",__FUNCTION__,__LINE__);
 	     }

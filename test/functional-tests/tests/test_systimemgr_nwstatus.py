@@ -26,7 +26,7 @@ Verifies that sysTimeMgr:
   4. Does not re-process a duplicate FULLY_CONNECTED event while
      lastStatus is already fully_connected.
 When compiled with -D__LOCAL_TEST_ (the default for test builds) sysTimeMgr
-uses WPEFrameworkMock.h instead of the real Thunder library.  Events are
+uses ThunderMock.h instead of the real Thunder library.  Events are
 injected by writing JSON to a file that the mock SmartLinkType polls:
   /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.inject
 No Thunder daemon, WebSocket server, or network-mock.js is required.
@@ -146,7 +146,7 @@ def test_log_file_exists():
 
 def test_sysTimeMgr_subscribes_to_internet_status_change():
     """sysTimeMgr must subscribe to onInternetStatusChange at startup.
-    The mock SmartLinkType (WPEFrameworkMock.h) creates a marker file
+    The mock SmartLinkType (ThunderMock.h) creates a marker file
     /tmp/thunder_mock_org_rdk_NetworkManager_onInternetStatusChange.subscribed
     when Subscribe() is called.  Two checks:
       1. Marker file exists (fastest signal — does not depend on logging).

@@ -38,21 +38,21 @@
 #include <mutex>
 #include <condition_variable>
 
-/* Test builds include unittest/mocks/thunder/WPEFrameworkMock.h to avoid a
- * full Thunder/WPEFramework installation. For GTEST_ENABLE (L1 unit tests),
- * WPEFrameworkMock.h provides printf-based RDK_LOG stubs and does not include
- * irdklog.h. For __LOCAL_TEST_ (L2 functional tests), WPEFrameworkMock.h
+/* Test builds include unittest/mocks/thunder/ThunderMock.h to avoid a
+ * full Thunder/Thunder installation. For GTEST_ENABLE (L1 unit tests),
+ * ThunderMock.h provides printf-based RDK_LOG stubs and does not include
+ * irdklog.h. For __LOCAL_TEST_ (L2 functional tests), ThunderMock.h
  * includes the real irdklog.h, so logging uses the real rdklogger backend and
  * writes to /opt/logs. In production builds, the real Thunder headers and
  * libraries are used directly. */
 #if defined(GTEST_ENABLE) || defined(__LOCAL_TEST_)
-#  include "unittest/mocks/thunder/WPEFrameworkMock.h"
-using namespace WPEFramework;
+#  include "unittest/mocks/thunder/ThunderMock.h"
+using namespace Thunder;
 #else 
 #  include "irdklog.h"
 #include "core/SystemInfo.h"
 #include "websocket/JSONRPCLink.h"
-using namespace WPEFramework;
+using namespace Thunder;
 #endif
 
 
@@ -67,7 +67,7 @@ const unsigned int ACTIVATION_RETRY_INTERVAL_MS = 1000;
 
 const char* NETWORK_MANAGER_CALLSIGN = "org.rdk.NetworkManager";
 
-static WPEFramework::JSONRPC::SmartLinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+static Thunder::JSONRPC::SmartLinkType<Thunder::Core::JSON::IElement>* thunder_client = nullptr;
 static bool m_networkeventsubscribed = false;
 
 /* Shared state between the Thunder callback (ResourceMonitor I/O thread) and
@@ -370,7 +370,7 @@ static void subscribeToInternetEvent()
         }
         attempt++;
         if (!thunder_client)
-            thunder_client = new WPEFramework::JSONRPC::SmartLinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "");
+            thunder_client = new Thunder::JSONRPC::SmartLinkType<Core::JSON::IElement>(NETWORK_MANAGER_CALLSIGN, "");
 
         if (thunder_client) {
             int32_t ret = thunder_client->Subscribe<JsonObject>(5000, "onInternetStatusChange", &handle_internetStatusChange);

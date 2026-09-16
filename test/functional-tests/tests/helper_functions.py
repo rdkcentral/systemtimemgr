@@ -32,7 +32,7 @@ LOG_FILE = "/opt/logs/systimemgr.log.0"
 # ---------------------------------------------------------------------------
 # Network-status event injection helpers
 #
-# When sysTimeMgr is compiled with __LOCAL_TEST_ it uses WPEFrameworkMock.h
+# When sysTimeMgr is compiled with __LOCAL_TEST_ it uses ThunderMock.h
 # instead of the real Thunder library.  The mock SmartLinkType polls a file:
 #
 #   /tmp/thunder_mock_<callsign>_<event>.inject
