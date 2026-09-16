@@ -30,7 +30,7 @@
 extern "C"
 {
 #ifdef ENABLE_IARM
-#include "mfr/mfrMgr.h"
+#include "mfrMgr.h"
 #else
 #include "mfr/mfrTypes.h"
 #endif //ENABLE_IARM
