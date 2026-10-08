@@ -60,18 +60,15 @@ mutex SysTimeMgr::g_instance_mutex;
 
 SysTimeMgr* SysTimeMgr::get_instance()
 {
+    std::lock_guard<std::mutex> guard(g_instance_mutex);
     if(!pInstance)
-    {
-        std::lock_guard<std::mutex> guard(g_instance_mutex);
-        if(!pInstance)
         {
-           pInstance = new SysTimeMgr;
-	   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Created New Instance \n",__FUNCTION__,__LINE__);
-        }
+        pInstance = new SysTimeMgr;
+        RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Created New Instance \n",__FUNCTION__,__LINE__);
+           }
+    
+        return pInstance;
     }
-
-    return pInstance;
-}
 
 SysTimeMgr::SysTimeMgr (string cfgfile):m_state(eSYSMGR_STATE_INIT),
 	                  m_event(eSYSMGR_EVENT_UNKNOWN),
@@ -635,9 +632,8 @@ void SysTimeMgr::sendMessage(sysTimeMgrEvent event, void* args)
 	//sysTimeMsg* ptr = new sysTimeMsg(event,args);
 	unique_ptr<sysTimeMsg> ptr(new sysTimeMsg(event,args));
 	m_queue.push(move(ptr));
-	lk.unlock();
 	m_cond_var.notify_one();
-}
+	}
 
 void SysTimeMgr::setInitialTime()
 {
