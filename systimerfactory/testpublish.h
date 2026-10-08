@@ -29,7 +29,9 @@ class TestPublish: public IPublish
 		virtual void publish(int event, void* args)
 		{
 			TimerMsg* pMsg = reinterpret_cast<TimerMsg*>(args);
+			pthread_mutex_lock(&SysTimeMgr::g_state_mutex);
 			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Publishing Info: MsgType = %d, Quality = %d, Message = %s \n",__FUNCTION__,__LINE__,pMsg->event,pMsg->quality,pMsg->message);
+		    pthread_mutex_unlock(&SysTimeMgr::g_state_mutex);
 		}
 };
 
