@@ -628,10 +628,11 @@ void SysTimeMgr::updateTimeSync(long long updateTime)
 }
 void SysTimeMgr::sendMessage(sysTimeMgrEvent event, void* args)
 {
-	unique_lock<std::mutex> lk(m_queue_mutex);
-	//sysTimeMsg* ptr = new sysTimeMsg(event,args);
 	unique_ptr<sysTimeMsg> ptr(new sysTimeMsg(event,args));
-	m_queue.push(move(ptr));
+    {
+	   unique_lock<std::mutex> lk(m_queue_mutex);
+	   m_queue.push(move(ptr));
+    }
 	m_cond_var.notify_one();
 }
 
