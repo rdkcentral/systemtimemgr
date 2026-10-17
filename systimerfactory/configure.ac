@@ -48,6 +48,20 @@ AC_C_INLINE
 # Checks for library functions.
 AC_FUNC_MALLOC
 
+CHRONY_ENABLED=""
+CHRONY_CXXFLAGS=" "
+AC_ARG_ENABLE([chrony],
+        AS_HELP_STRING([--enable-chrony],[enable chrony ]),
+        [
+          case "${enableval}" in
+           yes) CHRONY_CXXFLAGS="-DCHRONY_ENABLED"
+		CHRONY_ENABLED=true;;
+           no) CHRONY_ENABLED=false;;
+          *) AC_MSG_ERROR([bad value ${enableval} for --enable-chrony ]) ;;
+           esac
+           ],
+         [echo "chrony build is disabled"])
+
 AC_ARG_ENABLE([debug],
         AS_HELP_STRING([--enable-debug],[enable debug build]),
         [
@@ -166,6 +180,7 @@ AM_CONDITIONAL([IARM_ENABLED], [test x$IARM_ENABLED = xtrue])
 AM_CONDITIONAL([PWRMGRPLUGIN_ENABLED], [test x$PWRMGRPLUGIN_ENABLED = xtrue])
 AM_CONDITIONAL([DTT_ENABLED], [test x$DTT_ENABLED = xtrue])
 AM_CONDITIONAL([TEE_ENABLED], [test x$TEE_ENABLED = xtrue])
+AM_CONDITIONAL([CHRONY_ENABLED], [test x$CHRONY_ENABLED = xtrue])
 PKG_CHECK_MODULES([JSONRPC],[libjsonrpccpp-client >= 0.7.0])
 
 AC_CONFIG_FILES(Makefile)
@@ -177,6 +192,7 @@ AC_SUBST(PWRMGR_CFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(WPEVGDRM_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
+AC_SUBST(CHRONY_CXXFLAGS)
 
 
 AC_OUTPUT
