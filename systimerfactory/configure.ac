@@ -79,6 +79,14 @@ TEE_CXXFLAGS=" "
 WPEVGDRM_CXXFLAGS=" "
 DTT_ENABLED=""
 DTT_CXXFLAGS=" "
+
+# Thunder 5 installs ThunderCore.pc, Thunder 4 installs WPEFrameworkCore.pc.
+# The sources use the Thunder namespace; for Thunder 4 it is aliased.
+PKG_CHECK_EXISTS([ThunderCore],
+        [THUNDER_NS=Thunder
+         THUNDER_CXXFLAGS=" "],
+        [THUNDER_NS=WPEFramework
+         THUNDER_CXXFLAGS="-DThunder=WPEFramework"])
 AC_ARG_ENABLE([iarm],
         AS_HELP_STRING([--enable-iarm],[enable iarm ]),
         [
@@ -138,8 +146,8 @@ AC_ARG_ENABLE([wpevgdrm],
         [
           case "${enableval}" in
            yes) WPEVGDRM_CXXFLAGS="-DWPEVGDRM_ENABLED"
-		PKG_CHECK_MODULES([THUNDERCORE],[ThunderCore >= 1.0.0])
-		PKG_CHECK_MODULES([THUNDERWEBSOCKET],[ThunderWebSocket >= 1.0.0])
+		PKG_CHECK_MODULES([THUNDERCORE],[${THUNDER_NS}Core >= 1.0.0])
+		PKG_CHECK_MODULES([THUNDERWEBSOCKET],[${THUNDER_NS}WebSocket >= 1.0.0])
                 WPEVGDRM_ENABLED=true;;
            no) WPEVGDRM_ENABLED=false;;
           *) AC_MSG_ERROR([bad value ${enableval} for --enable-wpevgdrm ]) ;;
@@ -177,6 +185,7 @@ AC_SUBST(PWRMGR_CFLAGS)
 AC_SUBST(TEE_CXXFLAGS)
 AC_SUBST(WPEVGDRM_CXXFLAGS)
 AC_SUBST(DTT_CXXFLAGS)
+AC_SUBST(THUNDER_CXXFLAGS)
 
 
 AC_OUTPUT
