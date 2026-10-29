@@ -23,8 +23,8 @@ After = mfrmgr.service wpeframework-powermanager.service
 
 [Service]
 EnvironmentFile=/etc/device.properties
-ExecStartPre=/bin/sh -c '/bin/mkdir -p /tmp/systimemgr'
-ExecStartPre=/bin/sh -c '/bin/chmod -R 777 /tmp/systimemgr'
+#ExecStartPre=/bin/sh -c '/bin/mkdir -p /tmp/systimemgr'
+ExecStartPre=/bin/sh -c '/bin/mkdir -p /tmp/systimemgr && /bin/chown root:root /tmp/systimemgr && /bin/chmod 0755 /tmp/systimemgr'
 ExecStart=/usr/bin/sysTimeMgr
 ExecStop=/bin/kill -15 $MAINPID
 TimeoutStartSec=30s
