@@ -464,6 +464,19 @@ void SysTimeMgr::runTimer()
 	}
 }
 
+/* FIX FOR : HIGH_012
+ * Marker files are only trusted when they are regular files (not symlinks,
+ * FIFOs, etc.) owned by the user the daemon runs as. Anything else is ignored.
+ */
+static bool isTrustedMarker(const string& path)
+{
+	struct stat st;
+	if (lstat(path.c_str(), &st) != 0)
+	{
+		return false;
+	}
+	return S_ISREG(st.st_mode) && (st.st_uid == geteuid());
+}
 void SysTimeMgr::runPathMonitor()
 {
 
@@ -512,7 +525,12 @@ void SysTimeMgr::runPathMonitor()
 			string fName(pevent->name);
 			auto iter = m_pathEventMap.find(fName);
 			if (iter != m_pathEventMap.end())
-			{
+			{ /* FIX FOR : HIGH_012 */
+				if (!isTrustedMarker(m_directory + "/" + fName))
+				{
+					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
+					continue;
+				}
 				RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
 				sendMessage(iter->second,NULL);
 
