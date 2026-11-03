@@ -42,7 +42,7 @@ class ITimeSrc
 	protected:
 		void notifypathAvailable(string path)
 		{
-			int fd = open(path.c_str(), O_WRONLY|O_CREAT|O_CLOEXEC|O_NOCTTY,0644 );
+			int fd = open(path.c_str(), O_WRONLY|O_CREAT|O_NOFOLLOW|O_CLOEXEC|O_NOCTTY,0644 );
 			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:File Name %s, opened for writing \n",__FUNCTION__,__LINE__,path.c_str());
 			if (fd >= 0)
 			{
