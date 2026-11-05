@@ -66,7 +66,7 @@ void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void
    }
 
    IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received. New State = %d\n",__FUNCTION__,__LINE__,param->data.state.newState);
+   RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received from owner:%s. New State = %d\n",__FUNCTION__,__LINE__,owner,param->data.state.newState);
 
    IarmPowerSubscriber* instance = dynamic_cast<IarmPowerSubscriber*>(IarmSubscriber::getInstance());
    if (!instance) {
