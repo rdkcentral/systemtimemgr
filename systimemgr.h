@@ -128,6 +128,7 @@ private:
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
 
+     bool verifySecureTime();
 	queue<unique_ptr<sysTimeMsg> > m_queue;
         mutex m_queue_mutex;
 	condition_variable m_cond_var;
