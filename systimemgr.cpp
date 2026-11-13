@@ -22,6 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <exception>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
