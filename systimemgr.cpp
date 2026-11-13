@@ -589,8 +589,35 @@ void SysTimeMgr::ntpAquired(void* args)
 	m_timersrc = "NTP";
 	publishStatus(ePUBLISH_NTP_SUCCESS,"Good");
 }
+bool SysTimeMgr::verifySecureTime()
+{
+	for (auto const& it : m_timerSrc)
+	{
+		if (it && it->isSecureTimeSource())
+		{
+			try
+			{
+				if (it->getTimeSec() > 0)
+				{
+					return true;
+				}
+			}
+			catch (const std::exception& e)
+			{
+				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time verification failed: %s\n",__FUNCTION__,__LINE__,e.what());
+			}
+		}
+	}
+	return false;
+}
+
 void SysTimeMgr::updateSecureTime(void* args)
 {
+	if (!verifySecureTime())
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		return;
+	}
 	timerExpiry(args);
 	m_state = eSYSMGR_STATE_RUNNING;
         m_timequality = eTIMEQUALILTY_SECURE;
