@@ -516,7 +516,6 @@ void SysTimeMgr::runPathMonitor()
 			return;
 		}
 		size_t offset = 0;
-		size_t eventCount = 0;
 		const size_t bytesRead = static_cast<size_t>(count);
 		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
@@ -527,7 +526,6 @@ void SysTimeMgr::runPathMonitor()
 				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Incomplete inotify event record. Exiting \n",__FUNCTION__,__LINE__);
 				return;
 			}
-			eventCount++;
 			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
 			{
 				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
@@ -549,7 +547,6 @@ void SysTimeMgr::runPathMonitor()
 			}
 			offset += eventSize;
 		}
-		RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:inotify read bytes=%zu, event header size=%zu, buffer size=%zu, records=%zu\n",__FUNCTION__,__LINE__,bytesRead,sizeof(struct inotify_event),sizeof(buffer),eventCount);
 	}
 }
 
