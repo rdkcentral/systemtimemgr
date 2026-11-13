@@ -63,6 +63,7 @@ class ITimeSrc
 		virtual long long getTimeSec() = 0;
 		virtual bool checkTime() { return getTimeSec() == 0;}
 		virtual bool isclockProvider() { return false;}
+        virtual bool isSecureTimeSource() { return false;}
 };
 
 
