@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "timerfactory.h"
 #include <memory>
@@ -60,13 +61,16 @@ mutex SysTimeMgr::g_instance_mutex;
 
 SysTimeMgr* SysTimeMgr::get_instance()
 {
-    std::lock_guard<std::mutex> guard(g_instance_mutex);
     if(!pInstance)
     {
-        pInstance = new SysTimeMgr;
-        RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Created New Instance \n",__FUNCTION__,__LINE__);
-     }
-    
+        std::lock_guard<std::mutex> guard(g_instance_mutex);
+        if(!pInstance)
+        {
+           pInstance = new SysTimeMgr;
+	   RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Created New Instance \n",__FUNCTION__,__LINE__);
+        }
+    }
+
     return pInstance;
 }
 
@@ -464,10 +468,6 @@ void SysTimeMgr::runTimer()
 	}
 }
 
-/* FIX FOR : HIGH_012
- * Marker files are only trusted when they are regular files (not symlinks,
- * FIFOs, etc.) owned by the user the daemon runs as. Anything else is ignored.
- */
 static bool isTrustedMarker(const string& path)
 {
 	struct stat st;
@@ -477,6 +477,7 @@ static bool isTrustedMarker(const string& path)
 	}
 	return S_ISREG(st.st_mode) && (st.st_uid == geteuid());
 }
+
 void SysTimeMgr::runPathMonitor()
 {
 
@@ -486,12 +487,10 @@ void SysTimeMgr::runPathMonitor()
 	for (auto iter = m_pathEventMap.begin();iter != m_pathEventMap.end();++iter)
 	{
 		string fname = m_directory + "/" + iter->first;
-		ifstream f(fname.c_str());
-		if (f.good())
+		if (isTrustedMarker(fname))
 		{
 			sendMessage(iter->second,NULL);
 		}
-		f.close();
 	}
 	int inotifyFd, wd; 
 	inotifyFd = inotify_init();
@@ -507,7 +506,7 @@ void SysTimeMgr::runPathMonitor()
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Unable to create Watchi descriptor. Exiting thread \n",__FUNCTION__,__LINE__);
 		return;
 	}
-	char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
+	alignas(struct inotify_event) char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 	while (1)
 	{
 		ssize_t count = read(inotifyFd, buffer, sizeof(buffer));
@@ -516,28 +515,41 @@ void SysTimeMgr::runPathMonitor()
 			RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to read. Exiting \n",__FUNCTION__,__LINE__);
 			return;
 		}
-		buffer[sizeof(buffer)- 1] = '\0';
-		struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer);
-		if (pevent->mask & IN_ATTRIB)
+		size_t offset = 0;
+		size_t eventCount = 0;
+		const size_t bytesRead = static_cast<size_t>(count);
+		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
-			//This is file changed or created.
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
-			string fName(pevent->name);
-			auto iter = m_pathEventMap.find(fName);
-			if (iter != m_pathEventMap.end())
-			{ /* FIX FOR : HIGH_012 */
-				if (!isTrustedMarker(m_directory + "/" + fName))
-				{
-					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
-					continue;
-				}
-				RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
-				sendMessage(iter->second,NULL);
-
+			struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer + offset);
+			const size_t eventSize = sizeof(struct inotify_event) + pevent->len;
+			if (eventSize > bytesRead - offset)
+			{
+				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Incomplete inotify event record. Exiting \n",__FUNCTION__,__LINE__);
+				return;
 			}
-
-
+			eventCount++;
+			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
+			{
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
+				string fName(pevent->name);
+				auto iter = m_pathEventMap.find(fName);
+				if (iter != m_pathEventMap.end())
+				{
+					string path = m_directory + "/" + fName;
+					if (!isTrustedMarker(path))
+					{
+						RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
+					}
+					else
+					{
+						RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
+						sendMessage(iter->second,NULL);
+					}
+				}
+			}
+			offset += eventSize;
 		}
+		RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:inotify read bytes=%zu, event header size=%zu, buffer size=%zu, records=%zu\n",__FUNCTION__,__LINE__,bytesRead,sizeof(struct inotify_event),sizeof(buffer),eventCount);
 	}
 }
 
@@ -630,6 +642,8 @@ void SysTimeMgr::timerExpiry(void* args)
 		}
 	}
 
+	// Drift gate: keep updateTime at 0 (no persisted-time update) unless the
+	// non-reference source's time agrees with the reference within 600s.
 	if ((reftime - filetime) <= 600)
 	{
 		updateTime = reftime;
@@ -646,11 +660,11 @@ void SysTimeMgr::updateTimeSync(long long updateTime)
 }
 void SysTimeMgr::sendMessage(sysTimeMgrEvent event, void* args)
 {
+	unique_lock<std::mutex> lk(m_queue_mutex);
+	//sysTimeMsg* ptr = new sysTimeMsg(event,args);
 	unique_ptr<sysTimeMsg> ptr(new sysTimeMsg(event,args));
-    {
-	   unique_lock<std::mutex> lk(m_queue_mutex);
-	   m_queue.push(move(ptr));
-    }
+	m_queue.push(move(ptr));
+	lk.unlock();
 	m_cond_var.notify_one();
 }
 
@@ -755,7 +769,7 @@ int SysTimeMgr::getTimeStatus(void* args)
 	TimerMsg* pMsg = reinterpret_cast<TimerMsg*>(args);
 	SysTimeMgr* pInstance = get_instance();
 
-	if (pInstance != NULL)
+	if (pInstance != NULL && pMsg != NULL)
 	{
 		pInstance->getTimeStatus(pMsg);
 	}
