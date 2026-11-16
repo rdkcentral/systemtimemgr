@@ -666,7 +666,8 @@ void SysTimeMgr::timerExpiry(void* args)
 		}
 	}
 
-	if ((reftime - filetime) <= 600)
+	//TBD - H_003
+	if (llabs(reftime - filetime) <= 600)
 	{
 		updateTime = reftime;
 	}
