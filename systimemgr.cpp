@@ -961,6 +961,7 @@ void SysTimeMgr::updateClockRealTime(void* args)
 {
 	long long locTime = 0;
 	struct timespec stime;
+	long long reftime = 0;
 
 	bool clock_acquired = false;
 
@@ -970,9 +971,16 @@ void SysTimeMgr::updateClockRealTime(void* args)
 			locTime = i->getTimeSec();
 			clock_acquired = true;
 		}
+		else if (i->isreference()) {
+			reftime = i->getTimeSec();
+		}
 		i->checkTime();
 	}
 
+	if (locTime != 0 && reftime != 0 && llabs(reftime - locTime) > 600) {
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Rejecting clock-provider time %lld: disagrees with reference time %lld by more than 600s \n",__FUNCTION__,__LINE__,locTime,reftime);
+		locTime = 0;
+	}
 	if (locTime != 0) {
 		stime.tv_sec = locTime;
 		stime.tv_nsec = 0;
