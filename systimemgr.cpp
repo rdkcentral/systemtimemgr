@@ -976,7 +976,7 @@ void SysTimeMgr::updateClockRealTime(void* args)
 		}
 		i->checkTime();
 	}
-
+// TBD: High_8
 	if (locTime != 0 && reftime != 0 && llabs(reftime - locTime) > 600) {
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Rejecting clock-provider time %lld: disagrees with reference time %lld by more than 600s \n",__FUNCTION__,__LINE__,locTime,reftime);
 		locTime = 0;
