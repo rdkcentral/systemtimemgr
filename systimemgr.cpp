@@ -512,7 +512,8 @@ void SysTimeMgr::runPathMonitor()
 			RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to read. Exiting \n",__FUNCTION__,__LINE__);
 			return;
 		}
-		size_t offset = 0;
+		size_t offset = 0,eventCount=0;
+		
 		const size_t bytesRead = static_cast<size_t>(count);
 		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
