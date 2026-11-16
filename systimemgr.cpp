@@ -108,8 +108,17 @@ void SysTimeMgr::initialize()
 	    {
 	            RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Initializing Src and Syncs. Category = %s, Type = %s, Args = %s.\n",__FUNCTION__,__LINE__,category.c_str(),type.c_str(),objargs.c_str());
 		    if (category == "timesrc")
-		    {
-			    m_timerSrc.push_back(createTimeSrc(type,m_directory + objargs));
+			    {
+			    auto* source = createTimeSrc(type, m_directory + objargs);
+			    if (source != nullptr)
+			    {
+				    m_timerSrc.push_back(source);
+			    }
+			    else
+			    {
+				    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+					    "Unsupported or unavailable time source: %s\n", type.c_str());
+			    }
 		    }
 		    else if (category == "timesync")
 		    {
