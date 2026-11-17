@@ -122,8 +122,18 @@ void SysTimeMgr::initialize()
 		    }
 		    else if (category == "timesync")
 		    {
-			    m_timerSync.push_back(createTimeSync(type,m_directory + objargs));
+			    auto* sync = createTimeSync(type, m_directory + objargs);
+			    if (sync != nullptr)
+			    {
+				    m_timerSync.push_back(sync);
+			    }
+			    else
+			    {
+				    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+						    "Unsupported or unavailable time sync: %s\n", type.c_str());
+			    }
 		    }
+
 	    }
 	    cfgFile.close();
     }
