@@ -86,10 +86,20 @@ long long DttTimeSrc::getTimeSec()
 
           result = c.CallMethod(dtttimeMethod,dttTimeParams);
           RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:JSON Data Received = %s \n",__FUNCTION__,__LINE__,result.toStyledString().c_str());
-          if (result["success"].asBool()) {
-             Json::Value infoNode = result["info"];
-	     notifypathAvailable(m_path);
-	     return  stoll(infoNode["timeUtc"].asString());
+          // The reply comes from an external process; validate types before use.
+          if (!result.isObject() || !result.isMember("success") || !result["success"].isBool()) {
+             RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Malformed getBroadcastTimeInfo reply (success). \n",__FUNCTION__,__LINE__);
+          }
+          else if (result["success"].asBool()) {
+             const Json::Value& infoNode = result["info"];
+             if (!infoNode.isObject() || !infoNode.isMember("timeUtc") || !infoNode["timeUtc"].isString()) {
+                RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Malformed getBroadcastTimeInfo reply (info.timeUtc). \n",__FUNCTION__,__LINE__);
+             }
+             else {
+                long long timeUtc = stoll(infoNode["timeUtc"].asString());
+                notifypathAvailable(m_path);
+                return timeUtc;
+             }
           }
 	  else {
 	     RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:DTT Time Not Available. \n",__FUNCTION__,__LINE__);
@@ -97,6 +107,10 @@ long long DttTimeSrc::getTimeSec()
    }
    catch (JsonRpcException& e) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Exception Received from JSON Rpc Call. %s \n",__FUNCTION__,__LINE__,e.what());
+   }
+   catch (const std::exception& e) {
+      // Json::LogicError, std::invalid_argument/out_of_range from stoll, etc.
+      RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Exception while processing DTT reply. %s \n",__FUNCTION__,__LINE__,e.what());
    }
 
    // We will return the current time for now.
