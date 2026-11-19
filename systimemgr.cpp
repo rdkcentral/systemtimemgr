@@ -628,6 +628,10 @@ void SysTimeMgr::updateSecureTime(void* args)
 	if (!verifySecureTime())
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		if (m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED)
+		{
+			ntpAquired(args);
+		}
 		return;
 	}
 	timerExpiry(args);
