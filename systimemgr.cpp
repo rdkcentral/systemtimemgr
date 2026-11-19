@@ -518,18 +518,28 @@ void SysTimeMgr::runPathMonitor()
 		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
 			struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer + offset);
-			const size_t eventSize = sizeof(struct inotify_event) + pevent->len;
-			if (eventSize > bytesRead - offset)
+			const size_t headerSize = sizeof(struct inotify_event);
+			if (pevent->len > bytesRead - offset - headerSize)
 			{
 				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Incomplete inotify event record. Exiting \n",__FUNCTION__,__LINE__);
 				return;
 			}
+			const size_t eventSize = headerSize + pevent->len;
 			eventCount++;
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify record=%zu, total event size=%zu, name length=%u, name=%s\n",__FUNCTION__,__LINE__,eventCount,eventSize,pevent->len,pevent->len > 0 ? pevent->name : "");
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify record=%zu, total event size=%zu, name length=%u\n",__FUNCTION__,__LINE__,eventCount,eventSize,pevent->len);
 			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
 			{
-				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
-				string fName(pevent->name);
+				const char* nameEnd = static_cast<const char*>(
+					memchr(pevent->name, '\0', pevent->len));
+				if (nameEnd == nullptr)
+				{
+					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring inotify event with an unterminated name\n",__FUNCTION__,__LINE__);
+					offset += eventSize;
+					continue;
+				}
+				const size_t nameLength = static_cast<size_t>(nameEnd - pevent->name);
+				string fName(pevent->name, nameLength);
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,fName.c_str());
 				auto iter = m_pathEventMap.find(fName);
 				if (iter != m_pathEventMap.end())
 				{
