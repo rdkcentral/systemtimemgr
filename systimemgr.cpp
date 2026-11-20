@@ -465,6 +465,9 @@ void SysTimeMgr::runTimer()
 	}
 }
 
+// UIDs allowed to own marker files. Add entries here if other users need to create markers.
+static const std::vector<uid_t> g_trustedMarkerUids = { 0 /* root */ };
+
 static bool isTrustedMarker(const string& path)
 {
 	struct stat st;
@@ -472,7 +475,11 @@ static bool isTrustedMarker(const string& path)
 	{
 		return false;
 	}
-	return S_ISREG(st.st_mode) && (st.st_uid == geteuid());
+	if (!S_ISREG(st.st_mode))
+	{
+		return false;
+	}
+	return std::find(g_trustedMarkerUids.begin(), g_trustedMarkerUids.end(), st.st_uid) != g_trustedMarkerUids.end();
 }
 
 void SysTimeMgr::runPathMonitor()
