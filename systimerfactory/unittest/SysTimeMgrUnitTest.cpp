@@ -60,6 +60,14 @@ protected:
     MockSubscribe* mockSubscribe; 
     std::string temp_test_dir;
 
+    void setState(sysTimeMgrState state) { mgr->m_state = state; }
+    sysTimeMgrState state() const { return mgr->m_state; }
+    void setEvent(sysTimeMgrEvent event) { mgr->m_event = event; }
+    void setTimeQuality(qualityOfTime quality) { mgr->m_timequality = quality; }
+    qualityOfTime timeQuality() const { return mgr->m_timequality; }
+    void addTimeSource(ITimeSrc* source) { mgr->m_timerSrc.push_back(source); }
+    void addTimeSync(ITimeSync* sync) { mgr->m_timerSync.push_back(sync); }
+
     void SetUp() override {
         mgr = SysTimeMgr::get_instance();
         ASSERT_NE(mgr, nullptr);
@@ -190,18 +198,18 @@ TEST_F(SysTimeMgrTest, DttAcquiredPublishesStatusAndUpdatesState) {
 TEST_F(SysTimeMgrTest, SecureTimeAcquiredUpdatesState) {
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillRepeatedly(Return(1234));
-    mgr->m_timerSrc.push_back(mockTimeSrc);
+    addTimeSource(mockTimeSrc);
     mgr->secureTimeAcquired(nullptr);
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_SECURE_TIME_ACQUIRED);
+    EXPECT_EQ(state(), eSYSMGR_STATE_SECURE_TIME_ACQUIRED);
 }
 
 TEST_F(SysTimeMgrTest, SecureTimeAcquiredRejectedWithoutVerifiedSource) {
     // A bare drm marker with no secure time source behind it must not change state.
-    mgr->m_state = eSYSMGR_STATE_NTP_WAIT;
-    mgr->m_timequality = eTIMEQUALILTY_POOR;
+    setState(eSYSMGR_STATE_NTP_WAIT);
+    setTimeQuality(eTIMEQUALILTY_POOR);
     mgr->secureTimeAcquired(nullptr);
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_WAIT);
-    EXPECT_EQ(mgr->m_timequality, eTIMEQUALILTY_POOR);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_WAIT);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_POOR);
 }
 
 TEST_F(SysTimeMgrTest, UpdateSecureTimeRejectedWithoutVerifiedSource) {
@@ -209,13 +217,13 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeRejectedWithoutVerifiedSource) {
     EXPECT_CALL(*mockPublish, publish(_, _)).Times(0);
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillRepeatedly(Return(0));
-    mgr->m_timerSrc.push_back(mockTimeSrc);
-    mgr->m_state = eSYSMGR_STATE_NTP_ACQUIRED;
-    mgr->m_event = eSYSMGR_EVENT_SECURE_TIME_AVAILABLE;
-    mgr->m_timequality = eTIMEQUALILTY_GOOD;
+    addTimeSource(mockTimeSrc);
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    setTimeQuality(eTIMEQUALILTY_GOOD);
     mgr->updateSecureTime(nullptr);
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_ACQUIRED);
-    EXPECT_EQ(mgr->m_timequality, eTIMEQUALILTY_GOOD);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_GOOD);
 }
 
 TEST_F(SysTimeMgrTest, UpdateSecureTimePublishesStatusAndUpdatesState) {
@@ -223,11 +231,11 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimePublishesStatusAndUpdatesState) {
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
     EXPECT_CALL(*mockTimeSrc, isreference()).WillRepeatedly(Return(false));
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillRepeatedly(Return(1234));
-    mgr->m_timerSrc.push_back(mockTimeSrc);
-    mgr->m_state = eSYSMGR_STATE_NTP_ACQUIRED;
-    mgr->m_event = eSYSMGR_EVENT_SECURE_TIME_AVAILABLE;
+    addTimeSource(mockTimeSrc);
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
     mgr->updateSecureTime(nullptr);
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_RUNNING);
+    EXPECT_EQ(state(), eSYSMGR_STATE_RUNNING);
 }
 
 TEST_F(SysTimeMgrTest, UpdateSecureTimeReusesVerifiedSecureSample) {
@@ -241,16 +249,16 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeReusesVerifiedSecureSample) {
     EXPECT_CALL(*drmTimeSrc, getTimeSec()).WillOnce(Return(1000));
     EXPECT_CALL(*mockTimeSync, updateTime(0)).Times(1);
     EXPECT_CALL(*mockPublish, publish(ePUBLISH_SECURE_TIME_SUCCESS, _)).Times(1);
-    mgr->m_timerSrc.push_back(ntpTimeSrc);
-    mgr->m_timerSrc.push_back(drmTimeSrc);
-    mgr->m_timerSync.push_back(mockTimeSync);
-    mgr->m_state = eSYSMGR_STATE_NTP_ACQUIRED;
-    mgr->m_event = eSYSMGR_EVENT_SECURE_TIME_AVAILABLE;
+    addTimeSource(ntpTimeSrc);
+    addTimeSource(drmTimeSrc);
+    addTimeSync(mockTimeSync);
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
 
     mgr->updateSecureTime(nullptr);
 
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_RUNNING);
-    EXPECT_EQ(mgr->m_timequality, eTIMEQUALILTY_SECURE);
+    EXPECT_EQ(state(), eSYSMGR_STATE_RUNNING);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_SECURE);
     delete ntpTimeSrc;
     delete drmTimeSrc;
 }
@@ -259,15 +267,15 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeRejectsMalformedSecureSample) {
     EXPECT_CALL(*mockPublish, publish(_, _)).Times(0);
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(::testing::Throw(std::runtime_error("invalid secure time")));
-    mgr->m_timerSrc.push_back(mockTimeSrc);
-    mgr->m_state = eSYSMGR_STATE_NTP_ACQUIRED;
-    mgr->m_event = eSYSMGR_EVENT_SECURE_TIME_AVAILABLE;
-    mgr->m_timequality = eTIMEQUALILTY_GOOD;
+    addTimeSource(mockTimeSrc);
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    setTimeQuality(eTIMEQUALILTY_GOOD);
 
     mgr->updateSecureTime(nullptr);
 
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_ACQUIRED);
-    EXPECT_EQ(mgr->m_timequality, eTIMEQUALILTY_GOOD);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_GOOD);
 }
 
 TEST_F(SysTimeMgrTest, NtpAcquiredTimerExpiryIsNotSecureUpgrade) {
@@ -275,13 +283,13 @@ TEST_F(SysTimeMgrTest, NtpAcquiredTimerExpiryIsNotSecureUpgrade) {
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).Times(0);
     EXPECT_CALL(*mockTimeSrc, getTimeSec()).WillOnce(Return(2000));
     EXPECT_CALL(*mockPublish, publish(ePUBLISH_SECURE_TIME_SUCCESS, _)).Times(0);
-    mgr->m_timerSrc.push_back(mockTimeSrc);
-    mgr->m_state = eSYSMGR_STATE_NTP_ACQUIRED;
-    mgr->m_event = eSYSMGR_EVENT_TIMER_EXPIRY;
+    addTimeSource(mockTimeSrc);
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_TIMER_EXPIRY);
 
     mgr->timerExpiry(nullptr);
 
-    EXPECT_EQ(mgr->m_state, eSYSMGR_STATE_NTP_ACQUIRED);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
 }
 
 TEST_F(SysTimeMgrTest, SendMessageQueuesEvent) {
