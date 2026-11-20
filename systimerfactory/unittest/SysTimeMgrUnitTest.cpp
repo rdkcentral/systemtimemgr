@@ -248,7 +248,14 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeReusesVerifiedSecureSample) {
     EXPECT_CALL(*drmTimeSrc, isreference()).WillRepeatedly(Return(false));
     EXPECT_CALL(*drmTimeSrc, getTimeSec()).WillOnce(Return(1000));
     EXPECT_CALL(*mockTimeSync, updateTime(0)).Times(1);
-    EXPECT_CALL(*mockPublish, publish(ePUBLISH_SECURE_TIME_SUCCESS, _)).Times(1);
+    EXPECT_CALL(*mockPublish, publish(cTIMER_STATUS_UPDATE, _))
+        .WillOnce([](int event, void* args) {
+            EXPECT_EQ(event, cTIMER_STATUS_UPDATE);
+            ASSERT_NE(args, nullptr);
+            const auto* message = static_cast<TimerMsg*>(args);
+            EXPECT_EQ(message->event, ePUBLISH_SECURE_TIME_SUCCESS);
+            EXPECT_EQ(message->quality, eTIMEQUALILTY_SECURE);
+        });
     addTimeSource(ntpTimeSrc);
     addTimeSource(drmTimeSrc);
     addTimeSync(mockTimeSync);
