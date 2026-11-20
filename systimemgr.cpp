@@ -608,16 +608,21 @@ void SysTimeMgr::ntpAquired(void* args)
 	m_timersrc = "NTP";
 	publishStatus(ePUBLISH_NTP_SUCCESS,"Good");
 }
-bool SysTimeMgr::verifySecureTime()
+bool SysTimeMgr::verifySecureTime(ITimeSrc*& secureSource, long long& secureTime)
 {
+	secureSource = nullptr;
+	secureTime = 0;
 	for (auto const& it : m_timerSrc)
 	{
 		if (it && it->isSecureTimeSource())
 		{
 			try
 			{
-				if (it->getTimeSec() > 0)
+				long long time = it->getTimeSec();
+				if (time > 0)
 				{
+					secureSource = it;
+					secureTime = time;
 					return true;
 				}
 			}
@@ -632,26 +637,17 @@ bool SysTimeMgr::verifySecureTime()
 
 void SysTimeMgr::updateSecureTime(void* args)
 {
-	if (!verifySecureTime())
-	{
-		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
-		/* Keep the acquired NTP source active if DRM time is temporarily unavailable.
-        * NTP_ACQUIRED can retry when a later secure-time event arrives.
-		*/
-		if (m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED)
-		{
-			ntpAquired(args);
-		}
-		return;
-	}
 	timerExpiry(args);
-	m_state = eSYSMGR_STATE_RUNNING;
-        m_timequality = eTIMEQUALILTY_SECURE;
-
-	publishStatus(ePUBLISH_SECURE_TIME_SUCCESS,"Secure");
 }
 void SysTimeMgr::secureTimeAcquired(void* args)
 {
+	ITimeSrc* secureSource = nullptr;
+	long long secureTime = 0;
+	if (!verifySecureTime(secureSource, secureTime))
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		return;
+	}
 	updateTimeSync(0);
 	m_timequality = eTIMEQUALILTY_GOOD;
 	m_state = eSYSMGR_STATE_SECURE_TIME_ACQUIRED;
@@ -671,15 +667,26 @@ void SysTimeMgr::timerExpiry(void* args)
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entered Function \n",__FUNCTION__,__LINE__);
 	long long reftime = 0,filetime = 0,updateTime =0;
 
+	const bool secureTimeUpgrade =
+		(m_state == eSYSMGR_STATE_NTP_ACQUIRED && m_event == eSYSMGR_EVENT_SECURE_TIME_AVAILABLE) ||
+		(m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED && m_event == eSYSMGR_EVENT_NTP_AVAILABLE);
+	ITimeSrc* verifiedSecureSource = nullptr;
+	long long verifiedSecureTime = 0;
+	if (secureTimeUpgrade && !verifySecureTime(verifiedSecureSource, verifiedSecureTime))
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		return;
+	}
+
 	for (auto const& it : m_timerSrc)
 	{
 		if (it->isreference())
 		{
-			reftime = it->getTimeSec();
+			reftime = (it == verifiedSecureSource) ? verifiedSecureTime : it->getTimeSec();
 		}
 		else
 		{
-			long long tempTime = it->getTimeSec();
+			long long tempTime = (it == verifiedSecureSource) ? verifiedSecureTime : it->getTimeSec();
 			if (tempTime != 0)
 			{
 				filetime = tempTime;
@@ -698,6 +705,12 @@ void SysTimeMgr::timerExpiry(void* args)
 	}
 	
 	updateTimeSync(updateTime);
+	if (secureTimeUpgrade)
+	{
+		m_state = eSYSMGR_STATE_RUNNING;
+		m_timequality = eTIMEQUALILTY_SECURE;
+		publishStatus(ePUBLISH_SECURE_TIME_SUCCESS,"Secure");
+	}
 }
 void SysTimeMgr::updateTimeSync(long long updateTime)
 {
