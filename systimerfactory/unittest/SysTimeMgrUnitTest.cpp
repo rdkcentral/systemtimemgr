@@ -203,6 +203,41 @@ TEST_F(SysTimeMgrTest, SecureTimeAcquiredUpdatesState) {
     EXPECT_EQ(state(), eSYSMGR_STATE_SECURE_TIME_ACQUIRED);
 }
 
+TEST_F(SysTimeMgrTest, SecureTimeAcquiredThenNtpPromotesToRunning) {
+    auto* ntpTimeSrc = new MockTimeSrc();
+    auto* drmTimeSrc = new MockTimeSrc();
+    EXPECT_CALL(*ntpTimeSrc, isreference()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*ntpTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*ntpTimeSrc, getTimeSec()).WillOnce(Return(2000));
+    EXPECT_CALL(*drmTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*drmTimeSrc, isreference()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*drmTimeSrc, getTimeSec())
+        .WillOnce(Return(1000))
+        .WillOnce(Return(2000));
+    EXPECT_CALL(*mockTimeSync, updateTime(0)).Times(1);
+    EXPECT_CALL(*mockTimeSync, updateTime(2000)).Times(1);
+    EXPECT_CALL(*mockPublish, publish(cTIMER_STATUS_UPDATE, _))
+        .WillOnce([](int, void* args) {
+            ASSERT_NE(args, nullptr);
+            const auto* message = static_cast<TimerMsg*>(args);
+            EXPECT_EQ(message->event, ePUBLISH_SECURE_TIME_SUCCESS);
+            EXPECT_EQ(message->quality, eTIMEQUALILTY_SECURE);
+        });
+    addTimeSource(ntpTimeSrc);
+    addTimeSource(drmTimeSrc);
+    addTimeSync(mockTimeSync);
+
+    mgr->secureTimeAcquired(nullptr);
+    ASSERT_EQ(state(), eSYSMGR_STATE_SECURE_TIME_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_NTP_AVAILABLE);
+    mgr->updateSecureTime(nullptr);
+
+    EXPECT_EQ(state(), eSYSMGR_STATE_RUNNING);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_SECURE);
+    delete ntpTimeSrc;
+    delete drmTimeSrc;
+}
+
 TEST_F(SysTimeMgrTest, SecureTimeAcquiredRejectedWithoutVerifiedSource) {
     // A bare drm marker with no secure time source behind it must not change state.
     setState(eSYSMGR_STATE_NTP_WAIT);
@@ -226,6 +261,98 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeRejectedWithoutVerifiedSource) {
     EXPECT_EQ(timeQuality(), eTIMEQUALILTY_GOOD);
 }
 
+TEST_F(SysTimeMgrTest, UpdateSecureTimeRecoversAfterMissingZeroAndThrowingSources) {
+    setState(eSYSMGR_STATE_NTP_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    setTimeQuality(eTIMEQUALILTY_GOOD);
+    EXPECT_CALL(*mockPublish, publish(_, _)).Times(0);
+
+    mgr->updateSecureTime(nullptr);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+
+    auto* ntpTimeSrc = new MockTimeSrc();
+    auto* drmTimeSrc = new MockTimeSrc();
+    EXPECT_CALL(*ntpTimeSrc, isreference()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*ntpTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*ntpTimeSrc, getTimeSec()).WillOnce(Return(2000));
+    EXPECT_CALL(*drmTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*drmTimeSrc, isreference()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*drmTimeSrc, getTimeSec())
+        .WillOnce(Return(0))
+        .WillOnce(::testing::Throw(std::runtime_error("temporary DRM failure")))
+        .WillOnce(Return(2000));
+    EXPECT_CALL(*mockTimeSync, updateTime(2000)).Times(1);
+    EXPECT_CALL(*mockPublish, publish(cTIMER_STATUS_UPDATE, _))
+        .WillOnce([](int, void* args) {
+            ASSERT_NE(args, nullptr);
+            const auto* message = static_cast<TimerMsg*>(args);
+            EXPECT_EQ(message->event, ePUBLISH_SECURE_TIME_SUCCESS);
+            EXPECT_EQ(message->quality, eTIMEQUALILTY_SECURE);
+        });
+    addTimeSource(ntpTimeSrc);
+    addTimeSource(drmTimeSrc);
+    addTimeSync(mockTimeSync);
+
+    mgr->updateSecureTime(nullptr);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+    mgr->updateSecureTime(nullptr);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+    mgr->updateSecureTime(nullptr);
+
+    EXPECT_EQ(state(), eSYSMGR_STATE_RUNNING);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_SECURE);
+    delete ntpTimeSrc;
+    delete drmTimeSrc;
+}
+
+TEST_F(SysTimeMgrTest, SecureTimeAcquiredNtpFailureCanRecover) {
+    auto* ntpTimeSrc = new MockTimeSrc();
+    auto* drmTimeSrc = new MockTimeSrc();
+    EXPECT_CALL(*ntpTimeSrc, isreference()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*ntpTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*ntpTimeSrc, getTimeSec()).WillOnce(Return(2000));
+    EXPECT_CALL(*drmTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
+    EXPECT_CALL(*drmTimeSrc, isreference()).WillRepeatedly(Return(false));
+    EXPECT_CALL(*drmTimeSrc, getTimeSec())
+        .WillOnce(Return(1000))
+        .WillOnce(::testing::Throw(std::runtime_error("temporary DRM failure")))
+        .WillOnce(Return(2000));
+    EXPECT_CALL(*mockTimeSync, updateTime(_))
+        .Times(3)
+        .WillOnce([](long long time) { EXPECT_EQ(time, 0); })
+        .WillOnce([](long long time) { EXPECT_EQ(time, 0); })
+        .WillOnce([](long long time) { EXPECT_EQ(time, 2000); });
+    auto expectStatus = [](publishEvent expectedEvent, qualityOfTime expectedQuality) {
+        return [expectedEvent, expectedQuality](int, void* args) {
+            ASSERT_NE(args, nullptr);
+            const auto* message = static_cast<TimerMsg*>(args);
+            EXPECT_EQ(message->event, expectedEvent);
+            EXPECT_EQ(message->quality, expectedQuality);
+        };
+    };
+    EXPECT_CALL(*mockPublish, publish(cTIMER_STATUS_UPDATE, _))
+        .WillOnce(expectStatus(ePUBLISH_NTP_SUCCESS, eTIMEQUALILTY_GOOD))
+        .WillOnce(expectStatus(ePUBLISH_SECURE_TIME_SUCCESS, eTIMEQUALILTY_SECURE));
+    addTimeSource(ntpTimeSrc);
+    addTimeSource(drmTimeSrc);
+    addTimeSync(mockTimeSync);
+
+    mgr->secureTimeAcquired(nullptr);
+    ASSERT_EQ(state(), eSYSMGR_STATE_SECURE_TIME_ACQUIRED);
+    setEvent(eSYSMGR_EVENT_NTP_AVAILABLE);
+    mgr->updateSecureTime(nullptr);
+    EXPECT_EQ(state(), eSYSMGR_STATE_NTP_ACQUIRED);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_GOOD);
+
+    setEvent(eSYSMGR_EVENT_SECURE_TIME_AVAILABLE);
+    mgr->updateSecureTime(nullptr);
+
+    EXPECT_EQ(state(), eSYSMGR_STATE_RUNNING);
+    EXPECT_EQ(timeQuality(), eTIMEQUALILTY_SECURE);
+    delete ntpTimeSrc;
+    delete drmTimeSrc;
+}
+
 TEST_F(SysTimeMgrTest, UpdateSecureTimePublishesStatusAndUpdatesState) {
     EXPECT_CALL(*mockPublish, publish(_, _)).Times(AtLeast(1));
     EXPECT_CALL(*mockTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
@@ -246,8 +373,8 @@ TEST_F(SysTimeMgrTest, UpdateSecureTimeReusesVerifiedSecureSample) {
     EXPECT_CALL(*ntpTimeSrc, getTimeSec()).WillOnce(Return(2000));
     EXPECT_CALL(*drmTimeSrc, isSecureTimeSource()).WillRepeatedly(Return(true));
     EXPECT_CALL(*drmTimeSrc, isreference()).WillRepeatedly(Return(false));
-    EXPECT_CALL(*drmTimeSrc, getTimeSec()).WillOnce(Return(1000));
-    EXPECT_CALL(*mockTimeSync, updateTime(0)).Times(1);
+    EXPECT_CALL(*drmTimeSrc, getTimeSec()).WillOnce(Return(2000));
+    EXPECT_CALL(*mockTimeSync, updateTime(2000)).Times(1);
     EXPECT_CALL(*mockPublish, publish(cTIMER_STATUS_UPDATE, _))
         .WillOnce([](int event, void* args) {
             EXPECT_EQ(event, cTIMER_STATUS_UPDATE);
