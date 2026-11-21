@@ -22,6 +22,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <exception>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -464,6 +465,23 @@ void SysTimeMgr::runTimer()
 	}
 }
 
+// UIDs allowed to own marker files. Add entries here if other users need to create markers.
+static const std::vector<uid_t> g_trustedMarkerUids = { 0 /* root */ };
+
+static bool isTrustedMarker(const string& path)
+{
+	struct stat st;
+	if (lstat(path.c_str(), &st) != 0)
+	{
+		return false;
+	}
+	if (!S_ISREG(st.st_mode))
+	{
+		return false;
+	}
+	return std::find(g_trustedMarkerUids.begin(), g_trustedMarkerUids.end(), st.st_uid) != g_trustedMarkerUids.end();
+}
+
 void SysTimeMgr::runPathMonitor()
 {
 
@@ -473,12 +491,10 @@ void SysTimeMgr::runPathMonitor()
 	for (auto iter = m_pathEventMap.begin();iter != m_pathEventMap.end();++iter)
 	{
 		string fname = m_directory + "/" + iter->first;
-		ifstream f(fname.c_str());
-		if (f.good())
+		if (isTrustedMarker(fname))
 		{
 			sendMessage(iter->second,NULL);
 		}
-		f.close();
 	}
 	int inotifyFd, wd; 
 	inotifyFd = inotify_init();
@@ -494,7 +510,7 @@ void SysTimeMgr::runPathMonitor()
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Unable to create Watchi descriptor. Exiting thread \n",__FUNCTION__,__LINE__);
 		return;
 	}
-	char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
+	alignas(struct inotify_event) char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 	while (1)
 	{
 		ssize_t count = read(inotifyFd, buffer, sizeof(buffer));
@@ -503,23 +519,53 @@ void SysTimeMgr::runPathMonitor()
 			RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to read. Exiting \n",__FUNCTION__,__LINE__);
 			return;
 		}
-		buffer[sizeof(buffer)- 1] = '\0';
-		struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer);
-		if (pevent->mask & IN_ATTRIB)
+		size_t offset = 0,eventCount=0;
+		
+		const size_t bytesRead = static_cast<size_t>(count);
+		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
-			//This is file changed or created.
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
-			string fName(pevent->name);
-			auto iter = m_pathEventMap.find(fName);
-			if (iter != m_pathEventMap.end())
+			struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer + offset);
+			const size_t headerSize = sizeof(struct inotify_event);
+			if (pevent->len > bytesRead - offset - headerSize)
 			{
-				RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
-				sendMessage(iter->second,NULL);
-
+				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Incomplete inotify event record. Exiting \n",__FUNCTION__,__LINE__);
+				return;
 			}
-
-
+			const size_t eventSize = headerSize + pevent->len;
+			eventCount++;
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify record=%zu, total event size=%zu, name length=%u\n",__FUNCTION__,__LINE__,eventCount,eventSize,pevent->len);
+			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
+			{
+				const char* eventName = buffer + offset + headerSize;
+				const char* nameEnd = static_cast<const char*>(
+					memchr(eventName, '\0', pevent->len));
+				if (nameEnd == nullptr)
+				{
+					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring inotify event with an unterminated name\n",__FUNCTION__,__LINE__);
+					offset += eventSize;
+					continue;
+				}
+				const size_t nameLength = static_cast<size_t>(nameEnd - eventName);
+				string fName(eventName, nameLength);
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,fName.c_str());
+				auto iter = m_pathEventMap.find(fName);
+				if (iter != m_pathEventMap.end())
+				{
+					string path = m_directory + "/" + fName;
+					if (!isTrustedMarker(path))
+					{
+						RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
+					}
+					else
+					{
+						RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
+						sendMessage(iter->second,NULL);
+					}
+				}
+			}
+			offset += eventSize;
 		}
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify read bytes=%zu, event header size=%zu, buffer size=%zu, records=%zu\n",__FUNCTION__,__LINE__,bytesRead,sizeof(struct inotify_event),sizeof(buffer),eventCount);
 	}
 }
 
@@ -563,16 +609,46 @@ void SysTimeMgr::ntpAquired(void* args)
 	m_timersrc = "NTP";
 	publishStatus(ePUBLISH_NTP_SUCCESS,"Good");
 }
+bool SysTimeMgr::verifySecureTime(ITimeSrc*& secureSource, long long& secureTime)
+{
+	secureSource = nullptr;
+	secureTime = 0;
+	for (auto const& it : m_timerSrc)
+	{
+		if (it && it->isSecureTimeSource())
+		{
+			try
+			{
+				long long time = it->getTimeSec();
+				if (time > 0)
+				{
+					secureSource = it;
+					secureTime = time;
+					return true;
+				}
+			}
+			catch (const std::exception& e)
+			{
+				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time verification failed: %s\n",__FUNCTION__,__LINE__,e.what());
+			}
+		}
+	}
+	return false;
+}
+
 void SysTimeMgr::updateSecureTime(void* args)
 {
 	timerExpiry(args);
-	m_state = eSYSMGR_STATE_RUNNING;
-        m_timequality = eTIMEQUALILTY_SECURE;
-
-	publishStatus(ePUBLISH_SECURE_TIME_SUCCESS,"Secure");
 }
 void SysTimeMgr::secureTimeAcquired(void* args)
 {
+	ITimeSrc* secureSource = nullptr;
+	long long secureTime = 0;
+	if (!verifySecureTime(secureSource, secureTime))
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		return;
+	}
 	updateTimeSync(0);
 	m_timequality = eTIMEQUALILTY_GOOD;
 	m_state = eSYSMGR_STATE_SECURE_TIME_ACQUIRED;
@@ -592,15 +668,30 @@ void SysTimeMgr::timerExpiry(void* args)
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entered Function \n",__FUNCTION__,__LINE__);
 	long long reftime = 0,filetime = 0,updateTime =0;
 
+	const bool secureTimeUpgrade =
+		(m_state == eSYSMGR_STATE_NTP_ACQUIRED && m_event == eSYSMGR_EVENT_SECURE_TIME_AVAILABLE) ||
+		(m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED && m_event == eSYSMGR_EVENT_NTP_AVAILABLE);
+	ITimeSrc* verifiedSecureSource = nullptr;
+	long long verifiedSecureTime = 0;
+	if (secureTimeUpgrade && !verifySecureTime(verifiedSecureSource, verifiedSecureTime))
+	{
+		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
+		if (m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED && m_event == eSYSMGR_EVENT_NTP_AVAILABLE)
+		{
+			ntpAquired(args);
+		}
+		return;
+	}
+
 	for (auto const& it : m_timerSrc)
 	{
 		if (it->isreference())
 		{
-			reftime = it->getTimeSec();
+			reftime = (it == verifiedSecureSource) ? verifiedSecureTime : it->getTimeSec();
 		}
 		else
 		{
-			long long tempTime = it->getTimeSec();
+			long long tempTime = (it == verifiedSecureSource) ? verifiedSecureTime : it->getTimeSec();
 			if (tempTime != 0)
 			{
 				filetime = tempTime;
@@ -612,12 +703,19 @@ void SysTimeMgr::timerExpiry(void* args)
 		}
 	}
 
-	if ((reftime - filetime) <= 600)
+	//TBD - H_003
+	if (llabs(reftime - filetime) <= 600)
 	{
 		updateTime = reftime;
 	}
 	
 	updateTimeSync(updateTime);
+	if (secureTimeUpgrade)
+	{
+		m_state = eSYSMGR_STATE_RUNNING;
+		m_timequality = eTIMEQUALILTY_SECURE;
+		publishStatus(ePUBLISH_SECURE_TIME_SUCCESS,"Secure");
+	}
 }
 void SysTimeMgr::updateTimeSync(long long updateTime)
 {
