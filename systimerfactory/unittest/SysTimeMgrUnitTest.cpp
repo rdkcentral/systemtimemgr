@@ -28,6 +28,7 @@ public:
     MOCK_METHOD(bool, checkTime, (), (override));
 };
 
+
 class MockTimeSync : public ITimeSync {
 public:
     MOCK_METHOD(long long, getTime, (), (override));
