@@ -47,7 +47,7 @@ bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
 
    if (TIMER_STATUS_MSG == eventname) 
    {
-      retCode = IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr);
+      retCode = (IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr) == IARM_RESULT_SUCCESS);
    }
    else
    {
