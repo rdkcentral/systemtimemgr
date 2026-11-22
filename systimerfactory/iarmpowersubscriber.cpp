@@ -48,7 +48,7 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
    bool retCode = false;
    if (POWER_CHANGE_MSG == eventname) {
       m_powerHandler = fptr;
-      retCode = IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler);
+      retCode = (IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler)== IARM_RESULT_SUCCESS);
    }
    else
    {
