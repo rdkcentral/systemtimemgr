@@ -639,6 +639,10 @@ bool SysTimeMgr::verifySecureTime(ITimeSrc*& secureSource, long long& secureTime
 {
 	secureSource = nullptr;
 	secureTime = 0;
+
+	// Keep the source and its validated sample together so timerExpiry can use
+	// this exact value instead of making a second, potentially different query.
+	
 	for (auto const& it : m_timerSrc)
 	{
 		if (it && it->isSecureTimeSource())
@@ -670,6 +674,10 @@ void SysTimeMgr::secureTimeAcquired(void* args)
 {
 	ITimeSrc* secureSource = nullptr;
 	long long secureTime = 0;
+	
+	// A marker only signals availability; enter this state only if DRM can
+	// currently provide a usable secure timestamp.
+	
 	if (!verifySecureTime(secureSource, secureTime))
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Secure time event ignored: no secure time source returned a valid time\n",__FUNCTION__,__LINE__);
@@ -694,6 +702,9 @@ void SysTimeMgr::timerExpiry(void* args)
 	RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entered Function \n",__FUNCTION__,__LINE__);
 	long long reftime = 0,filetime = 0,updateTime =0;
 
+	// Secure time is promoted only for the two cross-source transitions. A
+	// normal timer tick must not be mistaken for a secure-time acquisition.
+	
 	const bool secureTimeUpgrade =
 		(m_state == eSYSMGR_STATE_NTP_ACQUIRED && m_event == eSYSMGR_EVENT_SECURE_TIME_AVAILABLE) ||
 		(m_state == eSYSMGR_STATE_SECURE_TIME_ACQUIRED && m_event == eSYSMGR_EVENT_NTP_AVAILABLE);
@@ -729,7 +740,9 @@ void SysTimeMgr::timerExpiry(void* args)
 		}
 	}
 
-	//TBD - H_003
+	// Only synchronize when the reference and candidate clock agree within ten
+	// minutes; a successful secure-time transition is published after syncing.
+	
 	if (llabs(reftime - filetime) <= 600)
 	{
 		updateTime = reftime;
