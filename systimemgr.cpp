@@ -485,8 +485,8 @@ static bool isTrustedMarker(const string& path)
 void SysTimeMgr::runPathMonitor()
 {
 
-	//Send out events oif the file already exists.
-	//This  will take care of cases where the program has to restart.
+	// Replay existing trusted markers first so notifications created before a
+	// restart are not lost; then watch for new marker updates.
 
 	for (auto iter = m_pathEventMap.begin();iter != m_pathEventMap.end();++iter)
 	{
@@ -522,6 +522,10 @@ void SysTimeMgr::runPathMonitor()
 		size_t offset = 0,eventCount=0;
 		
 		const size_t bytesRead = static_cast<size_t>(count);
+		
+		// A read can contain multiple variable-length inotify records. Walk each
+		// record by its reported name length, rejecting truncated records.
+		
 		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
 			struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer + offset);
@@ -570,6 +574,10 @@ void SysTimeMgr::runPathMonitor()
 				if (iter != m_pathEventMap.end())
 				{
 					string path = m_directory + "/" + fName;
+					
+					// Recheck ownership and file type at dispatch time; the marker
+					// may have changed since the notification was queued.
+					
 					if (!isTrustedMarker(path))
 					{
 						RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
