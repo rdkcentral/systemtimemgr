@@ -394,3 +394,286 @@ TEST_F(SysTimeMgrTest, RunStateMachine_HitsFunctionPointer) {
     mgr->m_state = eSYSMGR_STATE_RUNNING;
     mgr->runStateMachine(eSYSMGR_EVENT_TIMER_EXPIRY, nullptr);
 }
+
+// ============================================================================
+// Regression Tests for Initialization with Invalid/Mixed Valid-Invalid Entries
+// ============================================================================
+// These tests verify that the initialize() method correctly handles:
+// 1. Invalid-only source and sync entries
+// 2. Mixed valid/invalid entries
+// 3. No null pointers are retained in the vectors
+// 4. Valid entries after invalid entries are still loaded
+
+TEST_F(SysTimeMgrTest, Initialize_InvalidOnlyTimeSources) {
+    // Create a config file with only invalid time sources
+    std::string config_path = "/tmp/test_invalid_sources.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesrc invalid_type /path/arg1\n";
+    cfg << "timesrc unknown_src /path/arg2\n";
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Before initialization, vectors should be empty
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 0);
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 0);
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // After initialization with invalid sources:
+    // - Both vectors should be empty (no invalid entries were added)
+    // - No null pointers should exist
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 0);
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 0);
+    
+    // Verify no null pointers in source vector
+    for (const auto& src : test_mgr->m_timerSrc) {
+        EXPECT_NE(src, nullptr);
+    }
+    
+    // Verify no null pointers in sync vector
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr);
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_InvalidOnlyTimeSyncs) {
+    // Create a config file with only invalid time syncs
+    std::string config_path = "/tmp/test_invalid_syncs.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesync invalid_sync /path/arg1\n";
+    cfg << "timesync unknown_sync /path/arg2\n";
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // After initialization with invalid syncs:
+    // - Both vectors should be empty (no invalid entries were added)
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 0);
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 0);
+    
+    // Verify no null pointers
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr);
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSources) {
+    // Create a config file with mixed valid and invalid time sources
+    std::string config_path = "/tmp/test_mixed_sources.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesrc invalid_type /path/arg1\n";      // Invalid - should be skipped
+    cfg << "timesrc ntp /dummy/path1\n";             // Valid - should be loaded
+    cfg << "timesrc unknown_src /path/arg2\n";       // Invalid - should be skipped
+    cfg << "timesrc stt /dummy/path2\n";             // Valid - should be loaded
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // After initialization:
+    // - Should have exactly 2 valid sources (ntp and stt)
+    // - No null pointers should exist
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 2);
+    
+    // Verify no null pointers in source vector
+    for (const auto& src : test_mgr->m_timerSrc) {
+        EXPECT_NE(src, nullptr);
+    }
+    
+    // Verify no null pointers in sync vector
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr);
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
+    // Create a config file with mixed valid and invalid time syncs
+    std::string config_path = "/tmp/test_mixed_syncs.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesync invalid_sync /path/arg1\n";     // Invalid - should be skipped
+    cfg << "timesync test /dummy/path1\n";           // Valid - should be loaded
+    cfg << "timesync unknown_sync /path/arg2\n";     // Invalid - should be skipped
+    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid - should be loaded
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // After initialization:
+    // - Should have exactly 2 valid syncs (test and rdkdefault)
+    // - No null pointers should exist
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 2);
+    
+    // Verify no null pointers in sync vector
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr);
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
+    // Create a comprehensive config with valid and invalid entries mixed throughout
+    std::string config_path = "/tmp/test_comprehensive_mixed.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesrc invalid_type /path/arg1\n";      // Invalid timesrc
+    cfg << "timesync unknown_sync /path/arg1\n";     // Invalid timesync
+    cfg << "timesrc ntp /dummy/path1\n";             // Valid timesrc
+    cfg << "timesync test /dummy/path1\n";           // Valid timesync
+    cfg << "timesrc invalid_src2 /path/arg2\n";      // Invalid timesrc
+    cfg << "timesrc stt /dummy/path2\n";             // Valid timesrc
+    cfg << "timesync unknown_sync2 /path/arg2\n";    // Invalid timesync
+    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid timesync
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // After initialization:
+    // - Should have exactly 2 valid sources (ntp, stt)
+    // - Should have exactly 2 valid syncs (test, rdkdefault)
+    // - No null pointers should exist
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 2);
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 2);
+    
+    // Verify no null pointers in source vector
+    for (const auto& src : test_mgr->m_timerSrc) {
+        EXPECT_NE(src, nullptr);
+    }
+    
+    // Verify no null pointers in sync vector
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr);
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
+    // This test specifically verifies that valid entries after invalid ones
+    // are still properly loaded (guards don't skip subsequent entries)
+    std::string config_path = "/tmp/test_valid_after_invalid.cfg";
+    std::ofstream cfg(config_path);
+    cfg << "timesrc invalid_1 /path/arg1\n";         // Invalid
+    cfg << "timesrc invalid_2 /path/arg2\n";         // Invalid
+    cfg << "timesrc invalid_3 /path/arg3\n";         // Invalid
+    cfg << "timesrc ntp /dummy/path1\n";             // Valid - must be loaded
+    cfg << "timesrc stt /dummy/path2\n";             // Valid - must be loaded
+    cfg << "timesync unknown_1 /path/arg1\n";        // Invalid
+    cfg << "timesync unknown_2 /path/arg2\n";        // Invalid
+    cfg << "timesync test /dummy/path1\n";           // Valid - must be loaded
+    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid - must be loaded
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // Verify that valid entries after invalid ones are still present
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 2) 
+        << "Failed to load valid time sources after invalid entries";
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 2) 
+        << "Failed to load valid time syncs after invalid entries";
+    
+    // Verify no null pointers
+    for (size_t i = 0; i < test_mgr->m_timerSrc.size(); ++i) {
+        EXPECT_NE(test_mgr->m_timerSrc[i], nullptr) 
+            << "Null pointer found at source index " << i;
+    }
+    
+    for (size_t i = 0; i < test_mgr->m_timerSync.size(); ++i) {
+        EXPECT_NE(test_mgr->m_timerSync[i], nullptr) 
+            << "Null pointer found at sync index " << i;
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
+
+TEST_F(SysTimeMgrTest, Initialize_AllInvalidEntriesDoNotAddNullPointers) {
+    // Explicitly verify that invalid entries don't add null pointers to vectors
+    std::string config_path = "/tmp/test_no_nullptrs.cfg";
+    std::ofstream cfg(config_path);
+    // All invalid entries - should not add ANY entries to vectors
+    cfg << "timesrc bogus1 /path/arg1\n";
+    cfg << "timesrc bogus2 /path/arg2\n";
+    cfg << "timesrc bogus3 /path/arg3\n";
+    cfg << "timesync bogus_sync1 /path/arg1\n";
+    cfg << "timesync bogus_sync2 /path/arg2\n";
+    cfg << "timesync bogus_sync3 /path/arg3\n";
+    cfg.close();
+
+    // Create a manager instance with this config
+    SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
+    test_mgr->m_directory = "/tmp/";
+    
+    // Initialize should complete without crashing
+    test_mgr->initialize();
+    
+    // Vectors should be empty - no null pointers added
+    EXPECT_EQ(test_mgr->m_timerSrc.size(), 0) 
+        << "Invalid timesrc entries should not be added";
+    EXPECT_EQ(test_mgr->m_timerSync.size(), 0) 
+        << "Invalid timesync entries should not be added";
+    
+    // Additional safety checks - no null pointers should be present
+    for (const auto& src : test_mgr->m_timerSrc) {
+        EXPECT_NE(src, nullptr) << "Null pointer found in timesrc vector";
+    }
+    
+    for (const auto& sync : test_mgr->m_timerSync) {
+        EXPECT_NE(sync, nullptr) << "Null pointer found in timesync vector";
+    }
+    
+    // Cleanup
+    delete test_mgr;
+    SysTimeMgr::pInstance = nullptr;
+    std::remove(config_path.c_str());
+}
