@@ -537,15 +537,14 @@ void SysTimeMgr::runPathMonitor()
 			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
 			{
 				const char* eventName = buffer + offset + headerSize;
-				const char* nameEnd = static_cast<const char*>(
-					memchr(eventName, '\0', pevent->len));
-				if (nameEnd == nullptr)
-				{
-					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring inotify event with an unterminated name\n",__FUNCTION__,__LINE__);
-					offset += eventSize;
-					continue;
-				}
-				const size_t nameLength = static_cast<size_t>(nameEnd - eventName);
+				 // Bounded by pevent->len, which was validated against bytesRead <= sizeof(buffer)
+                 size_t nameLength = strnlen(eventName, pevent->len);
+                 if (nameLength == pevent->len)
+                 {
+                     RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring inotify event with an unterminated name\n",__FUNCTION__,__LINE__);
+                     offset += eventSize;
+                    continue;
+                 }
 				string fName(eventName, nameLength);
 				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,fName.c_str());
 				auto iter = m_pathEventMap.find(fName);
