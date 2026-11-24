@@ -465,23 +465,6 @@ void SysTimeMgr::runTimer()
 	}
 }
 
-// UIDs allowed to own marker files. Add entries here if other users need to create markers.
-static const std::vector<uid_t> g_trustedMarkerUids = { 0 /* root */ };
-
-static bool isTrustedMarker(const string& path)
-{
-	struct stat st;
-	if (lstat(path.c_str(), &st) != 0)
-	{
-		return false;
-	}
-	if (!S_ISREG(st.st_mode))
-	{
-		return false;
-	}
-	return std::find(g_trustedMarkerUids.begin(), g_trustedMarkerUids.end(), st.st_uid) != g_trustedMarkerUids.end();
-}
-
 void SysTimeMgr::runPathMonitor()
 {
     // Send events for marker files that already exist, including after restart.
@@ -625,6 +608,23 @@ void SysTimeMgr::runPathMonitor()
             __FUNCTION__, __LINE__, bytesRead,
             sizeof(struct inotify_event), sizeof(buffer), eventCount);
     }
+}
+
+// UIDs allowed to own marker files. Add entries here if other users need to create markers.
+static const std::vector<uid_t> g_trustedMarkerUids = { 0 /* root */ };
+
+static bool isTrustedMarker(const string& path)
+{
+	struct stat st;
+	if (lstat(path.c_str(), &st) != 0)
+	{
+		return false;
+	}
+	if (!S_ISREG(st.st_mode))
+	{
+		return false;
+	}
+	return std::find(g_trustedMarkerUids.begin(), g_trustedMarkerUids.end(), st.st_uid) != g_trustedMarkerUids.end();
 }
 
 static NetworkStatusSrc networkStatusMonitor;
