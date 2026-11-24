@@ -55,6 +55,8 @@ long long DrmTimeSrc::getTimeSec()
 
 	 RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:JSON Data Received = %s \n",__FUNCTION__,__LINE__,result.toStyledString().c_str());
 
+	// Validate the JSON-RPC envelope before reading fields with typed accessors.
+	
 	 if (!result.isObject() || !result.isMember("success") || !result["success"].isBool())
 	 {
 	    RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Malformed DRM reply (success). \n",__FUNCTION__,__LINE__);
@@ -68,6 +70,9 @@ long long DrmTimeSrc::getTimeSec()
 	       return 0;
 	    }
 
+	    // Accept only a positive decimal timestamp; malformed values must not
+	    // produce a secure-time marker or be used to advance the system clock.
+	
 	    const string secureTimeValue = result["securetime"].asString();
 	    if (secureTimeValue.empty() ||
 	        secureTimeValue.find_first_not_of("0123456789") != string::npos)
@@ -97,6 +102,10 @@ long long DrmTimeSrc::getTimeSec()
    catch (JsonRpcException& e) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Exception Received from JSON Rpc Call. %s \n",__FUNCTION__,__LINE__,e.what());
    }
+
+   // Includes timestamp conversion failures (for example, values too large
+   // for long long); report DRM time as unavailable rather than propagating.
+	   
    catch (const std::exception& e) {
       RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Exception while processing DRM reply. %s\n",__FUNCTION__,__LINE__,e.what());
       return 0;
