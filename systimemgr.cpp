@@ -473,12 +473,10 @@ void SysTimeMgr::runPathMonitor()
 	for (auto iter = m_pathEventMap.begin();iter != m_pathEventMap.end();++iter)
 	{
 		string fname = m_directory + "/" + iter->first;
-		ifstream f(fname.c_str());
-		if (f.good())
+		if (isTrustedMarker(fname))
 		{
 			sendMessage(iter->second,NULL);
 		}
-		f.close();
 	}
 	int inotifyFd, wd; 
 	inotifyFd = inotify_init();
@@ -494,7 +492,7 @@ void SysTimeMgr::runPathMonitor()
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Unable to create Watchi descriptor. Exiting thread \n",__FUNCTION__,__LINE__);
 		return;
 	}
-	char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
+	alignas(struct inotify_event) char buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 	while (1)
 	{
 		ssize_t count = read(inotifyFd, buffer, sizeof(buffer));
@@ -503,23 +501,53 @@ void SysTimeMgr::runPathMonitor()
 			RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to read. Exiting \n",__FUNCTION__,__LINE__);
 			return;
 		}
-		buffer[sizeof(buffer)- 1] = '\0';
-		struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer);
-		if (pevent->mask & IN_ATTRIB)
+		size_t offset = 0,eventCount=0;
+		
+		const size_t bytesRead = static_cast<size_t>(count);
+		while (offset + sizeof(struct inotify_event) <= bytesRead)
 		{
-			//This is file changed or created.
-			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,pevent->name);
-			string fName(pevent->name);
-			auto iter = m_pathEventMap.find(fName);
-			if (iter != m_pathEventMap.end())
+			struct inotify_event * pevent = reinterpret_cast<struct inotify_event *>(buffer + offset);
+			const size_t headerSize = sizeof(struct inotify_event);
+			if (pevent->len > bytesRead - offset - headerSize)
 			{
-				RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
-				sendMessage(iter->second,NULL);
-
+				RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Incomplete inotify event record. Exiting \n",__FUNCTION__,__LINE__);
+				return;
 			}
-
-
+			const size_t eventSize = headerSize + pevent->len;
+			eventCount++;
+			RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify record=%zu, total event size=%zu, name length=%u\n",__FUNCTION__,__LINE__,eventCount,eventSize,pevent->len);
+			if ((pevent->mask & IN_ATTRIB) && (pevent->len > 0))
+			{
+				const char* eventName = buffer + offset + headerSize;
+				const char* nameEnd = static_cast<const char*>(
+					memchr(eventName, '\0', pevent->len));
+				if (nameEnd == nullptr)
+				{
+					RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring inotify event with an unterminated name\n",__FUNCTION__,__LINE__);
+					offset += eventSize;
+					continue;
+				}
+				const size_t nameLength = static_cast<size_t>(nameEnd - eventName);
+				string fName(eventName, nameLength);
+				RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:File created/modified = %s \n",__FUNCTION__,__LINE__,fName.c_str());
+				auto iter = m_pathEventMap.find(fName);
+				if (iter != m_pathEventMap.end())
+				{
+					string path = m_directory + "/" + fName;
+					if (!isTrustedMarker(path))
+					{
+						RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Ignoring untrusted marker %s (not a regular file owned by daemon user) \n",__FUNCTION__,__LINE__,fName.c_str());
+					}
+					else
+					{
+						RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:FOUND EVENT = %d \n",__FUNCTION__,__LINE__,iter->second);
+						sendMessage(iter->second,NULL);
+					}
+				}
+			}
+			offset += eventSize;
 		}
+		RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:**DEBUG** inotify read bytes=%zu, event header size=%zu, buffer size=%zu, records=%zu\n",__FUNCTION__,__LINE__,bytesRead,sizeof(struct inotify_event),sizeof(buffer),eventCount);
 	}
 }
 
