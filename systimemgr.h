@@ -204,6 +204,14 @@ friend class SysTimeMgrTest_TimerExpiry_RefVsFileTime_Test;
 friend class SysTimeMgrTest_ProcessThrCallsProcessMsgAndRunsOneIteration_Test;
 friend class SysTimeMgrTest_TimerThrCallsRunTimerAndRunsOnce_Test;
 friend class  SysTimeMgrTest_TimerThrAndProcessThrCoverage_Test;
+// Regression tests for initialization with invalid/mixed time sources and syncs
+friend class SysTimeMgrTest_Initialize_InvalidOnlyTimeSources_Test;
+friend class SysTimeMgrTest_Initialize_InvalidOnlyTimeSyncs_Test;
+friend class SysTimeMgrTest_Initialize_MixedValidInvalidSources_Test;
+friend class SysTimeMgrTest_Initialize_MixedValidInvalidSyncs_Test;
+friend class SysTimeMgrTest_Initialize_MixedSourcesAndSyncs_Test;
+friend class SysTimeMgrTest_Initialize_ValidEntriesAfterInvalidOnesAreLoaded_Test;
+friend class SysTimeMgrTest_Initialize_AllInvalidEntriesDoNotAddNullPointers_Test;
 #endif
 
 };

@@ -414,7 +414,6 @@ TEST_F(SysTimeMgrTest, Initialize_InvalidOnlyTimeSources) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Before initialization, vectors should be empty
     EXPECT_EQ(test_mgr->m_timerSrc.size(), 0);
@@ -455,7 +454,6 @@ TEST_F(SysTimeMgrTest, Initialize_InvalidOnlyTimeSyncs) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
@@ -488,7 +486,6 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSources) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
@@ -526,7 +523,6 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
@@ -563,7 +559,6 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
@@ -609,7 +604,6 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
@@ -652,7 +646,6 @@ TEST_F(SysTimeMgrTest, Initialize_AllInvalidEntriesDoNotAddNullPointers) {
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
-    test_mgr->m_directory = "/tmp/";
     
     // Initialize should complete without crashing
     test_mgr->initialize();
