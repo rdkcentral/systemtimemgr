@@ -513,13 +513,19 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSources) {
 
 TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     // Create a config file with mixed valid and invalid time syncs
+    // Note: Avoid rdkdefault as it reads real system files (/version.txt)
     std::string config_path = "/tmp/test_mixed_syncs.cfg";
     std::ofstream cfg(config_path);
     cfg << "timesync invalid_sync /path/arg1\n";     // Invalid - should be skipped
-    cfg << "timesync test /dummy/path1\n";           // Valid - should be loaded
+    cfg << "timesync test /tmp/test_time_sync.txt\n"; // Valid - should be loaded
     cfg << "timesync unknown_sync /path/arg2\n";     // Invalid - should be skipped
-    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid - should be loaded
+    cfg << "timesync dtt /dummy/path2\n";            // Valid alternative sync
     cfg.close();
+    
+    // Create the test sync file to avoid errors
+    std::ofstream sync_file("/tmp/test_time_sync.txt");
+    sync_file << "0";
+    sync_file.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
@@ -528,7 +534,7 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     test_mgr->initialize();
     
     // After initialization:
-    // - Should have exactly 2 valid syncs (test and rdkdefault)
+    // - Should have exactly 2 valid syncs (test and dtt)
     // - No null pointers should exist
     EXPECT_EQ(test_mgr->m_timerSync.size(), 2);
     
@@ -541,21 +547,28 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
+    std::remove("/tmp/test_time_sync.txt");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     // Create a comprehensive config with valid and invalid entries mixed throughout
+    // Note: Avoid rdkdefault as it reads real system files (/version.txt)
     std::string config_path = "/tmp/test_comprehensive_mixed.cfg";
     std::ofstream cfg(config_path);
     cfg << "timesrc invalid_type /path/arg1\n";      // Invalid timesrc
     cfg << "timesync unknown_sync /path/arg1\n";     // Invalid timesync
     cfg << "timesrc ntp /dummy/path1\n";             // Valid timesrc
-    cfg << "timesync test /dummy/path1\n";           // Valid timesync
+    cfg << "timesync test /tmp/test_sync.txt\n";     // Valid timesync
     cfg << "timesrc invalid_src2 /path/arg2\n";      // Invalid timesrc
     cfg << "timesrc stt /dummy/path2\n";             // Valid timesrc
     cfg << "timesync unknown_sync2 /path/arg2\n";    // Invalid timesync
-    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid timesync
+    cfg << "timesync dtt /dummy/path2\n";            // Valid timesync (alternative)
     cfg.close();
+    
+    // Create the test sync file to avoid errors
+    std::ofstream sync_file("/tmp/test_sync.txt");
+    sync_file << "0";
+    sync_file.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
@@ -565,7 +578,7 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     
     // After initialization:
     // - Should have exactly 2 valid sources (ntp, stt)
-    // - Should have exactly 2 valid syncs (test, rdkdefault)
+    // - Should have exactly 2 valid syncs (test, dtt)
     // - No null pointers should exist
     EXPECT_EQ(test_mgr->m_timerSrc.size(), 2);
     EXPECT_EQ(test_mgr->m_timerSync.size(), 2);
@@ -584,11 +597,13 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
+    std::remove("/tmp/test_sync.txt");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     // This test specifically verifies that valid entries after invalid ones
     // are still properly loaded (guards don't skip subsequent entries)
+    // Note: Avoid rdkdefault as it reads real system files (/version.txt)
     std::string config_path = "/tmp/test_valid_after_invalid.cfg";
     std::ofstream cfg(config_path);
     cfg << "timesrc invalid_1 /path/arg1\n";         // Invalid
@@ -598,9 +613,14 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     cfg << "timesrc stt /dummy/path2\n";             // Valid - must be loaded
     cfg << "timesync unknown_1 /path/arg1\n";        // Invalid
     cfg << "timesync unknown_2 /path/arg2\n";        // Invalid
-    cfg << "timesync test /dummy/path1\n";           // Valid - must be loaded
-    cfg << "timesync rdkdefault /dummy/path2\n";     // Valid - must be loaded
+    cfg << "timesync test /tmp/test_time.txt\n";     // Valid - must be loaded
+    cfg << "timesync dtt /dummy/path2\n";            // Valid - must be loaded
     cfg.close();
+    
+    // Create the test sync file to avoid errors
+    std::ofstream sync_file("/tmp/test_time.txt");
+    sync_file << "0";
+    sync_file.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
@@ -629,6 +649,7 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
+    std::remove("/tmp/test_time.txt");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_AllInvalidEntriesDoNotAddNullPointers) {
