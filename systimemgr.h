@@ -128,6 +128,7 @@ private:
 	void updateTimeSync(long long updateTime);
 	void publishStatus(publishEvent event,string message);
 
+     bool verifySecureTime(ITimeSrc*& secureSource, long long& secureTime);
 	queue<unique_ptr<sysTimeMsg> > m_queue;
         mutex m_queue_mutex;
 	condition_variable m_cond_var;
@@ -186,6 +187,9 @@ friend class SysTimeMgrTest_NtpFailed_Test;
 friend class SysTimeMgrTest_DttAcquiredPublishesStatusAndUpdatesState_Test;
 friend class SysTimeMgrTest_SecureTimeAcquiredUpdatesState_Test;
 friend class SysTimeMgrTest_UpdateSecureTimePublishesStatusAndUpdatesState_Test;
+friend class SysTimeMgrTest_UpdateSecureTimeReusesVerifiedSecureSample_Test;
+friend class SysTimeMgrTest_UpdateSecureTimeRejectsMalformedSecureSample_Test;
+friend class SysTimeMgrTest_NtpAcquiredTimerExpiryIsNotSecureUpgrade_Test;
 friend class SysTimeMgrTest_DeepSleepOffPublishesStatus_Test;
 friend class SysTimeMgrTest_DeepSleepOffCoversPoorCase_Test;
 friend class SysTimeMgrTest_UpdateClockRealTimeSetsTime_Test;

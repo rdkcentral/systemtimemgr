@@ -33,7 +33,7 @@ class DrmTimeSrc : public ITimeSrc
 		DrmTimeSrc(string path):ITimeSrc(),m_path(std::move(path)){}
 
 		bool isreference() { return false;}
-
+        bool isSecureTimeSource() { return true;}
 		long long getTimeSec();
 
 };
