@@ -524,8 +524,8 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     
     // Create parent directories for test sync files
     // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
-    mkdir("/tmp/systemtimemgr");
-    mkdir("/tmp/systemtimemgr/tmp");
+    mkdir("/tmp/systemtimemgr", 0700);
+    mkdir("/tmp/systemtimemgr/tmp", 0700);
     
     // Create the test sync files at the path expected by initialize()
     std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_time_sync.txt");
