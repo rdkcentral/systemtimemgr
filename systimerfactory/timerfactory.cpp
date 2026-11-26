@@ -28,6 +28,9 @@
 #ifdef TEE_ENABLED
 #include "teetimesync.h"
 #endif //TEE_ENABLED
+#ifdef CHRONY_ENABLED
+#include "chronytimesrc.h"
+#endif //CHRONY_ENABLED
 
 ITimeSrc* createTimeSrc(string type, string args)
 {
@@ -54,6 +57,12 @@ ITimeSrc* createTimeSrc(string type, string args)
 		ret = new DttTimeSrc(std::move(args));
         }
 #endif// DTT_ENABLED
+#ifdef CHRONY_ENABLED
+        else if (type == "chrony")
+        {
+		ret = new ChronyTimeSrc();
+        }
+#endif// CHRONY_ENABLED
 
 	return ret;
 }
