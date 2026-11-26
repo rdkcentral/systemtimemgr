@@ -28,9 +28,19 @@ IarmTimerStatusSubscriber::IarmTimerStatusSubscriber(string sub):IarmSubscriber(
    RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:Entry\n",__FUNCTION__,__LINE__);
    int registered=0;
    if (IARM_Bus_IsConnected(m_subscriber.c_str(),&registered) != IARM_RESULT_SUCCESS) {
-      IARM_Bus_Init(m_subscriber.c_str());
-      IARM_Bus_Connect();
-      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IarmTimerStatusSubscriber IARM_Bus_Init IARM_Bus_Connect is Invoked \n",__FUNCTION__,__LINE__);
+      IARM_Result_t init_result = IARM_Bus_Init(m_subscriber.c_str());
+      if (init_result != IARM_RESULT_SUCCESS) {
+         RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:IARM_Bus_Init failed with result %d\n",__FUNCTION__,__LINE__,init_result);
+         return;
+      }
+
+      IARM_Result_t connect_result = IARM_Bus_Connect();
+      if (connect_result != IARM_RESULT_SUCCESS) {
+         RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:IARM_Bus_Connect failed with result %d\n",__FUNCTION__,__LINE__,connect_result);
+         return;
+      }
+
+      RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:IARM bus initialized and connected successfully\n",__FUNCTION__,__LINE__);
    }
    else
    {
@@ -47,7 +57,7 @@ bool IarmTimerStatusSubscriber::subscribe(string eventname,funcPtr fptr)
 
    if (TIMER_STATUS_MSG == eventname) 
    {
-      retCode = IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr);
+      retCode = (IARM_Bus_RegisterCall(eventname.c_str(),(IARM_BusCall_t)fptr) == IARM_RESULT_SUCCESS);
    }
    else
    {

@@ -48,7 +48,7 @@ bool IarmPowerSubscriber::subscribe(string eventname,funcPtr fptr)
    bool retCode = false;
    if (POWER_CHANGE_MSG == eventname) {
       m_powerHandler = fptr;
-      retCode = IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler);
+      retCode = (IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,IarmPowerSubscriber::powereventHandler)== IARM_RESULT_SUCCESS);
    }
    else
    {
@@ -64,8 +64,14 @@ void IarmPowerSubscriber::powereventHandler(const char *owner, int eventId, void
    if ( IARM_BUS_PWRMGR_EVENT_MODECHANGED != eventId ) {
       return;
    }
+   if (data == nullptr || len < sizeof(IARM_Bus_PWRMgr_EventData_t))
+   {
+    RDK_LOG(RDK_LOG_ERROR, LOG_SYSTIME,
+            "[%s:%d]: Invalid power event payload\n", __FUNCTION__, __LINE__);
+    return;
+   }
+   auto* param = static_cast<IARM_Bus_PWRMgr_EventData_t*>(data);
 
-   IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
    RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Power Change Event Received. New State = %d\n",__FUNCTION__,__LINE__,param->data.state.newState);
 
    IarmPowerSubscriber* instance = dynamic_cast<IarmPowerSubscriber*>(IarmSubscriber::getInstance());

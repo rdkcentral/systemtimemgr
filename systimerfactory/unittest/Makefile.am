@@ -89,6 +89,6 @@ iarmpowersubscribe_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
 iarmpowersubscribe_gtest_LDADD = $(COMMON_LDADD)
 iarmpowersubscribe_gtest_CXXFLAGS = $(COMMON_CXXFLAGS)
 
-systimemgr_gtest_CPPFLAGS = $(COMMON_CPPFLAGS)
+systimemgr_gtest_CPPFLAGS = $(COMMON_CPPFLAGS) -DIARM_SUPPORT_DISABLED
 systimemgr_gtest_LDADD = $(COMMON_LDADD) -lpthread
 systimemgr_gtest_CXXFLAGS = $(COMMON_CXXFLAGS) -DMILESTONE_SUPPORT_DISABLED

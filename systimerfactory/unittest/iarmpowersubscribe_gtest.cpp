@@ -76,14 +76,24 @@ TEST_F(IarmPowerSubscriberTest, Constructor_NotConnected_CallsInitAndConnect) {
     IarmPowerSubscriber subscriber("TestSub");
 }
 
-TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_Success) {
+TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_ReturnsTrueOnSuccess) {
+    IarmPowerSubscriber subscriber("TestSub");
+    EXPECT_CALL(*gMockIARM, IsConnected(_, _))
+        .WillRepeatedly(Return(IARM_RESULT_SUCCESS));
+    EXPECT_CALL(*gMockIARM, RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _))
+        .WillOnce(Return(IARM_RESULT_SUCCESS));
+    bool result = subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
+    EXPECT_TRUE(result); // Returns true when RegisterEventHandler succeeds
+}
+
+TEST_F(IarmPowerSubscriberTest, Subscribe_ValidPowerEvent_ReturnsFalseOnFailure) {
     IarmPowerSubscriber subscriber("TestSub");
     EXPECT_CALL(*gMockIARM, IsConnected(_, _))
         .WillRepeatedly(Return(IARM_RESULT_SUCCESS));
     EXPECT_CALL(*gMockIARM, RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _))
         .WillOnce(Return(IARM_RESULT_INVALID_PARAM));
     bool result = subscriber.subscribe(POWER_CHANGE_MSG, TestPowerHandler);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result); // Returns false when RegisterEventHandler fails
 }
 
 TEST_F(IarmPowerSubscriberTest, Subscribe_InvalidEvent_ReturnsFalse) {
