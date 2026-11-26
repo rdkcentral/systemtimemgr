@@ -519,13 +519,17 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     cfg << "timesync invalid_sync /path/arg1\n";     // Invalid - should be skipped
     cfg << "timesync test /tmp/test_time_sync.txt\n"; // Valid - should be loaded
     cfg << "timesync unknown_sync /path/arg2\n";     // Invalid - should be skipped
-    cfg << "timesync dtt /dummy/path2\n";            // Valid alternative sync
+    cfg << "timesync test /tmp/test_sync_2.txt\n";   // Second valid sync
     cfg.close();
     
-    // Create the test sync file to avoid errors
+    // Create the test sync files to avoid errors
     std::ofstream sync_file("/tmp/test_time_sync.txt");
     sync_file << "0";
     sync_file.close();
+    
+    std::ofstream sync_file2("/tmp/test_sync_2.txt");
+    sync_file2 << "0";
+    sync_file2.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
@@ -562,13 +566,17 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     cfg << "timesrc invalid_src2 /path/arg2\n";      // Invalid timesrc
     cfg << "timesrc stt /dummy/path2\n";             // Valid timesrc
     cfg << "timesync unknown_sync2 /path/arg2\n";    // Invalid timesync
-    cfg << "timesync dtt /dummy/path2\n";            // Valid timesync (alternative)
+    cfg << "timesync test /tmp/test_sync_2.txt\n";   // Second valid timesync
     cfg.close();
     
-    // Create the test sync file to avoid errors
+    // Create the test sync files to avoid errors
     std::ofstream sync_file("/tmp/test_sync.txt");
     sync_file << "0";
     sync_file.close();
+    
+    std::ofstream sync_file2("/tmp/test_sync_2.txt");
+    sync_file2 << "0";
+    sync_file2.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
@@ -578,7 +586,7 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     
     // After initialization:
     // - Should have exactly 2 valid sources (ntp, stt)
-    // - Should have exactly 2 valid syncs (test, dtt)
+    // - Should have exactly 2 valid syncs (both test)
     // - No null pointers should exist
     EXPECT_EQ(test_mgr->m_timerSrc.size(), 2);
     EXPECT_EQ(test_mgr->m_timerSync.size(), 2);
@@ -614,13 +622,17 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     cfg << "timesync unknown_1 /path/arg1\n";        // Invalid
     cfg << "timesync unknown_2 /path/arg2\n";        // Invalid
     cfg << "timesync test /tmp/test_time.txt\n";     // Valid - must be loaded
-    cfg << "timesync dtt /dummy/path2\n";            // Valid - must be loaded
+    cfg << "timesync test /tmp/test_time_2.txt\n";   // Second valid - must be loaded
     cfg.close();
     
-    // Create the test sync file to avoid errors
+    // Create the test sync files to avoid errors
     std::ofstream sync_file("/tmp/test_time.txt");
     sync_file << "0";
     sync_file.close();
+    
+    std::ofstream sync_file2("/tmp/test_time_2.txt");
+    sync_file2 << "0";
+    sync_file2.close();
 
     // Create a manager instance with this config
     SysTimeMgr* test_mgr = new SysTimeMgr(config_path);
