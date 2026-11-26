@@ -809,8 +809,8 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     
     // Create parent directories for test sync files
     // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
-    mkdir("/tmp/systemtimemgr");
-    mkdir("/tmp/systemtimemgr/tmp");
+    mkdir("/tmp/systemtimemgr",0700);
+    mkdir("/tmp/systemtimemgr/tmp",0700);
     
     // Create the test sync files at the path expected by initialize()
     std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_sync.txt");
@@ -850,8 +850,8 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     std::remove(config_path.c_str());
     std::remove("/tmp/systemtimemgr/tmp/test_sync.txt");
     std::remove("/tmp/systemtimemgr/tmp/test_sync_2.txt");
-    rmdir("/tmp/systemtimemgr/tmp");
-    rmdir("/tmp/systemtimemgr");
+    rmdir("/tmp/systemtimemgr/tmp",0700);
+    rmdir("/tmp/systemtimemgr",0700);
 }
 
 TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
@@ -873,8 +873,8 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     
     // Create parent directories for test sync files
     // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
-    mkdir("/tmp/systemtimemgr");
-    mkdir("/tmp/systemtimemgr/tmp");
+    mkdir("/tmp/systemtimemgr",0700);
+    mkdir("/tmp/systemtimemgr/tmp",0700);
     
     // Create the test sync files at the path expected by initialize()
     std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_time.txt");
