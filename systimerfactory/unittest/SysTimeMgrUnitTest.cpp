@@ -850,8 +850,8 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     std::remove(config_path.c_str());
     std::remove("/tmp/systemtimemgr/tmp/test_sync.txt");
     std::remove("/tmp/systemtimemgr/tmp/test_sync_2.txt");
-    rmdir("/tmp/systemtimemgr/tmp",0700);
-    rmdir("/tmp/systemtimemgr",0700);
+    rmdir("/tmp/systemtimemgr/tmp");
+    rmdir("/tmp/systemtimemgr");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
