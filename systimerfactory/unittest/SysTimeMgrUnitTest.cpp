@@ -516,18 +516,23 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     // Note: Avoid rdkdefault as it reads real system files (/version.txt)
     std::string config_path = "/tmp/test_mixed_syncs.cfg";
     std::ofstream cfg(config_path);
-    cfg << "timesync invalid_sync /path/arg1\n";     // Invalid - should be skipped
-    cfg << "timesync test /tmp/test_time_sync.txt\n"; // Valid - should be loaded
-    cfg << "timesync unknown_sync /path/arg2\n";     // Invalid - should be skipped
-    cfg << "timesync test /tmp/test_sync_2.txt\n";   // Second valid sync
+    cfg << "timesync invalid_sync /path/arg1\n";           // Invalid - should be skipped
+    cfg << "timesync test /tmp/test_time_sync.txt\n";      // Valid - should be loaded
+    cfg << "timesync unknown_sync /path/arg2\n";           // Invalid - should be skipped
+    cfg << "timesync test /tmp/test_sync_2.txt\n";         // Second valid sync
     cfg.close();
     
-    // Create the test sync files to avoid errors
-    std::ofstream sync_file("/tmp/test_time_sync.txt");
+    // Create parent directories for test sync files
+    // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
+    mkdir("/tmp/systemtimemgr");
+    mkdir("/tmp/systemtimemgr/tmp");
+    
+    // Create the test sync files at the path expected by initialize()
+    std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_time_sync.txt");
     sync_file << "0";
     sync_file.close();
     
-    std::ofstream sync_file2("/tmp/test_sync_2.txt");
+    std::ofstream sync_file2("/tmp/systemtimemgr/tmp/test_sync_2.txt");
     sync_file2 << "0";
     sync_file2.close();
 
@@ -551,7 +556,10 @@ TEST_F(SysTimeMgrTest, Initialize_MixedValidInvalidSyncs) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
-    std::remove("/tmp/test_time_sync.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_time_sync.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_sync_2.txt");
+    rmdir("/tmp/systemtimemgr/tmp");
+    rmdir("/tmp/systemtimemgr");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
@@ -569,12 +577,17 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     cfg << "timesync test /tmp/test_sync_2.txt\n";   // Second valid timesync
     cfg.close();
     
-    // Create the test sync files to avoid errors
-    std::ofstream sync_file("/tmp/test_sync.txt");
+    // Create parent directories for test sync files
+    // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
+    mkdir("/tmp/systemtimemgr");
+    mkdir("/tmp/systemtimemgr/tmp");
+    
+    // Create the test sync files at the path expected by initialize()
+    std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_sync.txt");
     sync_file << "0";
     sync_file.close();
     
-    std::ofstream sync_file2("/tmp/test_sync_2.txt");
+    std::ofstream sync_file2("/tmp/systemtimemgr/tmp/test_sync_2.txt");
     sync_file2 << "0";
     sync_file2.close();
 
@@ -605,7 +618,10 @@ TEST_F(SysTimeMgrTest, Initialize_MixedSourcesAndSyncs) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
-    std::remove("/tmp/test_sync.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_sync.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_sync_2.txt");
+    rmdir("/tmp/systemtimemgr/tmp");
+    rmdir("/tmp/systemtimemgr");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
@@ -625,12 +641,17 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     cfg << "timesync test /tmp/test_time_2.txt\n";   // Second valid - must be loaded
     cfg.close();
     
-    // Create the test sync files to avoid errors
-    std::ofstream sync_file("/tmp/test_time.txt");
+    // Create parent directories for test sync files
+    // Note: initialize() prefixes the configured path with /tmp/systemtimemgr
+    mkdir("/tmp/systemtimemgr");
+    mkdir("/tmp/systemtimemgr/tmp");
+    
+    // Create the test sync files at the path expected by initialize()
+    std::ofstream sync_file("/tmp/systemtimemgr/tmp/test_time.txt");
     sync_file << "0";
     sync_file.close();
     
-    std::ofstream sync_file2("/tmp/test_time_2.txt");
+    std::ofstream sync_file2("/tmp/systemtimemgr/tmp/test_time_2.txt");
     sync_file2 << "0";
     sync_file2.close();
 
@@ -661,7 +682,10 @@ TEST_F(SysTimeMgrTest, Initialize_ValidEntriesAfterInvalidOnesAreLoaded) {
     delete test_mgr;
     SysTimeMgr::pInstance = nullptr;
     std::remove(config_path.c_str());
-    std::remove("/tmp/test_time.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_time.txt");
+    std::remove("/tmp/systemtimemgr/tmp/test_time_2.txt");
+    rmdir("/tmp/systemtimemgr/tmp");
+    rmdir("/tmp/systemtimemgr");
 }
 
 TEST_F(SysTimeMgrTest, Initialize_AllInvalidEntriesDoNotAddNullPointers) {
