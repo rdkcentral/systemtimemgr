@@ -87,6 +87,7 @@ PKG_CHECK_EXISTS([ThunderCore],
          THUNDER_CXXFLAGS=" "],
         [THUNDER_NS=WPEFramework
          THUNDER_CXXFLAGS="-DThunder=WPEFramework"])
+
 AC_ARG_ENABLE([iarm],
         AS_HELP_STRING([--enable-iarm],[enable iarm ]),
         [
@@ -116,6 +117,12 @@ AC_ARG_ENABLE([pwrmgrplugin],
            ],
          [echo "pwrmgrplugin build is enable"])
 
+POWERCONTROLLER_CFLAGS=""
+POWERCONTROLLER_LIBS=""
+
+AS_IF([test "x$PWRMGRPLUGIN_ENABLED" = "xtrue"], [
+  PKG_CHECK_MODULES([POWERCONTROLLER], [${THUNDER_NS}PowerController])
+])
 
 AC_ARG_ENABLE([dtt],
         AS_HELP_STRING([--enable-dtt],[enable dtt ]),

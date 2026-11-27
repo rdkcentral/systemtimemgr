@@ -28,6 +28,7 @@ libsystimerfactory_la_LDFLAGS = -lchronyctl
 if IARM_ENABLED
 libsystimerfactory_la_SOURCES += iarmpublish.cpp  iarmsubscribe.cpp iarmtimerstatussubscriber.cpp
 if PWRMGRPLUGIN_ENABLED
+AM_CXXFLAGS += $(POWERCONTROLLER_CFLAGS)
 libsystimerfactory_la_SOURCES += ipowercontrollersubscriber.cpp
 else
 libsystimerfactory_la_SOURCES += iarmpowersubscriber.cpp
@@ -46,6 +47,9 @@ endif
 
 libsystimerfactory_la_LIBADD = $(IARM_LIBS) $(JSONRPC_LIBS) -lrdkloggers $(THUNDERCORE_LIBS) $(THUNDERWEBSOCKET_LIBS)
 
+if PWRMGRPLUGIN_ENABLED
+libsystimerfactory_la_LIBADD += $(POWERCONTROLLER_LIBS)
+endif
 
 libsystimerfactory_la_includedir = ${includedir}
 libsystimerfactory_la_include_HEADERS = timerfactory.h
