@@ -887,6 +887,7 @@ int SysTimeMgr::getTimeStatus(void* args)
 void SysTimeMgr::getTimeStatus(TimerMsg* pMsg)
 {
 	std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
+	memset(pMsg, 0, sizeof(*pMsg));
 	pMsg->quality = m_timequality;
 	memset(pMsg->message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
 	string populatedString;
