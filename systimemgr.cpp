@@ -782,17 +782,18 @@ void SysTimeMgr::setInitialTime()
 	{
 		locTime = i->getTime();
 	}
-
-	ofstream ofs(filepath);
-        if (!ofs) 
-	{
-		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s)\n",__FUNCTION__,__LINE__,filepath.c_str());
-        }
-	else 
-	{
-        	ofs.close();
-        	RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath.c_str());
-	}
+ //TBD: M_04
+    // O_NOFOLLOW prevents a pre-planted symlink at /tmp/systimeset from redirecting the write
+    int fd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW | O_CLOEXEC, 0644);
+    if (fd < 0)
+    {
+        RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Failed to create file(%s): %s\n",__FUNCTION__,__LINE__,filepath.c_str(),strerror(errno));
+    }
+    else
+    {
+        close(fd);
+        RDK_LOG(RDK_LOG_INFO,LOG_SYSTIME,"[%s:%d]:Successfully created file (%s) to trigger systime-set target\n",__FUNCTION__,__LINE__,filepath.c_str());
+    }
 	if (locTime == 0)
 	{
 		RDK_LOG(RDK_LOG_ERROR,LOG_SYSTIME,"[%s:%d]:Returning from Setting initial time since localtime returned from timersync is zero \n",__FUNCTION__,__LINE__);
@@ -845,6 +846,7 @@ void SysTimeMgr::setInitialTime()
 void SysTimeMgr::publishStatus(publishEvent event,string message)
 {
 	TimerMsg msg;
+	memset(&msg, 0, sizeof(msg));
 	msg.event = event;
 	msg.quality = m_timequality;
         memset(msg.message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
@@ -885,6 +887,7 @@ int SysTimeMgr::getTimeStatus(void* args)
 void SysTimeMgr::getTimeStatus(TimerMsg* pMsg)
 {
 	std::lock_guard<std::recursive_mutex> guard(g_state_mutex);
+	memset(pMsg, 0, sizeof(*pMsg));
 	pMsg->quality = m_timequality;
 	memset(pMsg->message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
 	string populatedString;

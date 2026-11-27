@@ -37,7 +37,7 @@ class RegularTimeSrc : public ITimeSrc
 		bool isreference() { return false;}
 		long long getTimeSec(){
 			long long ret = 0;
-			int fd = open(m_path.c_str(), O_RDWR | O_CLOEXEC, 0644);
+			int fd = open(m_path.c_str(), O_RDWR |O_NOFOLLOW|O_CLOEXEC, 0644);
                         if (fd < 0) {
                             // Handle error case (you may want to log this or throw an exception)
                             return ret; // Return early with the default value of ret

@@ -177,7 +177,7 @@ void  RdkDefaultTimeSync::updateTime(long long locTime)
 	ofstream timefile(m_path.c_str(),ios::out);
 	if (timefile.is_open())
 	{
-		timefile<<updatetime<<"\n";
+		timefile<<m_currentTime<<"\n";
 		timefile.close();
 	}
 }
