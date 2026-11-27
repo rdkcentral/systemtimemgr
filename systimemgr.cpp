@@ -846,6 +846,7 @@ void SysTimeMgr::setInitialTime()
 void SysTimeMgr::publishStatus(publishEvent event,string message)
 {
 	TimerMsg msg;
+	memset(&msg, 0, sizeof(msg));
 	msg.event = event;
 	msg.quality = m_timequality;
         memset(msg.message,'\0',cTIMER_STATUS_MESSAGE_LENGTH);
