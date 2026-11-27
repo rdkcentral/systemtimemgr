@@ -31,7 +31,9 @@ class NtpTimeSrc : public ITimeSrc
 
 		long long getTimeSec(){
 			struct ntptimeval tVal; 
-			ntp_gettime(&tVal);
+			const int syncState = ntp_gettime(&tVal);
+            if (syncState == TIME_ERROR || tVal.time.tv_sec <= 0)
+                return 0; 
 			RDK_LOG(RDK_LOG_DEBUG,LOG_SYSTIME,"[%s:%d]:NTP Time Values, MaxValue = %ld, Time in Sec = %lu, Time in Microsec = %d, Estimated Error = %ld, TAI = %ld \n",__FUNCTION__,__LINE__,tVal.maxerror,tVal.time.tv_sec,tVal.time.tv_usec,tVal.esterror,tVal.tai);
 
 			return tVal.time.tv_sec;
